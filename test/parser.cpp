@@ -35,7 +35,7 @@ TEST(Parser, BinaryOp_1)
 
 TEST(Parser, NestedExpression_1)
 {
-	const char input[] = "42 * (-192 + 3.14)";
+	const char input[] = "42 * (192 + 3.14)";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -67,7 +67,7 @@ TEST(Parser, NestedExpression_1)
 
 	// subexpr -> lhs -> literal
 	ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, subexpr->lhs->literal->type);
-	ASSERT_EQ(-192, subexpr->lhs->literal->i_value);
+	ASSERT_EQ(192, subexpr->lhs->literal->i_value);
 
 	// subexpr -> rhs
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, subexpr->rhs->type);
