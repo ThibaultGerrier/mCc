@@ -86,3 +86,25 @@ TEST(Parser, MissingClosingParenthesis_1)
 
 	ASSERT_NE(MCC_PARSER_STATUS_OK, result.status);
 }
+
+TEST(Parser, SourceLocation_SingleLineColumn)
+{
+	const char input[] = "(42 + 192)";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto expr = result.expression;
+
+	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_PARENTH, expr->type);
+	ASSERT_EQ(1, expr->node.sloc.start_col);
+
+	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->expression->type);
+	ASSERT_EQ(2, expr->expression->node.sloc.start_col);
+
+	EXPECT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->expression->lhs->literal->type);
+	ASSERT_EQ(2, expr->expression->lhs->literal->node.sloc.start_col);
+
+	EXPECT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->expression->rhs->literal->type);
+	ASSERT_EQ(7, expr->expression->rhs->literal->node.sloc.start_col);
+}

@@ -16,10 +16,16 @@
 
 int mCc_parser_lex();
 void mCc_parser_error();
+
+#define loc(ast_node, ast_sloc) \
+	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;
+
 %}
 
 %define api.value.type union
 %define api.token.prefix {TK_}
+
+%locations
 
 %token END 0 "EOF"
 
@@ -52,16 +58,16 @@ binary_op : PLUS  { $$ = MCC_AST_BINARY_OP_ADD; }
           | SLASH { $$ = MCC_AST_BINARY_OP_DIV; }
           ;
 
-single_expr : literal                         { $$ = mCc_ast_new_expression_literal($1); }
-            | LPARENTH expression RPARENTH    { $$ = mCc_ast_new_expression_parenth($2); }
+single_expr : literal                         { $$ = mCc_ast_new_expression_literal($1); loc($$, @1); }
+            | LPARENTH expression RPARENTH    { $$ = mCc_ast_new_expression_parenth($2); loc($$, @1); }
             ;
 
-expression : single_expr                      { $$ = $1;                                           }
-           | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
+expression : single_expr                      { $$ = $1;                                           loc($$, @1); }
+           | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
            ;
 
-literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   }
-        | FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); }
+literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   loc($$, @1); }
+        | FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); loc($$, @1); }
         ;
 
 %%
@@ -70,7 +76,10 @@ literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   }
 
 #include "scanner.h"
 
-void yyerror(yyscan_t *scanner, const char *msg) {}
+void mCc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner,
+                      const char *msg)
+{
+}
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {
