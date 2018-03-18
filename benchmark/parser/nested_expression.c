@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
 	const long repetitions = argc >= 2 ? atol(argv[1]) : 100000;
 
-	const char input[] = "42 * (-192 + 3.14)";
+	const char input[] = "42 * (192 + 3.14)";
 
 	for (long i = 0; i < repetitions; i++) {
 		struct mCc_parser_result result = mCc_parser_parse_string(input);
