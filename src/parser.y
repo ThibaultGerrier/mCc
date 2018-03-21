@@ -35,12 +35,34 @@ void mCc_parser_error();
 %token LPARENTH "("
 %token RPARENTH ")"
 
+/***** unary operations *****/
+
+%token NOT "!"
+
+/***** binary operations *****/
+
+/* math operations */
+
 %token PLUS  "+"
 %token MINUS "-"
 %token ASTER "*"
 %token SLASH "/"
 
-%type <enum mCc_ast_binary_op> binary_op
+/* compare operators */
+
+%token LESS "<"
+%token GREATER ">"
+%token LESS_EQUALS "<="
+%token GREATER_EQUALS ">="
+%token AND "&&"
+%token OR "||"
+%token EQUALS "=="
+%token NOT_EQUALS "!="
+
+
+%type <enum mCc_ast_op> unary_op
+
+%type <enum mCc_ast_op> binary_op
 
 %type <struct mCc_ast_expression *> expression single_expr
 %type <struct mCc_ast_literal *> literal
@@ -50,25 +72,38 @@ void mCc_parser_error();
 %%
 
 toplevel : expression { *result = $1; }
+		 ;
+
+
+unary_op :  NOT            { $$ = MCC_AST_UNARY_OP_NOT; }
          ;
 
-binary_op : PLUS  { $$ = MCC_AST_BINARY_OP_ADD; }
-          | MINUS { $$ = MCC_AST_BINARY_OP_SUB; }
-          | ASTER { $$ = MCC_AST_BINARY_OP_MUL; }
-          | SLASH { $$ = MCC_AST_BINARY_OP_DIV; }
-          ;
+binary_op : PLUS           { $$ = MCC_AST_BINARY_OP_ADD; }
+		  | MINUS          { $$ = MCC_AST_BINARY_OP_SUB; }
+		  | ASTER          { $$ = MCC_AST_BINARY_OP_MUL; }
+		  | SLASH          { $$ = MCC_AST_BINARY_OP_DIV; }
+		  | LESS           { $$ = MCC_AST_BINARY_OP_LESS; }
+		  | GREATER		   { $$ = MCC_AST_BINARY_OP_GREATER; }
+		  | LESS_EQUALS    { $$ = MCC_AST_BINARY_OP_LESS_EQUALS; }
+		  | GREATER_EQUALS { $$ = MCC_AST_BINARY_OP_GREATER_EQUALS; }
+		  | AND            { $$ = MCC_AST_BINARY_OP_AND; }
+		  | OR             { $$ = MCC_AST_BINARY_OP_OR; }
+		  | EQUALS         { $$ = MCC_AST_BINARY_OP_EQUALS; }
+		  | NOT_EQUALS     { $$ = MCC_AST_BINARY_OP_NOT_EQUALS; }
+		  ;
 
 single_expr : literal                         { $$ = mCc_ast_new_expression_literal($1); loc($$, @1); }
-            | LPARENTH expression RPARENTH    { $$ = mCc_ast_new_expression_parenth($2); loc($$, @1); }
-            ;
+			| unary_op expression             { $$ = mCc_ast_new_expression_unary_op($1, $2); loc($$, @1); }
+			| LPARENTH expression RPARENTH    { $$ = mCc_ast_new_expression_parenth($2); loc($$, @1); }
+			;
 
 expression : single_expr                      { $$ = $1;                                           loc($$, @1); }
-           | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
-           ;
+		   | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
+		   ;
 
 literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   loc($$, @1); }
-        | FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); loc($$, @1); }
-        ;
+		| FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); loc($$, @1); }
+		;
 
 %%
 
@@ -77,7 +112,7 @@ literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   loc($$, @1); }
 #include "scanner.h"
 
 void mCc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner,
-                      const char *msg)
+					  const char *msg)
 {
 }
 

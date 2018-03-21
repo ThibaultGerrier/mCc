@@ -33,10 +33,20 @@ float_literal [0-9]+\.[0-9]+
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
+"!"               { return TK_NOT; }
 "+"               { return TK_PLUS; }
 "-"               { return TK_MINUS; }
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
+
+"<"               { return TK_LESS; }
+">"               { return TK_GREATER; }
+"<="              { return TK_LESS_EQUALS; }
+">="              { return TK_GREATER_EQUALS; }
+"&&"              { return TK_AND; }
+"||"              { return TK_OR; }
+"=="              { return TK_EQUALS; }
+"!="              { return TK_NOT_EQUALS; }
 
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }

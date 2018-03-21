@@ -25,17 +25,30 @@ struct mCc_ast_node {
 
 /* --------------------------------------------------------------- Operators */
 
-enum mCc_ast_binary_op {
+enum mCc_ast_op {
+	/* binary operators */
 	MCC_AST_BINARY_OP_ADD,
 	MCC_AST_BINARY_OP_SUB,
 	MCC_AST_BINARY_OP_MUL,
 	MCC_AST_BINARY_OP_DIV,
+	MCC_AST_BINARY_OP_LESS,
+	MCC_AST_BINARY_OP_GREATER,
+	MCC_AST_BINARY_OP_LESS_EQUALS,
+	MCC_AST_BINARY_OP_GREATER_EQUALS,
+	MCC_AST_BINARY_OP_AND,
+	MCC_AST_BINARY_OP_OR,
+	MCC_AST_BINARY_OP_EQUALS,
+	MCC_AST_BINARY_OP_NOT_EQUALS,
+
+	/* unary operators */
+	MCC_AST_UNARY_OP_NOT,
 };
 
 /* ------------------------------------------------------------- Expressions */
 
 enum mCc_ast_expression_type {
 	MCC_AST_EXPRESSION_TYPE_LITERAL,
+	MCC_AST_EXPRESSION_TYPE_UNARY_OP,
 	MCC_AST_EXPRESSION_TYPE_BINARY_OP,
 	MCC_AST_EXPRESSION_TYPE_PARENTH,
 };
@@ -49,9 +62,10 @@ struct mCc_ast_expression {
 		struct mCc_ast_literal *literal;
 
 		/* MCC_AST_EXPRESSION_TYPE_BINARY_OP */
+		/* MCC_AST_EXPRESSION_TYPE_UNARY_OP */
 		struct {
-			enum mCc_ast_binary_op op;
-			struct mCc_ast_expression *lhs;
+			enum mCc_ast_op op;
+			struct mCc_ast_expression *lhs; /* only binary operation */
 			struct mCc_ast_expression *rhs;
 		};
 
@@ -63,8 +77,13 @@ struct mCc_ast_expression {
 struct mCc_ast_expression *
 mCc_ast_new_expression_literal(struct mCc_ast_literal *literal);
 
+
 struct mCc_ast_expression *
-mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
+mCc_ast_new_expression_unary_op(enum mCc_ast_op op,
+                                struct mCc_ast_expression *rhs);
+
+struct mCc_ast_expression *
+mCc_ast_new_expression_binary_op(enum mCc_ast_op op,
                                  struct mCc_ast_expression *lhs,
                                  struct mCc_ast_expression *rhs);
 

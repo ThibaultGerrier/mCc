@@ -21,7 +21,25 @@ mCc_ast_new_expression_literal(struct mCc_ast_literal *literal)
 }
 
 struct mCc_ast_expression *
-mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
+mCc_ast_new_expression_unary_op(enum mCc_ast_op op,
+                                struct mCc_ast_expression *rhs)
+{
+	assert(rhs);
+
+	struct mCc_ast_expression *expr = malloc(sizeof(*expr));
+	if (!expr) {
+		return NULL;
+	}
+
+	expr->type = MCC_AST_EXPRESSION_TYPE_UNARY_OP;
+	expr->op = op;
+	expr->lhs = NULL;
+	expr->rhs = rhs;
+	return expr;
+}
+
+struct mCc_ast_expression *
+mCc_ast_new_expression_binary_op(enum mCc_ast_op op,
                                  struct mCc_ast_expression *lhs,
                                  struct mCc_ast_expression *rhs)
 {
@@ -62,6 +80,10 @@ void mCc_ast_delete_expression(struct mCc_ast_expression *expression)
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
 		mCc_ast_delete_literal(expression->literal);
+		break;
+
+	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+		mCc_ast_delete_expression(expression->rhs);
 		break;
 
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:

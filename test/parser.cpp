@@ -87,6 +87,38 @@ TEST(Parser, MissingClosingParenthesis_1)
 	ASSERT_NE(MCC_PARSER_STATUS_OK, result.status);
 }
 
+TEST(Parser, WrongOperatorTest)
+{
+	const char input[] = "8 . 8";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_NE(MCC_PARSER_STATUS_OK, result.status);
+}
+
+TEST(Parser, ComplexMathExpressionTest)
+{
+	const char input[] = "((1 + 8) * !(8 == 8))";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+}
+TEST(Parser, UnaryOperatorTest)
+{
+	const char input[] = "!42";
+	auto result = mCc_parser_parse_string(input);
+
+	auto expr = result.expression;
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
+	ASSERT_EQ(1, expr->node.sloc.start_col);
+
+	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->rhs->type);
+	ASSERT_EQ(2, expr->rhs->literal->node.sloc.start_col);
+
+}
+
 TEST(Parser, SourceLocation_SingleLineColumn)
 {
 	const char input[] = "(42 + 192)";

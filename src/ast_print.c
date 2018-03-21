@@ -6,13 +6,29 @@
 
 #define LABEL_SIZE 64
 
-const char *mCc_ast_print_binary_op(enum mCc_ast_binary_op op)
+const char *mCc_ast_print_op(enum mCc_ast_op op)
 {
 	switch (op) {
+
+    /**** unary operations ****/
+	case MCC_AST_UNARY_OP_NOT: return "!";
+
+    /**** binary operations ****/
+    /* math operations */
 	case MCC_AST_BINARY_OP_ADD: return "+";
 	case MCC_AST_BINARY_OP_SUB: return "-";
 	case MCC_AST_BINARY_OP_MUL: return "*";
 	case MCC_AST_BINARY_OP_DIV: return "/";
+
+    /* compare operations */
+    case MCC_AST_BINARY_OP_LESS: return "<";
+    case MCC_AST_BINARY_OP_GREATER: return ">";
+    case MCC_AST_BINARY_OP_LESS_EQUALS: return "<=";
+    case MCC_AST_BINARY_OP_GREATER_EQUALS: return ">=";
+    case MCC_AST_BINARY_OP_AND: return "&&";
+    case MCC_AST_BINARY_OP_OR: return "||";
+    case MCC_AST_BINARY_OP_EQUALS: return "==";
+    case MCC_AST_BINARY_OP_NOT_EQUALS: return "!=";
 	}
 
 	return "unknown op";
@@ -76,11 +92,27 @@ print_dot_expression_binary_op(struct mCc_ast_expression *expression,
 
 	char label[LABEL_SIZE] = { 0 };
 	snprintf(label, sizeof(label), "expr: %s",
-	         mCc_ast_print_binary_op(expression->op));
+	         mCc_ast_print_op(expression->op));
 
 	FILE *out = data;
 	print_dot_node(out, expression, label);
 	print_dot_edge(out, expression, expression->lhs, "lhs");
+	print_dot_edge(out, expression, expression->rhs, "rhs");
+}
+
+static void
+print_dot_expression_unary_op(struct mCc_ast_expression *expression,
+                               void *data)
+{
+	assert(expression);
+	assert(data);
+
+	char label[LABEL_SIZE] = { 0 };
+	snprintf(label, sizeof(label), "expr: %s",
+	         mCc_ast_print_op(expression->op));
+
+	FILE *out = data;
+	print_dot_node(out, expression, label);
 	print_dot_edge(out, expression, expression->rhs, "rhs");
 }
 
@@ -131,6 +163,7 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 
 		.expression_literal = print_dot_expression_literal,
 		.expression_binary_op = print_dot_expression_binary_op,
+		.expression_unary_op = print_dot_expression_unary_op,
 		.expression_parenth = print_dot_expression_parenth,
 
 		.literal_int = print_dot_literal_int,
