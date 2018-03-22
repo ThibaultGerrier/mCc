@@ -1,0 +1,55 @@
+Build started at 2018-03-22T10:04:55.267473
+Main binary: /usr/bin/python3
+Python system: Linux
+The Meson build system
+Version: 0.45.0
+Source dir: /home/philipp/Compilerbau/mCc
+Build dir: /home/philipp/Compilerbau/mCc/build
+Build type: native build
+Project name: mCc
+Sanity testing C compiler: cc
+Is cross compiler: False.
+Sanity check compiler command line: cc /home/philipp/Compilerbau/mCc/build/meson-private/sanitycheckc.c -o /home/philipp/Compilerbau/mCc/build/meson-private/sanitycheckc.exe
+Sanity check compile stdout:
+
+-----
+Sanity check compile stderr:
+
+-----
+Running test binary command: /home/philipp/Compilerbau/mCc/build/meson-private/sanitycheckc.exe
+Native C compiler: cc (gcc 5.4.0 "cc (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609")
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Program flex found: YES (/usr/bin/flex)
+Program bison found: YES (/usr/bin/bison)
+Using gtest from cache.
+Using gtest-1.8.0-4-wrap.zip from cache.
+
+Executing subproject gtest.
+
+Project name: gtest
+Sanity testing C++ compiler: c++
+Is cross compiler: False.
+Sanity check compiler command line: c++ /home/philipp/Compilerbau/mCc/build/meson-private/sanitycheckcpp.cc -o /home/philipp/Compilerbau/mCc/build/meson-private/sanitycheckcpp.exe
+Sanity check compile stdout:
+
+-----
+Sanity check compile stderr:
+
+-----
+Running test binary command: /home/philipp/Compilerbau/mCc/build/meson-private/sanitycheckcpp.exe
+Native C++ compiler: c++ (gcc 5.4.0 "c++ (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609")
+Dependency threads found: YES
+Dependency threads found: YES (cached)
+Dependency threads found: YES (cached)
+Dependency threads found: YES (cached)
+Build targets in project: 3
+
+Subproject gtest finished.
+Dependency gtest from subproject subprojects/gtest found: YES
+Adding test "parser".
+Adding benchmark "parser/binary_op: 100000".
+Adding benchmark "parser/nested_expression: 100000".
+Program doxygen found: NO
+Build targets in project: 6
+Found ninja-1.5.1 at /usr/bin/ninja

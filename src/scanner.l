@@ -9,6 +9,7 @@
 %option reentrant
 %option yylineno
 
+
 %{
 #include "parser.tab.h"
 
@@ -19,9 +20,11 @@
  * - track lines
  * - take line breaks into account
  */
+
 #define YY_USER_ACTION \
 	yylloc->first_column = yylloc->last_column; \
-	yylloc->last_column += yyleng;
+	yylloc->last_column += yyleng; \
+	yylloc->first_line=yylineno;
 %}
 
 int_literal   [0-9]+
@@ -51,7 +54,8 @@ float_literal [0-9]+\.[0-9]+
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
 
-[ \t\r\n]+        { /* ignore */ }
+[ \t\r\n]+        {}
+
 
 <<EOF>>           { return TK_END; }
 
