@@ -29,12 +29,23 @@
 
 int_literal   [0-9]+
 float_literal [0-9]+\.[0-9]+
+bool_literal  true|false
+string_literal \"[^\"]*\"
+/* string_literal \"(\\.|[^"\\])*\" */
+/* string_literal  \"\.*\" */
 
 %%
+
+{bool_literal}    { yylval->TK_BOOL_LITERAL = strcmp(yytext, "true") == 0; return TK_BOOL_LITERAL; }
 
 {int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
+
+{string_literal}  { yylval->TK_STRING_LITERAL = malloc(strlen(yytext) + 1);
+                    strcpy(yylval->TK_STRING_LITERAL, yytext);
+                    return TK_STRING_LITERAL;
+                   }
 
 "!"               { return TK_NOT; }
 "+"               { return TK_PLUS; }

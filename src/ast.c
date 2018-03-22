@@ -101,6 +101,19 @@ void mCc_ast_delete_expression(struct mCc_ast_expression *expression)
 
 /* ---------------------------------------------------------------- Literals */
 
+
+struct mCc_ast_literal *mCc_ast_new_literal_bool(bool value)
+{
+	struct mCc_ast_literal *lit = malloc(sizeof(*lit));
+	if (!lit) {
+		return NULL;
+	}
+
+	lit->type = MCC_AST_LITERAL_TYPE_BOOL;
+	lit->b_value = value;
+	return lit;
+}
+
 struct mCc_ast_literal *mCc_ast_new_literal_int(long value)
 {
 	struct mCc_ast_literal *lit = malloc(sizeof(*lit));
@@ -125,8 +138,23 @@ struct mCc_ast_literal *mCc_ast_new_literal_float(double value)
 	return lit;
 }
 
+struct mCc_ast_literal *mCc_ast_new_literal_string(char* value)
+{
+	struct mCc_ast_literal *lit = malloc(sizeof(*lit));
+	if (!lit) {
+		return NULL;
+	}
+
+	lit->type = MCC_AST_LITERAL_TYPE_STRING;
+	lit->s_value = value;
+	return lit;
+}
+
 void mCc_ast_delete_literal(struct mCc_ast_literal *literal)
 {
 	assert(literal);
+    if (literal->type == MCC_AST_LITERAL_TYPE_STRING) {
+        free(literal->s_value);
+    }
 	free(literal);
 }

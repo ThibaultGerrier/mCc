@@ -29,8 +29,10 @@ void mCc_parser_error();
 
 %token END 0 "EOF"
 
+%token <bool>   BOOL_LITERAL   "bool literal"
 %token <long>   INT_LITERAL   "integer literal"
 %token <double> FLOAT_LITERAL "float literal"
+%token <char*>   STRING_LITERAL   "string literal"
 
 %token LPARENTH "("
 %token RPARENTH ")"
@@ -74,7 +76,6 @@ void mCc_parser_error();
 toplevel : expression { *result = $1; }
 		 ;
 
-
 unary_op :  NOT            { $$ = MCC_AST_UNARY_OP_NOT; }
          ;
 
@@ -101,8 +102,10 @@ expression : single_expr                      { $$ = $1;                        
 		   | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
 		   ;
 
-literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   loc($$, @1); }
+literal : BOOL_LITERAL   { $$ = mCc_ast_new_literal_bool($1);   loc($$, @1); }
+        | INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   loc($$, @1); }
 		| FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); loc($$, @1); }
+		| STRING_LITERAL { $$ = mCc_ast_new_literal_string($1); loc($$, @1); }
 		;
 
 %%

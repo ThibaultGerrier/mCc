@@ -102,6 +102,7 @@ TEST(Parser, ComplexMathExpressionTest)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
+
 TEST(Parser, UnaryOperatorTest)
 {
 	const char input[] = "!42";
@@ -117,6 +118,33 @@ TEST(Parser, UnaryOperatorTest)
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->rhs->type);
 	ASSERT_EQ(2, expr->rhs->literal->node.sloc.start_col);
 
+}
+
+TEST(Parser, BoolLiteralTest)
+{
+	const char valid_bool_input[] = "true";
+	const char string_input[] = "\"true\"";
+	const char invalid_bool_input[] = "falllse";
+
+	auto valid_bool_result = mCc_parser_parse_string(valid_bool_input);
+	auto invalid_bool_result = mCc_parser_parse_string(invalid_bool_input);
+	auto string_result = mCc_parser_parse_string(string_input);
+
+	auto valid_bool_expr = valid_bool_result.expression;
+	auto string_expr = string_result.expression;
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, valid_bool_result.status);
+	ASSERT_EQ(MCC_PARSER_STATUS_UNKNOWN_ERROR, invalid_bool_result.status);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, string_result.status);
+
+	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, valid_bool_expr->type);
+	ASSERT_EQ(MCC_AST_LITERAL_TYPE_BOOL, valid_bool_expr->literal->type);
+	ASSERT_EQ(1, valid_bool_expr->node.sloc.start_col);
+
+	EXPECT_EQ(true, valid_bool_expr->literal->b_value);
+
+	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, valid_bool_expr->type);
+	EXPECT_EQ(0, strcmp(string_expr->literal->s_value, "\"true\""));
 }
 
 TEST(Parser, SourceLocation_SingleLineColumn)

@@ -127,6 +127,18 @@ static void print_dot_expression_parenth(struct mCc_ast_expression *expression,
 	print_dot_edge(out, expression, expression->expression, "expression");
 }
 
+static void print_dot_literal_bool(struct mCc_ast_literal *literal, void *data)
+{
+	assert(literal);
+	assert(data);
+
+	char label[LABEL_SIZE] = { 0 };
+    snprintf(label, sizeof(label), literal->b_value ? "true" : "false");
+
+	FILE *out = data;
+	print_dot_node(out, literal, label);
+}
+
 static void print_dot_literal_int(struct mCc_ast_literal *literal, void *data)
 {
 	assert(literal);
@@ -151,6 +163,18 @@ static void print_dot_literal_float(struct mCc_ast_literal *literal, void *data)
 	print_dot_node(out, literal, label);
 }
 
+static void print_dot_literal_string(struct mCc_ast_literal *literal, void *data)
+{
+	assert(literal);
+	assert(data);
+
+	char label[LABEL_SIZE] = { 0 };
+	snprintf(label, sizeof(label), "%s", literal->s_value);
+
+	FILE *out = data;
+	print_dot_node(out, literal, label);
+}
+
 static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 {
 	assert(out);
@@ -166,8 +190,10 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 		.expression_unary_op = print_dot_expression_unary_op,
 		.expression_parenth = print_dot_expression_parenth,
 
+		.literal_bool = print_dot_literal_bool,
 		.literal_int = print_dot_literal_int,
 		.literal_float = print_dot_literal_float,
+		.literal_string = print_dot_literal_string,
 	};
 }
 
