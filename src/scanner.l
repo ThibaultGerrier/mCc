@@ -33,19 +33,19 @@ bool_literal  true|false
 string_literal \"[^\"]*\"
 /* string_literal \"(\\.|[^"\\])*\" */
 /* string_literal  \"\.*\" */
+identifier   [a-zA-Z_][a-zA-Z0-9_]*
+
 
 %%
 
-{bool_literal}    { yylval->TK_BOOL_LITERAL = strcmp(yytext, "true") == 0; return TK_BOOL_LITERAL; }
+"bool"            { return TK_BOOL_TYPE; }
+"int"             { return TK_INT_TYPE; }
+"float"           { return TK_FLOAT_TYPE; }
+"string"          { return TK_STRING_TYPE; }
+"void"          { return TK_VOID_TYPE; }
 
-{int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
-
-{float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
-
-{string_literal}  { yylval->TK_STRING_LITERAL = malloc(strlen(yytext) + 1);
-                    strcpy(yylval->TK_STRING_LITERAL, yytext);
-                    return TK_STRING_LITERAL;
-                   }
+"if"              { return TK_IF; }
+"else"            { return TK_ELSE; }
 
 "!"               { return TK_NOT; }
 "+"               { return TK_PLUS; }
@@ -65,8 +65,32 @@ string_literal \"[^\"]*\"
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
 
+"["               { return TK_LBRACKET; }
+"]"               { return TK_RBRACKET; }
+
+"{"               { return TK_LBRACE; }
+"}"               { return TK_RBRACE; }
+
+
+","               { return TK_COMMA; }
+";"               { return TK_SEMIKOLON; }
+"="               { return TK_ASSIGNMENT; }
+
 [ \t\r\n]+        {}
 
+
+{bool_literal}    { yylval->TK_BOOL_LITERAL = strcmp(yytext, "true") == 0; return TK_BOOL_LITERAL; }
+
+{int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
+
+{float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
+
+{string_literal}  { yylval->TK_STRING_LITERAL = malloc(strlen(yytext) + 1);
+                    strcpy(yylval->TK_STRING_LITERAL, yytext);
+                    return TK_STRING_LITERAL;
+                  }
+
+{identifier}      { yylval->TK_ID = mCc_ast_new_identifier(yytext); return TK_ID; }
 
 <<EOF>>           { return TK_END; }
 

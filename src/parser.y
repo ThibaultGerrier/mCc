@@ -2,7 +2,7 @@
 
 %define api.pure full
 %lex-param   {void *scanner}
-%parse-param {void *scanner} {struct mCc_ast_expression** result}
+%parse-param {void *scanner} {struct mCc_ast_expression** result_e}{struct mCc_ast_program** result}
 
 %define parse.trace
 %define parse.error verbose
@@ -18,7 +18,10 @@ int mCc_parser_lex();
 void mCc_parser_error();
 
 #define loc(ast_node, ast_sloc) \
-	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;
+{\
+	(ast_node)->node.sloc.start_col = (ast_sloc).first_column; \
+	(ast_node)->node.sloc.end_col = (ast_sloc).last_column;\
+}
 
 %}
 
@@ -29,13 +32,46 @@ void mCc_parser_error();
 
 %token END 0 "EOF"
 
+/***** identifier ******/
+%token <struct mCc_ast_identifier* > ID "identifier"
+
+/***** literals *****/
+
 %token <bool>   BOOL_LITERAL   "bool literal"
 %token <long>   INT_LITERAL   "integer literal"
 %token <double> FLOAT_LITERAL "float literal"
 %token <char*>   STRING_LITERAL   "string literal"
 
+/***** types *****/
+
+%token BOOL_TYPE "bool type"
+%token INT_TYPE "int type"
+%token FLOAT_TYPE "float type"
+%token STRING_TYPE "string type"
+%token VOID_TYPE "void type"
+
+/***** statements *****/
+
+%token IF "if"
+%token ELSE "else"
+
+
+/***** special chars *****/
+
 %token LPARENTH "("
 %token RPARENTH ")"
+
+%token LBRACKET "["
+%token RBRACKET "]"
+
+%token LBRACE "{"
+%token RBRACE "}"
+
+%token COMMA ","
+
+%token SEMIKOLON ";"
+
+%token ASSIGNMENT "="
 
 /***** unary operations *****/
 
@@ -62,29 +98,48 @@ void mCc_parser_error();
 %token NOT_EQUALS "!="
 
 
-%type <enum mCc_ast_op> unary_op
+%type <enum mCc_ast_unary_op> unary_op
 
-%type <enum mCc_ast_op> binary_op
+%type <enum mCc_ast_binary_op> binary_op
+
+%type <enum mCc_ast_type> type
+
+%type <enum mCc_ast_type> return_type
 
 %type <struct mCc_ast_expression *> expression single_expr
+%type <struct mCc_ast_statement *> statement if_stmt compound_stmt
+%type <struct mCc_ast_statement_list *> statement_list
 %type <struct mCc_ast_literal *> literal
 
-%start toplevel
+%type <struct mCc_ast_declaration *> declaration
+%type <struct mCc_ast_assignment *> assignment
+
+%type <struct mCc_ast_function_def *> function_def
+%type <struct mCc_ast_function_def_list *> function_def_list
+%type <struct mCc_ast_program *> program
+
+/* %type <struct mCc_ast_parameter *> parameter */
+%type <struct mCc_ast_parameter *> parameters
+
+%start program
 
 %%
 
-toplevel : expression { *result = $1; }
-		 ;
+type : BOOL_TYPE           { $$ = MCC_AST_TYPE_BOOL; }
+	 | INT_TYPE            { $$ = MCC_AST_TYPE_INT; }
+	 | FLOAT_TYPE          { $$ = MCC_AST_TYPE_FLOAT; }
+	 | STRING_TYPE         { $$ = MCC_AST_TYPE_STRING; }
+	 ;
 
 unary_op :  NOT            { $$ = MCC_AST_UNARY_OP_NOT; }
-         ;
+		 ;
 
 binary_op : PLUS           { $$ = MCC_AST_BINARY_OP_ADD; }
 		  | MINUS          { $$ = MCC_AST_BINARY_OP_SUB; }
 		  | ASTER          { $$ = MCC_AST_BINARY_OP_MUL; }
 		  | SLASH          { $$ = MCC_AST_BINARY_OP_DIV; }
 		  | LESS           { $$ = MCC_AST_BINARY_OP_LESS; }
-		  | GREATER		   { $$ = MCC_AST_BINARY_OP_GREATER; }
+		  | GREATER        { $$ = MCC_AST_BINARY_OP_GREATER; }
 		  | LESS_EQUALS    { $$ = MCC_AST_BINARY_OP_LESS_EQUALS; }
 		  | GREATER_EQUALS { $$ = MCC_AST_BINARY_OP_GREATER_EQUALS; }
 		  | AND            { $$ = MCC_AST_BINARY_OP_AND; }
@@ -93,9 +148,11 @@ binary_op : PLUS           { $$ = MCC_AST_BINARY_OP_ADD; }
 		  | NOT_EQUALS     { $$ = MCC_AST_BINARY_OP_NOT_EQUALS; }
 		  ;
 
-single_expr : literal                         { $$ = mCc_ast_new_expression_literal($1); loc($$, @1); }
-			| unary_op expression             { $$ = mCc_ast_new_expression_unary_op($1, $2); loc($$, @1); }
-			| LPARENTH expression RPARENTH    { $$ = mCc_ast_new_expression_parenth($2); loc($$, @1); }
+single_expr : ID                                       { $$ = mCc_ast_new_expression_identifier($1);            loc($$, @1); }
+			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);  loc($$, @1); }
+			| literal                                  { $$ = mCc_ast_new_expression_literal($1);               loc($$, @1); }
+			| unary_op expression                      { $$ = mCc_ast_new_expression_unary_op($1, $2);          loc($$, @1); }
+			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);               loc($$, @1); }
 			;
 
 expression : single_expr                      { $$ = $1;                                           loc($$, @1); }
@@ -103,9 +160,64 @@ expression : single_expr                      { $$ = $1;                        
 		   ;
 
 literal : BOOL_LITERAL   { $$ = mCc_ast_new_literal_bool($1);   loc($$, @1); }
-        | INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   loc($$, @1); }
-		| FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); loc($$, @1); }
+		| INT_LITERAL    { $$ = mCc_ast_new_literal_int($1);    loc($$, @1); }
+		| FLOAT_LITERAL  { $$ = mCc_ast_new_literal_float($1);  loc($$, @1); }
 		| STRING_LITERAL { $$ = mCc_ast_new_literal_string($1); loc($$, @1); }
+		;
+
+statement : if_stmt                { $$ = $1;                                     loc($$, @1); }
+		  | expression SEMIKOLON   { $$ = mCc_ast_new_statement_expression($1);   loc($$, @1); }
+		  | assignment SEMIKOLON   { $$ = mCc_ast_new_statement_assignment($1);   loc($$, @1); }
+		  | declaration SEMIKOLON  { $$ = mCc_ast_new_statement_declaration($1);  loc($$, @1); }
+		  | compound_stmt          { $$ = $1;                                     loc($$, @1); }
+		  ;
+
+statement_list : statement statement_list { $$ = mCc_ast_new_statement_list($1); $$->next = $2; loc($$, @1); }
+			   | statement                { $$ = mCc_ast_new_statement_list($1);                loc($$, @1); }
+			   ;
+
+if_stmt : IF LPARENTH expression RPARENTH statement                { $$ = mCc_ast_new_statement_if($3, $5, NULL); loc($$, @1); }
+		| IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mCc_ast_new_statement_if($3, $5, $7); loc($$, @1); }
+		;
+/* statement        = if_stmt */
+/*                  | while_stmt */
+/*                  | ret_stmt */
+/*                  | declaration , ";" */
+/*                  | assignment  , ";" */
+/*                  | expression  , ";" */
+/*                  | compound_stmt */
+
+return_type : type { $$ = $1; }
+			| VOID_TYPE { $$ = MCC_AST_TYPE_VOID;}
+			;
+
+declaration : type ID                               { $$ = mCc_ast_new_declaration($1, $2);           loc($$, @1); }
+			| type ID LBRACKET INT_LITERAL RBRACKET { $$ = mCc_ast_new_array_declaration($1, $2, $4); loc($$, @1); }
+			;
+
+assignment  : ID ASSIGNMENT expression									{ $$ = mCc_ast_new_assignment($1, $3);                 loc($$, @1); }
+			| ID LBRACKET expression RBRACKET ASSIGNMENT expression     { $$ = mCc_ast_new_array_assignment($1, $3, $6);       loc($$, @1); }
+
+parameters  : declaration COMMA parameters { $$ = mCc_ast_new_parameter($1); $$->next = $3; loc($$, @1); }
+			| declaration                  { $$ = mCc_ast_new_parameter($1); loc($$, @1); }
+			;
+
+
+compound_stmt   : LBRACE statement_list RBRACE			{ $$ = mCc_ast_new_statement_compound($2);								loc($$, @1);}
+				| LBRACE RBRACE		                    { $$ = mCc_ast_new_statement_compound(NULL);							loc($$, @1);}
+				;
+
+function_def : return_type ID LPARENTH parameters RPARENTH compound_stmt { $$ = mCc_ast_new_function_def($1, $2, $4, $6);   loc($$, @1);}
+			 | return_type ID LPARENTH RPARENTH compound_stmt { $$ = mCc_ast_new_function_def($1, $2, NULL, $5); loc($$, @1);}
+			 ;
+
+function_def_list : function_def function_def_list { $$ = mCc_ast_new_function_def_list($1); $$->next = $2; loc($$, @1); }
+				  | function_def                   { $$ = mCc_ast_new_function_def_list($1);                loc($$, @1); }
+				  ;
+
+
+program : function_def_list { *result = mCc_ast_new_program($1); }
+		| expression { *result_e = $1; }
 		;
 
 %%
@@ -150,7 +262,7 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 		.status = MCC_PARSER_STATUS_OK,
 	};
 
-	if (yyparse(scanner, &result.expression) != 0) {
+	if (yyparse(scanner, &result.expression, &result.program) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
 

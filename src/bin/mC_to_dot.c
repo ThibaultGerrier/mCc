@@ -8,6 +8,7 @@
 int main(void)
 {
 	struct mCc_ast_expression *expr = NULL;
+	struct mCc_ast_program *program = NULL;
 
 	/* parsing phase */
 	{
@@ -16,11 +17,16 @@ int main(void)
 			return EXIT_FAILURE;
 		}
 		expr = result.expression;
+		program = result.program;
 	}
 
-	mCc_ast_print_dot_expression(stdout, expr);
+	mCc_ast_print_dot_program(stdout, program);
+	mCc_ast_delete_program(program);
+	if (expr != NULL)
+		mCc_ast_delete_expression(expr);
+	/* mCc_ast_print_dot_expression(stdout, expr); */
 
-	mCc_ast_delete_expression(expr);
+	/* mCc_ast_delete_expression(expr); */
 
 	return EXIT_SUCCESS;
 }
