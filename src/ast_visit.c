@@ -41,8 +41,6 @@ void mCc_ast_visit_function_def_list(
 {
 	assert(function_def_list);
 	assert(visitor);
-	/* visit_if_pre_order(function_def_list, visitor->function_def_list,
-	 * visitor); */
 
 	struct mCc_ast_function_def_list *next = function_def_list;
 	while (next != NULL) {
@@ -52,8 +50,6 @@ void mCc_ast_visit_function_def_list(
 		                    visitor);
 		next = next->next;
 	}
-	/* visit_if_post_order(function_def_list, visitor->function_def_list,
-	 * visitor); */
 }
 
 void mCc_ast_visit_function_def(struct mCc_ast_function_def *function_def,
@@ -62,8 +58,6 @@ void mCc_ast_visit_function_def(struct mCc_ast_function_def *function_def,
 	assert(function_def);
 	assert(visitor);
 	visit_if_pre_order(function_def, visitor->function_def, visitor);
-	/* mCc_ast_visit_type(function_def) */
-	/* function_def->compound_stmt */
 	mCc_ast_visit_statement(function_def->compound_stmt, visitor);
 	mCc_ast_visit_type(&function_def->return_type, visitor);
 	mCc_ast_visit_identifier(function_def->function_identifier, visitor);
@@ -75,8 +69,6 @@ void mCc_ast_visit_parameters(struct mCc_ast_parameter *parameters,
                               struct mCc_ast_visitor *visitor)
 {
 	assert(visitor);
-	/* visit_if_pre_order(function_def_list, visitor->function_def_list,
-	 * visitor); */
 
 	struct mCc_ast_parameter *next = parameters;
 	while (next != NULL) {
@@ -85,8 +77,20 @@ void mCc_ast_visit_parameters(struct mCc_ast_parameter *parameters,
 		visit_if_post_order(next, visitor->parameter, visitor);
 		next = next->next;
 	}
-	/* visit_if_post_order(function_def_list, visitor->function_def_list,
-	 * visitor); */
+}
+
+void mCc_ast_visit_arguments(struct mCc_ast_argument_list *arguments,
+                             struct mCc_ast_visitor *visitor)
+{
+	assert(arguments);
+	assert(visitor);
+	struct mCc_ast_argument_list *next = arguments;
+	while (next != NULL) {
+		visit_if_pre_order(next, visitor->argument_list, visitor);
+		mCc_ast_visit_expression(next->expression, visitor);
+		visit_if_post_order(arguments, visitor->argument_list, visitor);
+		next = next->next;
+	}
 }
 
 void mCc_ast_visit_declaration(struct mCc_ast_declaration *declaration,
@@ -163,6 +167,15 @@ void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
 		                         visitor);
 		visit_if_post_order(expression, visitor->expression_array_identifier,
 		                    visitor);
+		break;
+
+	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
+		visit_if_pre_order(expression, visitor->expression_call_expr, visitor);
+		mCc_ast_visit_identifier(expression->call_expr.identifier, visitor);
+		if (expression->call_expr.arguments != NULL) {
+			mCc_ast_visit_arguments(expression->call_expr.arguments, visitor);
+		}
+		visit_if_post_order(expression, visitor->expression_call_expr, visitor);
 		break;
 
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
@@ -254,6 +267,7 @@ void mCc_ast_visit_statement(struct mCc_ast_statement *statement,
 		break;
 
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT:
 		visit_if_pre_order(statement, visitor->statement_assignment, visitor);
 		if (statement->assignment != NULL) {
 			mCc_ast_visit_assignment(statement->assignment, visitor);

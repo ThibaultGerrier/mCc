@@ -90,8 +90,9 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
-{string_literal}  { yylval->TK_STRING_LITERAL = malloc(strlen(yytext) + 1);
-                    strcpy(yylval->TK_STRING_LITERAL, yytext);
+{string_literal}  { int len = strlen(yytext) - 1; yylval->TK_STRING_LITERAL = malloc(len);
+                    memcpy(yylval->TK_STRING_LITERAL, &yytext[1], len);
+                    yylval->TK_STRING_LITERAL[len - 1] = '\0';
                     return TK_STRING_LITERAL;
                   }
 

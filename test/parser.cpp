@@ -145,7 +145,7 @@ TEST(Parser, BoolLiteralTest)
 	EXPECT_EQ(true, valid_bool_expr->literal->b_value);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, valid_bool_expr->type);
-	EXPECT_EQ(0, strcmp(string_expr->literal->s_value, "\"true\""));
+	EXPECT_EQ(0, strcmp(string_expr->literal->s_value, "true"));
 
 	mCc_ast_delete_expression(valid_bool_expr);
 	mCc_ast_delete_expression(string_expr);

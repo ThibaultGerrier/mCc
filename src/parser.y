@@ -108,7 +108,7 @@ void mCc_parser_error();
 
 %type <enum mCc_ast_type> return_type
 
-%type <struct mCc_ast_expression *> expression single_expr single_expr_level_1 single_expr_level_2
+%type <struct mCc_ast_expression *> expression single_expr call_expr single_expr_level_1 single_expr_level_2
 %type <struct mCc_ast_statement *> statement if_stmt compound_stmt
 %type <struct mCc_ast_statement_list *> statement_list
 %type <struct mCc_ast_literal *> literal literal_num
@@ -120,8 +120,8 @@ void mCc_parser_error();
 %type <struct mCc_ast_function_def_list *> function_def_list
 %type <struct mCc_ast_program *> program
 
-/* %type <struct mCc_ast_parameter *> parameter */
 %type <struct mCc_ast_parameter *> parameters
+%type <struct mCc_ast_argument_list *> arguments
 
 %start program
 
@@ -159,9 +159,10 @@ expression: single_expr_level_1 binary_op expression { $$ = mCc_ast_new_expressi
           | single_expr_level_1                      { $$ = $1;                                           loc($$, @1); }
           ;
 
-single_expr : ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                         loc($$, @1); }
+single_expr : literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                            loc($$, @1); }
+			| ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                         loc($$, @1); }
 			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);                                               loc($$, @1); }
-			| literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                            loc($$, @1); }
+			| call_expr                                { $$ = $1;                                                                                            loc($$, @1); }
             | unary_op literal_num			           { struct mCc_ast_expression * expression =  mCc_ast_new_expression_literal($2);
                                                             $$ = mCc_ast_new_expression_unary_op($1,expression);                        loc($$, @1); loc(expression, @2); }
 			| unary_op expression                      { $$ = mCc_ast_new_expression_unary_op($1, $2);                                                       loc($$, @1); }
@@ -219,6 +220,13 @@ parameters  : declaration COMMA parameters { $$ = mCc_ast_new_parameter($1); $$-
 			| declaration                  { $$ = mCc_ast_new_parameter($1);                loc($$, @1); }
 			;
 
+call_expr : ID LPARENTH arguments RPARENTH     { $$ = mCc_ast_new_expression_call_expr($1, $3);                loc($$, @1); }
+          | ID LPARENTH RPARENTH               { $$ = mCc_ast_new_expression_call_expr($1, NULL);              loc($$, @1); }
+		  ;
+
+arguments : expression COMMA arguments         { $$ = mCc_ast_new_argument_list($1); $$->next = $3; loc($$, @1); }
+		  | expression                         { $$ = mCc_ast_new_argument_list($1);                loc($$, @1); }
+		  ;
 
 compound_stmt   : LBRACE statement_list RBRACE			{ $$ = mCc_ast_new_statement_compound($2);		loc($$, @1);}
 				| LBRACE RBRACE		                    { $$ = mCc_ast_new_statement_compound(NULL);	loc($$, @1);}

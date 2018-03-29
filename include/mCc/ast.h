@@ -161,6 +161,19 @@ mCc_ast_new_parameter(struct mCc_ast_declaration *declaration);
 
 void mCc_ast_delete_parameter(struct mCc_ast_parameter *parameter);
 
+/* ------------------------------------------------------------- Arguments */
+
+struct mCc_ast_argument_list {
+	struct mCc_ast_node node;
+	struct mCc_ast_argument_list *next;
+	struct mCc_ast_expression *expression;
+};
+
+struct mCc_ast_argument_list *
+mCc_ast_new_argument_list(struct mCc_ast_expression *expression);
+
+void mCc_ast_delete_argument_list(struct mCc_ast_argument_list *argument_list);
+
 /* ------------------------------------------------------------- Assignment */
 
 enum mCc_ast_assignment_type {
@@ -201,6 +214,7 @@ enum mCc_ast_expression_type {
 	MCC_AST_EXPRESSION_TYPE_LITERAL,
 	MCC_AST_EXPRESSION_TYPE_IDENTIFIER,
 	MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER,
+	MCC_AST_EXPRESSION_TYPE_CALL_EXPR,
 	MCC_AST_EXPRESSION_TYPE_UNARY_OP,
 	MCC_AST_EXPRESSION_TYPE_BINARY_OP,
 	MCC_AST_EXPRESSION_TYPE_PARENTH,
@@ -228,13 +242,19 @@ struct mCc_ast_expression {
 		} unary_op;
 
 		/* MCC_AST_EXPRESSION_TYPE_IDENTIFIER */
-		/* MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER */
 		struct mCc_ast_identifier *identifier;
 
+		/* MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER */
 		struct {
 			struct mCc_ast_identifier *identifier;
 			struct mCc_ast_expression *expression;
 		} array_identifier;
+
+		/* MCC_AST_EXPRESSION_TYPE_CALL_EXPR */
+		struct {
+			struct mCc_ast_identifier *identifier;
+			struct mCc_ast_argument_list *arguments;
+		} call_expr;
 
 		/* MCC_AST_EXPRESSION_TYPE_PARENTH */
 		struct mCc_ast_expression *expression;
@@ -247,6 +267,10 @@ mCc_ast_new_expression_identifier(struct mCc_ast_identifier *identifier);
 struct mCc_ast_expression *
 mCc_ast_new_expression_array_identifier(struct mCc_ast_identifier *identifier,
                                         struct mCc_ast_expression *expression);
+
+struct mCc_ast_expression *
+mCc_ast_new_expression_call_expr(struct mCc_ast_identifier *identifier,
+                                 struct mCc_ast_argument_list *arguments);
 
 struct mCc_ast_expression *
 mCc_ast_new_expression_literal(struct mCc_ast_literal *literal);
@@ -288,6 +312,7 @@ enum mCc_ast_statement_type {
 	MCC_AST_STATEMENT_TYPE_RETURN,
 	MCC_AST_STATEMENT_TYPE_DECLARATION,
 	MCC_AST_STATEMENT_TYPE_ASSIGNMENT,
+	MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT,
 	MCC_AST_STATEMENT_TYPE_EXPRESSION,
 	MCC_AST_STATEMENT_TYPE_COMPOUND_STMT
 };

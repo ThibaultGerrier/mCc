@@ -95,6 +95,30 @@ void mCc_ast_delete_parameter(struct mCc_ast_parameter *parameter)
 	}
 }
 
+/* ------------------------------------------------------------- Arguments */
+
+struct mCc_ast_argument_list *
+mCc_ast_new_argument_list(struct mCc_ast_expression *expression)
+{
+	assert(expression);
+
+	struct mCc_ast_argument_list *list = malloc(sizeof(*list));
+	assert(list);
+
+	list->expression = expression;
+	list->next = NULL;
+	return list;
+}
+
+void mCc_ast_delete_argument_list(struct mCc_ast_argument_list *argument_list)
+{
+	assert(argument_list);
+	mCc_ast_delete_expression(argument_list->expression);
+	if (argument_list->next != NULL) {
+		mCc_ast_delete_argument_list(argument_list->next);
+	}
+}
+
 /* ------------------------------------------------------------- Assignment */
 
 struct mCc_ast_assignment *
@@ -173,6 +197,21 @@ mCc_ast_new_expression_array_identifier(struct mCc_ast_identifier *identifier,
 	expr->type = MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER;
 	expr->array_identifier.identifier = identifier;
 	expr->array_identifier.expression = expression;
+	return expr;
+}
+
+struct mCc_ast_expression *
+mCc_ast_new_expression_call_expr(struct mCc_ast_identifier *identifier,
+                                 struct mCc_ast_argument_list *arguments)
+{
+	assert(identifier);
+
+	struct mCc_ast_expression *expr = malloc(sizeof(*expr));
+	assert(expr);
+
+	expr->type = MCC_AST_EXPRESSION_TYPE_CALL_EXPR;
+	expr->call_expr.identifier = identifier;
+	expr->call_expr.arguments = arguments;
 	return expr;
 }
 
@@ -265,6 +304,13 @@ void mCc_ast_delete_expression(struct mCc_ast_expression *expression)
 		mCc_ast_delete_identifier(expression->array_identifier.identifier);
 		mCc_ast_delete_expression(expression->array_identifier.expression);
 		break;
+
+	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
+		mCc_ast_delete_identifier(expression->call_expr.identifier);
+		if (expression->call_expr.arguments != NULL) {
+			mCc_ast_delete_argument_list(expression->call_expr.arguments);
+		}
+		break;
 	}
 
 	free(expression);
@@ -347,7 +393,9 @@ mCc_ast_new_statement_assignment(struct mCc_ast_assignment *assignment)
 	struct mCc_ast_statement *stmt = malloc(sizeof(*stmt));
 	assert(stmt);
 
-	stmt->type = MCC_AST_STATEMENT_TYPE_ASSIGNMENT;
+	stmt->type = assignment->type == MCC_AST_ASSIGNMENT_TYPE_NORMAL
+	                 ? MCC_AST_STATEMENT_TYPE_ASSIGNMENT
+	                 : MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT;
 	stmt->assignment = assignment;
 	return stmt;
 }
@@ -410,6 +458,7 @@ void mCc_ast_delete_statement(struct mCc_ast_statement *statement)
 		}
 		break;
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT:
 		mCc_ast_delete_assignment(statement->assignment);
 		break;
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
