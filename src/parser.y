@@ -131,7 +131,8 @@ type : BOOL_TYPE           { $$ = MCC_AST_TYPE_BOOL; }
 	 | STRING_TYPE         { $$ = MCC_AST_TYPE_STRING; }
 	 ;
 
-unary_op :  NOT            { $$ = MCC_AST_UNARY_OP_NOT; }
+unary_op : NOT             { $$ = MCC_AST_UNARY_OP_NOT; }
+         | MINUS           { $$ = MCC_AST_UNARY_OP_MINUS; }
 		 ;
 
 binary_op : LESS           { $$ = MCC_AST_BINARY_OP_LESS; }
@@ -156,9 +157,11 @@ expression: single_expr_level_1 binary_op expression { $$ = mCc_ast_new_expressi
           | single_expr_level_1                      { $$ = $1;                                           loc($$, @1); }
           ;
 
-single_expr : ID                                       { $$ = mCc_ast_new_expression_identifier($1);            loc($$, @1); }
-			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);  loc($$, @1); }
-			| literal                                  { $$ = mCc_ast_new_expression_literal($1);               loc($$, @1); }
+single_expr : ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                              loc($$, @1); }
+			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);                                                    loc($$, @1); }
+			| literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                                 loc($$, @1); }
+            | unary_op INT_LITERAL			           { $$ = mCc_ast_new_expression_unary_op($1, mCc_ast_new_expression_literal(mCc_ast_new_literal_int($2)));   loc($$, @1); }
+            | unary_op FLOAT_LITERAL				   { $$ = mCc_ast_new_expression_unary_op($1, mCc_ast_new_expression_literal(mCc_ast_new_literal_float($2))); loc($$, @1); }
 			| unary_op expression                      { $$ = mCc_ast_new_expression_unary_op($1, $2);          loc($$, @1); }
 			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);               loc($$, @1); }
 			;

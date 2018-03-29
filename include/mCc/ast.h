@@ -115,6 +115,7 @@ enum mCc_ast_binary_op {
 
 enum mCc_ast_unary_op {
 	MCC_AST_UNARY_OP_NOT,
+	MCC_AST_UNARY_OP_MINUS
 };
 
 /* ------------------------------------------------------------- Declaration */

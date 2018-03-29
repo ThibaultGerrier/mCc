@@ -34,7 +34,13 @@ const char *mCc_ast_print_binary_op(enum mCc_ast_binary_op op)
 const char *mCc_ast_print_unary_op(enum mCc_ast_unary_op op)
 {
 	/**** unary operations ****/
-	return "!";
+	switch (op) {
+		case MCC_AST_UNARY_OP_NOT:
+			return "!";
+		case MCC_AST_UNARY_OP_MINUS:
+			return "-";
+	}
+
 }
 
 const char *mCc_ast_print_statement(enum mCc_ast_statement_type stmt)
