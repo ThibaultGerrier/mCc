@@ -76,6 +76,9 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 ";"               { return TK_SEMIKOLON; }
 "="               { return TK_ASSIGNMENT; }
 
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }
+[/][*]                                    { /*TODO handle this case (unterminated comments)*/  }
+
 [ \t\r\n]+        {}
 
 
