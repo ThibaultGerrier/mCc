@@ -111,7 +111,7 @@ void mCc_parser_error();
 %type <struct mCc_ast_expression *> expression single_expr single_expr_level_1 single_expr_level_2
 %type <struct mCc_ast_statement *> statement if_stmt compound_stmt
 %type <struct mCc_ast_statement_list *> statement_list
-%type <struct mCc_ast_literal *> literal
+%type <struct mCc_ast_literal *> literal literal_num
 
 %type <struct mCc_ast_declaration *> declaration
 %type <struct mCc_ast_assignment *> assignment
@@ -159,13 +159,13 @@ expression: single_expr_level_1 binary_op expression { $$ = mCc_ast_new_expressi
           | single_expr_level_1                      { $$ = $1;                                           loc($$, @1); }
           ;
 
-single_expr : ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                              loc($$, @1); }
-			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);                                                    loc($$, @1); }
-			| literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                                 loc($$, @1); }
-            | unary_op INT_LITERAL			           { $$ = mCc_ast_new_expression_unary_op($1, mCc_ast_new_expression_literal(mCc_ast_new_literal_int($2)));   loc($$, @1); }
-            | unary_op FLOAT_LITERAL				   { $$ = mCc_ast_new_expression_unary_op($1, mCc_ast_new_expression_literal(mCc_ast_new_literal_float($2))); loc($$, @1); }
-			| unary_op expression                      { $$ = mCc_ast_new_expression_unary_op($1, $2);          loc($$, @1); }
-			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);               loc($$, @1); }
+single_expr : ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                         loc($$, @1); }
+			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);                                               loc($$, @1); }
+			| literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                            loc($$, @1); }
+            | unary_op literal_num			           { struct mCc_ast_expression * expression =  mCc_ast_new_expression_literal($2);
+                                                            $$ = mCc_ast_new_expression_unary_op($1,expression);                        loc($$, @1); loc(expression, @2); }
+			| unary_op expression                      { $$ = mCc_ast_new_expression_unary_op($1, $2);                                                       loc($$, @1); }
+			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);                                                            loc($$, @1); }
 			;
 
 single_expr_level_1: single_expr_level_2 binary_op_level_2 single_expr_level_1	{ $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
@@ -176,10 +176,14 @@ single_expr_level_2: single_expr binary_op_level_1 single_expr_level_2 	{ $$ = m
                    | single_expr									    { $$ = $1;                                           loc($$, @1); }
                    ;
 
+
+literal_num : INT_LITERAL    { $$ = mCc_ast_new_literal_int($1);    loc($$, @1); }
+            | FLOAT_LITERAL  { $$ = mCc_ast_new_literal_float($1);  loc($$, @1); }
+            ;
+
 literal : BOOL_LITERAL   { $$ = mCc_ast_new_literal_bool($1);   loc($$, @1); }
-		| INT_LITERAL    { $$ = mCc_ast_new_literal_int($1);    loc($$, @1); }
-		| FLOAT_LITERAL  { $$ = mCc_ast_new_literal_float($1);  loc($$, @1); }
-		| STRING_LITERAL { $$ = mCc_ast_new_literal_string($1); loc($$, @1); }
+        | STRING_LITERAL { $$ = mCc_ast_new_literal_string($1); loc($$, @1); }
+        | literal_num    { $$ = $1;                             loc($$, @1); }
 		;
 
 statement : if_stmt                                      { $$ = $1;                                     loc($$, @1); }

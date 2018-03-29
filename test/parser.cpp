@@ -115,6 +115,9 @@ TEST(Parser, UnaryOperatorTest)
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
 	ASSERT_EQ(1, expr->node.sloc.start_col);
 
+    EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->unary_op.rhs->type);
+    ASSERT_EQ(2, expr->unary_op.rhs->node.sloc.start_col);
+
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->unary_op.rhs->type);
 	ASSERT_EQ(2, expr->unary_op.rhs->literal->node.sloc.start_col);
 
