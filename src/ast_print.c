@@ -35,12 +35,10 @@ const char *mCc_ast_print_unary_op(enum mCc_ast_unary_op op)
 {
 	/**** unary operations ****/
 	switch (op) {
-		case MCC_AST_UNARY_OP_NOT:
-			return "!";
-		case MCC_AST_UNARY_OP_MINUS:
-			return "-";
+	case MCC_AST_UNARY_OP_NOT: return "!";
+	case MCC_AST_UNARY_OP_MINUS: return "-";
 	}
-
+	return "unknown unary op";
 }
 
 const char *mCc_ast_print_statement(enum mCc_ast_statement_type stmt)
@@ -299,11 +297,34 @@ static void print_dot_statement_if(struct mCc_ast_statement *statement,
 	assert(statement->type == MCC_AST_STATEMENT_TYPE_IF);
 
 	FILE *out = data;
-	print_dot_edge(out, statement, statement->condition, "condition");
+	print_dot_edge(out, statement, statement->if_condition, "condition");
 	print_dot_edge(out, statement, statement->if_branch, "if");
 	if (statement->else_branch != NULL) {
 		print_dot_edge(out, statement, statement->else_branch, "else");
 	}
+}
+
+static void print_dot_statement_while(struct mCc_ast_statement *statement,
+                                      void *data)
+{
+	assert(statement);
+	assert(data);
+	assert(statement->type == MCC_AST_STATEMENT_TYPE_WHILE);
+
+	FILE *out = data;
+	print_dot_edge(out, statement, statement->while_condition, "condition");
+	print_dot_edge(out, statement, statement->body, "body");
+}
+
+static void print_dot_statement_return(struct mCc_ast_statement *statement,
+                                       void *data)
+{
+	assert(statement);
+	assert(data);
+	assert(statement->type == MCC_AST_STATEMENT_TYPE_RETURN);
+
+	FILE *out = data;
+	print_dot_edge(out, statement, statement->expression, "expression");
 }
 
 static void print_dot_statement_assignment(struct mCc_ast_statement *statement,
@@ -532,6 +553,8 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 		.statement = print_dot_statement,
 		.statement_list = print_dot_statement_list,
 		.statement_if = print_dot_statement_if,
+		.statement_while = print_dot_statement_while,
+		.statement_return = print_dot_statement_return,
 		.statement_assignment = print_dot_statement_assignment,
 		.statement_declaration = print_dot_statement_declaration,
 		.statement_expression = print_dot_statement_expression,

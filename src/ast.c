@@ -308,9 +308,34 @@ mCc_ast_new_statement_if(struct mCc_ast_expression *condition,
 	struct mCc_ast_statement *stmt = malloc(sizeof(*stmt));
 
 	stmt->type = MCC_AST_STATEMENT_TYPE_IF;
-	stmt->condition = condition;
+	stmt->if_condition = condition;
 	stmt->if_branch = if_branch;
 	stmt->else_branch = else_branch;
+	return stmt;
+}
+
+struct mCc_ast_statement *
+mCc_ast_new_statement_while(struct mCc_ast_expression *condition,
+                            struct mCc_ast_statement *body)
+{
+	assert(condition);
+	assert(body);
+
+	struct mCc_ast_statement *stmt = malloc(sizeof(*stmt));
+
+	stmt->type = MCC_AST_STATEMENT_TYPE_WHILE;
+	stmt->while_condition = condition;
+	stmt->body = body;
+	return stmt;
+}
+
+struct mCc_ast_statement *
+mCc_ast_new_statement_return(struct mCc_ast_expression *expression)
+{
+	struct mCc_ast_statement *stmt = malloc(sizeof(*stmt));
+
+	stmt->type = MCC_AST_STATEMENT_TYPE_RETURN;
+	stmt->expression = expression;
 	return stmt;
 }
 
@@ -370,7 +395,7 @@ void mCc_ast_delete_statement(struct mCc_ast_statement *statement)
 
 	switch (statement->type) {
 	case MCC_AST_STATEMENT_TYPE_IF:
-		mCc_ast_delete_expression(statement->condition);
+		mCc_ast_delete_expression(statement->if_condition);
 		mCc_ast_delete_statement(statement->if_branch);
 		if (statement->else_branch != NULL) {
 			mCc_ast_delete_statement(statement->else_branch);

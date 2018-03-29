@@ -46,6 +46,8 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 
 "if"              { return TK_IF; }
 "else"            { return TK_ELSE; }
+"while"            { return TK_WHILE; }
+"return"            { return TK_RETURN; }
 
 "!"               { return TK_NOT; }
 "+"               { return TK_PLUS; }

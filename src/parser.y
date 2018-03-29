@@ -55,6 +55,8 @@ void mCc_parser_error();
 %token IF "if"
 %token ELSE "else"
 
+%token WHILE "while"
+%token RETURN "return"
 
 /***** special chars *****/
 
@@ -180,11 +182,14 @@ literal : BOOL_LITERAL   { $$ = mCc_ast_new_literal_bool($1);   loc($$, @1); }
 		| STRING_LITERAL { $$ = mCc_ast_new_literal_string($1); loc($$, @1); }
 		;
 
-statement : if_stmt                { $$ = $1;                                     loc($$, @1); }
-		  | expression SEMIKOLON   { $$ = mCc_ast_new_statement_expression($1);   loc($$, @1); }
-		  | assignment SEMIKOLON   { $$ = mCc_ast_new_statement_assignment($1);   loc($$, @1); }
-		  | declaration SEMIKOLON  { $$ = mCc_ast_new_statement_declaration($1);  loc($$, @1); }
-		  | compound_stmt          { $$ = $1;                                     loc($$, @1); }
+statement : if_stmt                                      { $$ = $1;                                     loc($$, @1); }
+		  | WHILE LPARENTH expression RPARENTH statement { $$ = mCc_ast_new_statement_while($3, $5);    loc($$, @1); }
+		  | RETURN SEMIKOLON                             { $$ = mCc_ast_new_statement_return(NULL);     loc($$, @1); }
+		  | RETURN expression SEMIKOLON                  { $$ = mCc_ast_new_statement_return($2);       loc($$, @1); }
+		  | declaration SEMIKOLON                        { $$ = mCc_ast_new_statement_declaration($1);  loc($$, @1); }
+		  | assignment SEMIKOLON                         { $$ = mCc_ast_new_statement_assignment($1);   loc($$, @1); }
+		  | expression SEMIKOLON                         { $$ = mCc_ast_new_statement_expression($1);   loc($$, @1); }
+		  | compound_stmt					             { $$ = $1;                                     loc($$, @1); }
 		  ;
 
 statement_list : statement statement_list { $$ = mCc_ast_new_statement_list($1); $$->next = $2; loc($$, @1); }
@@ -194,13 +199,6 @@ statement_list : statement statement_list { $$ = mCc_ast_new_statement_list($1);
 if_stmt : IF LPARENTH expression RPARENTH statement                { $$ = mCc_ast_new_statement_if($3, $5, NULL); loc($$, @1); }
 		| IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mCc_ast_new_statement_if($3, $5, $7);   loc($$, @1); }
 		;
-/* statement        = if_stmt */
-/*                  | while_stmt */
-/*                  | ret_stmt */
-/*                  | declaration , ";" */
-/*                  | assignment  , ";" */
-/*                  | expression  , ";" */
-/*                  | compound_stmt */
 
 return_type : type { $$ = $1; }
 			| VOID_TYPE { $$ = MCC_AST_TYPE_VOID;}

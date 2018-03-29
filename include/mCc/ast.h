@@ -113,10 +113,7 @@ enum mCc_ast_binary_op {
 	MCC_AST_BINARY_OP_NOT_EQUALS,
 };
 
-enum mCc_ast_unary_op {
-	MCC_AST_UNARY_OP_NOT,
-	MCC_AST_UNARY_OP_MINUS
-};
+enum mCc_ast_unary_op { MCC_AST_UNARY_OP_NOT, MCC_AST_UNARY_OP_MINUS };
 
 /* ------------------------------------------------------------- Declaration */
 
@@ -188,10 +185,13 @@ struct mCc_ast_assignment {
 };
 
 struct mCc_ast_assignment *
-mCc_ast_new_assignment(struct mCc_ast_identifier* identifier, struct mCc_ast_expression *rhs);
+mCc_ast_new_assignment(struct mCc_ast_identifier *identifier,
+                       struct mCc_ast_expression *rhs);
 
 struct mCc_ast_assignment *
-mCc_ast_new_array_assignment(struct mCc_ast_identifier* identifier, struct mCc_ast_expression *index, struct mCc_ast_expression *rhs);
+mCc_ast_new_array_assignment(struct mCc_ast_identifier *identifier,
+                             struct mCc_ast_expression *index,
+                             struct mCc_ast_expression *rhs);
 
 void mCc_ast_delete_assignment(struct mCc_ast_assignment *assignment);
 
@@ -301,12 +301,19 @@ struct mCc_ast_statement {
 
 		/* MCC_AST_STATEMENT_TYPE_IF */
 		struct {
-			struct mCc_ast_expression *condition;
+			struct mCc_ast_expression *if_condition;
 			struct mCc_ast_statement *if_branch;
 			struct mCc_ast_statement *else_branch;
 		};
 
+		/* MCC_AST_STATEMENT_TYPE_WHILE */
+		struct {
+			struct mCc_ast_expression *while_condition;
+			struct mCc_ast_statement *body;
+		};
+
 		/* MCC_AST_STATEMENT_TYPE_EXPRESSION */
+		/* MCC_AST_STATEMENT_TYPE_RETURN */
 		struct mCc_ast_expression *expression;
 
 		/* MCC_AST_STATEMENT_TYPE_DECLARATION */
@@ -324,6 +331,13 @@ struct mCc_ast_statement *
 mCc_ast_new_statement_if(struct mCc_ast_expression *condition,
                          struct mCc_ast_statement *if_branch,
                          struct mCc_ast_statement *else_branch);
+
+struct mCc_ast_statement *
+mCc_ast_new_statement_while(struct mCc_ast_expression *condition,
+                            struct mCc_ast_statement *body);
+
+struct mCc_ast_statement *
+mCc_ast_new_statement_return(struct mCc_ast_expression *expression);
 
 struct mCc_ast_statement *
 mCc_ast_new_statement_expression(struct mCc_ast_expression *expression);

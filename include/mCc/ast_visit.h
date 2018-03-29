@@ -80,6 +80,8 @@ struct mCc_ast_visitor {
 	mCc_ast_visit_statement_list_cb statement_list;
 	mCc_ast_visit_statement_cb statement;
 	mCc_ast_visit_statement_cb statement_if;
+	mCc_ast_visit_statement_cb statement_while;
+	mCc_ast_visit_statement_cb statement_return;
 	mCc_ast_visit_statement_cb statement_expression;
 	mCc_ast_visit_statement_cb statement_assignment;
 	mCc_ast_visit_statement_cb statement_declaration;
