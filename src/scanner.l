@@ -21,10 +21,14 @@
  * - take line breaks into account
  */
 
+int my_yycolumn = 1;
+
 #define YY_USER_ACTION \
-	yylloc->first_column = yylloc->last_column; \
-	yylloc->last_column += yyleng; \
-	yylloc->first_line=yylineno;
+    yylloc->first_line = yylloc->last_line = yylineno; \
+    yylloc->first_column = my_yycolumn; \
+    yylloc->last_column = my_yycolumn+yyleng-1; \
+    my_yycolumn += yyleng;
+
 %}
 
 int_literal   [0-9]+
@@ -81,8 +85,9 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 [/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }
 [/][*]                                    { /*TODO handle this case (unterminated comments)*/  }
 
-[ \t\r\n]+        {}
+\n              { my_yycolumn = 1; }
 
+[ \t\r]+        {}
 
 {bool_literal}    { yylval->TK_BOOL_LITERAL = strcmp(yytext, "true") == 0; return TK_BOOL_LITERAL; }
 
@@ -98,6 +103,6 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 
 {identifier}      { yylval->TK_ID = mCc_ast_new_identifier(yytext); return TK_ID; }
 
-<<EOF>>           { return TK_END; }
+<<EOF>>           { my_yycolumn = 1; return TK_END; }
 
 .                 { fprintf(stderr, "invalid character '%c'\n", yytext[0]); }

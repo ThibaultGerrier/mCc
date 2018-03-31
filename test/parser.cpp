@@ -3,6 +3,22 @@
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 
+void print_error(struct mCc_parse_error parse_error) {
+	struct mCc_error_location location = parse_error.location;
+	char line[10], column[10];
+	if (location.first_line != location.last_line) {
+		sprintf(line, "%d-%d", location.first_line, location.last_line );
+	} else {
+		sprintf(line, "%d", location.first_line);
+	}
+	if (location.first_column != location.last_column) {
+		sprintf(column, "%d-%d", location.first_column, location.last_column );
+	} else {
+		sprintf(column, "%d", location.first_column);
+	}
+	fprintf(stderr, "Error (line %s, column %s): %s\n", line, column, parse_error.msg);
+}
+
 TEST(Parser, BinaryOp_1)
 {
 	const char input[] = "192 + 3.14";
@@ -334,7 +350,7 @@ TEST(Parser, IdentifierTest)
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER, array_expr->type);
 
 	ASSERT_EQ(1, id_expr->node.sloc.start_col);
-	ASSERT_EQ(11, id_expr->node.sloc.end_col);
+	ASSERT_EQ(10, id_expr->node.sloc.end_col);
 	ASSERT_EQ(0, strcmp("some_id123", id_expr->identifier->name));
 	ASSERT_EQ(0,
 	          strcmp("array", array_expr->array_identifier.identifier->name));
@@ -350,3 +366,22 @@ TEST(Parser, IdentifierTest)
 	mCc_ast_delete_expression(id_expr);
 	mCc_ast_delete_expression(array_expr);
 }
+
+TEST(Parser, SyntaxErrorTest)
+{
+    const char input[] = "int foo() { \n int a; a = 12 1232423; \n a = a + 1; }";
+    auto result = mCc_parser_parse_string(input);
+
+	if (result.parse_error.is_error) {
+		print_error(result.parse_error);
+	}
+
+	ASSERT_EQ(MCC_PARSER_STATUS_SYNTAX_ERROR, result.status);
+	ASSERT_EQ(2, result.parse_error.location.first_line);
+	ASSERT_EQ(2, result.parse_error.location.last_line);
+	ASSERT_LT(1, result.parse_error.location.first_column);
+	ASSERT_GT(25, result.parse_error.location.first_column);
+	ASSERT_GT(25, result.parse_error.location.last_column);
+}
+
+

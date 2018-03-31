@@ -23,6 +23,9 @@ void mCc_parser_error();
 	(ast_node)->node.sloc.end_col = (ast_sloc).last_column;\
 }
 
+
+struct mCc_parse_error parse_error;
+
 %}
 
 %define api.value.type union
@@ -251,9 +254,36 @@ program : function_def_list { *result = mCc_ast_new_program($1); }
 
 #include "scanner.h"
 
-void mCc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner,
-					  const char *msg)
+void mCc_parser_error(
+    struct MCC_PARSER_LTYPE *yylloc,
+    yyscan_t *scanner,
+	struct mCc_ast_expression** result_e,
+	struct mCc_ast_program** result,
+	const char *msg)
 {
+    // suppress the warning unused parameter
+    (void)scanner;
+    (void)result_e;
+    (void)result;
+
+    // without global variable: save inside program/expression
+    /*
+    *result = (struct mCc_ast_program*)malloc(sizeof(struct mCc_ast_program));
+    memset(*result, 0, sizeof(struct mCc_ast_program));
+    (*result)->error_msg = strdup(msg);
+
+    *result_e = (struct mCc_ast_expression*)malloc(sizeof(struct mCc_ast_expression));
+    memset(*result_e, 0, sizeof(struct mCc_ast_expression));
+    (*result_e)->error_msg = strdup(msg)
+    */
+
+    // save error message and location to global parse_error variable.
+    parse_error.is_error = 1;
+    parse_error.location.first_line = yylloc->first_line;
+    parse_error.location.last_line = yylloc->last_line;
+    parse_error.location.first_column = yylloc->first_column;
+    parse_error.location.last_column = yylloc->last_column;
+    parse_error.msg = strdup(msg);
 }
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
@@ -287,11 +317,18 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 		.status = MCC_PARSER_STATUS_OK,
 	};
 
+    // reset is_error
+    parse_error.is_error = 0;
+
 	if (yyparse(scanner, &result.expression, &result.program) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
 
-	mCc_parser_lex_destroy(scanner);
+	if (parse_error.is_error) {
+	    result.status = MCC_PARSER_STATUS_SYNTAX_ERROR;
+	    result.parse_error = parse_error;
+	}
 
+	mCc_parser_lex_destroy(scanner);
 	return result;
 }
