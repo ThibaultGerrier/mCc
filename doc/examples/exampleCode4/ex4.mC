@@ -1,4 +1,4 @@
-int randomCalculations (int x, int y)
+void randomCalculations (int x, int y)
 {
     bool xsmaller0;
     bool ysmaller0;
