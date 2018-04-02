@@ -43,15 +43,12 @@ int main(void)
 	}
 
 	if (program != NULL) {
-		printf("progr\n");
 		mCc_ast_print_dot_program(stdout, program);
 		mCc_ast_delete_program(program);
 	} else if (decl != NULL) {
-		printf("decl\n");
 		mCc_ast_print_dot_declaration(stdout, decl);
 		mCc_ast_delete_declaration(decl);
 	} else if (stmt != NULL) {
-		printf("statment\n");
 		mCc_ast_print_dot_statement(stdout, stmt);
 		mCc_ast_delete_statement(stmt);
 	} else if (expr != NULL) {

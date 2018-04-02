@@ -105,18 +105,29 @@ struct mCc_parse_error parse_error;
 
 %token START_PROGRAM START_TEST
 
-%type <enum mCc_ast_unary_op> unary_op
+/* precedence */
 
-%type <enum mCc_ast_binary_op> binary_op binary_op_level_1 binary_op_level_2
+%left OR
+%left AND
+%left EQUALS NOT_EQUALS
+%left GREATER_EQUALS GREATER LESS_EQUALS LESS
+%left MINUS PLUS
+%left ASTER SLASH
+%precedence NEG_PREC
+%precedence NOT_PREC
+
+%right THEN_PREC ELSE
+
+/* types */
 
 %type <enum mCc_ast_type> type
 
 %type <enum mCc_ast_type> return_type
 
-%type <struct mCc_ast_expression *> expression single_expr call_expr single_expr_level_1 single_expr_level_2
+%type <struct mCc_ast_expression *> expression single_expr call_expr
 %type <struct mCc_ast_statement *> statement if_stmt compound_stmt
 %type <struct mCc_ast_statement_list *> statement_list
-%type <struct mCc_ast_literal *> literal literal_num
+%type <struct mCc_ast_literal *> literal
 
 %type <struct mCc_ast_declaration *> declaration
 %type <struct mCc_ast_assignment *> assignment
@@ -131,8 +142,6 @@ struct mCc_parse_error parse_error;
 
 %start meta_start
 
-/* %precedence ID */
-
 %%
 
 type : BOOL_TYPE           { $$ = MCC_AST_TYPE_BOOL; }
@@ -141,58 +150,33 @@ type : BOOL_TYPE           { $$ = MCC_AST_TYPE_BOOL; }
 	 | STRING_TYPE         { $$ = MCC_AST_TYPE_STRING; }
 	 ;
 
-unary_op : NOT             { $$ = MCC_AST_UNARY_OP_NOT; }
-         | MINUS           { $$ = MCC_AST_UNARY_OP_MINUS; }
-		 ;
-
-binary_op : LESS           { $$ = MCC_AST_BINARY_OP_LESS; }
-		  | GREATER        { $$ = MCC_AST_BINARY_OP_GREATER; }
-		  | LESS_EQUALS    { $$ = MCC_AST_BINARY_OP_LESS_EQUALS; }
-		  | GREATER_EQUALS { $$ = MCC_AST_BINARY_OP_GREATER_EQUALS; }
-		  | AND            { $$ = MCC_AST_BINARY_OP_AND; }
-		  | OR             { $$ = MCC_AST_BINARY_OP_OR; }
-		  | EQUALS         { $$ = MCC_AST_BINARY_OP_EQUALS; }
-		  | NOT_EQUALS     { $$ = MCC_AST_BINARY_OP_NOT_EQUALS; }
-		  ;
-
-binary_op_level_1: ASTER		{ $$ = MCC_AST_BINARY_OP_MUL; }
-                 | SLASH		{ $$ = MCC_AST_BINARY_OP_DIV; }
-                 ;
-
-binary_op_level_2: PLUS 		{ $$ = MCC_AST_BINARY_OP_ADD; }
-                 | MINUS		{ $$ = MCC_AST_BINARY_OP_SUB; }
-                 ;
-
-expression: single_expr_level_1 binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
-          | single_expr_level_1                      { $$ = $1;                                           loc($$, @1); }
-          ;
+expression: expression PLUS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3); loc($$, @1); }
+		  | expression MINUS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3); loc($$, @1); }
+		  | expression ASTER expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3); loc($$, @1); }
+		  | expression SLASH expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3); loc($$, @1); }
+		  | expression LESS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_LESS, $1, $3); loc($$, @1); }
+		  | expression GREATER expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER, $1, $3); loc($$, @1); }
+		  | expression LESS_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_LESS_EQUALS, $1, $3); loc($$, @1); }
+		  | expression GREATER_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER_EQUALS, $1, $3); loc($$, @1); }
+		  | expression AND expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_AND, $1, $3); loc($$, @1); }
+		  | expression OR expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_OR, $1, $3); loc($$, @1); }
+		  | expression EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUALS, $1, $3); loc($$, @1); }
+		  | expression NOT_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOT_EQUALS, $1, $3); loc($$, @1); }
+          | single_expr                      { $$ = $1;                                           loc($$, @1); }
 
 single_expr : literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                            loc($$, @1); }
 			| ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                         loc($$, @1); }
 			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);                                               loc($$, @1); }
 			| call_expr                                { $$ = $1;                                                                                            loc($$, @1); }
-            | unary_op literal_num			           { struct mCc_ast_expression * expression =  mCc_ast_new_expression_literal($2);
-                                                            $$ = mCc_ast_new_expression_unary_op($1,expression);                        loc($$, @1); loc(expression, @2); }
-			| unary_op expression                      { $$ = mCc_ast_new_expression_unary_op($1, $2);                                                       loc($$, @1); }
+			| MINUS expression %prec NEG_PREC          { $$ = mCc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_MINUS, $2);                                   loc($$, @1); }
+			| NOT expression %prec NOT_PREC            { $$ = mCc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);                                     loc($$, @1); }
 			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);                                                            loc($$, @1); }
 			;
 
-single_expr_level_1: single_expr_level_2 binary_op_level_2 single_expr_level_1	{ $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
-                   | single_expr_level_2								        { $$ = $1;                                           loc($$, @1); }
-                   ;
-
-single_expr_level_2: single_expr binary_op_level_1 single_expr_level_2 	{ $$ = mCc_ast_new_expression_binary_op($2, $1, $3); loc($$, @1); }
-                   | single_expr									    { $$ = $1;                                           loc($$, @1); }
-                   ;
-
-
-literal_num : INT_LITERAL    { $$ = mCc_ast_new_literal_int($1);    loc($$, @1); }
-            | FLOAT_LITERAL  { $$ = mCc_ast_new_literal_float($1);  loc($$, @1); }
-            ;
-
 literal : BOOL_LITERAL   { $$ = mCc_ast_new_literal_bool($1);   loc($$, @1); }
         | STRING_LITERAL { $$ = mCc_ast_new_literal_string($1); loc($$, @1); }
-        | literal_num    { $$ = $1;                             loc($$, @1); }
+		| INT_LITERAL    { $$ = mCc_ast_new_literal_int($1);    loc($$, @1); }
+        | FLOAT_LITERAL  { $$ = mCc_ast_new_literal_float($1);  loc($$, @1); }
 		;
 
 statement : if_stmt                                      { $$ = $1;                                     loc($$, @1); }
@@ -209,8 +193,8 @@ statement_list : statement statement_list { $$ = mCc_ast_new_statement_list($1);
 			   | statement                { $$ = mCc_ast_new_statement_list($1);                loc($$, @1); }
 			   ;
 
-if_stmt : IF LPARENTH expression RPARENTH statement                { $$ = mCc_ast_new_statement_if($3, $5, NULL); loc($$, @1); }
-		| IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mCc_ast_new_statement_if($3, $5, $7);   loc($$, @1); }
+if_stmt : IF LPARENTH expression RPARENTH statement %prec THEN_PREC { $$ = mCc_ast_new_statement_if($3, $5, NULL); loc($$, @1); }
+		| IF LPARENTH expression RPARENTH statement ELSE statement  { $$ = mCc_ast_new_statement_if($3, $5, $7);   loc($$, @1); }
 		;
 
 return_type : type { $$ = $1; }

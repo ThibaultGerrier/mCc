@@ -607,6 +607,24 @@ ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 mCc_ast_delete_expression(expr);
 }
 
+TEST(Parser, DanglingElse)
+{
+	const char input[] = "int fun() {if (c1) if (c2) f1(); else f2();}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+	ASSERT_EQ(MCC_AST_TYPE_INT, prog->function_def_list->function_def->return_type);
+	auto if1 = prog->function_def_list->function_def->compound_stmt->statement_list->statement;
+	ASSERT_EQ(MCC_AST_STATEMENT_TYPE_IF, if1->type);
+	ASSERT_EQ(NULL, if1->else_branch);
+	ASSERT_EQ(MCC_AST_STATEMENT_TYPE_IF, if1->if_branch->type);
+	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_CALL_EXPR, if1->if_branch->if_branch->expression->type);
+	ASSERT_EQ(0, strcmp("f1", if1->if_branch->if_branch->expression->identifier->name));
+	ASSERT_EQ(0, strcmp("f2", if1->if_branch->else_branch->expression->identifier->name));
+}
+
 TEST(Parser, SyntaxErrorTest)
 {
     const char input[] = "int foo() { \n int a; a = 12 1232423; \n a = a + 1; }";

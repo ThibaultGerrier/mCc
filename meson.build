@@ -14,7 +14,6 @@ flex = find_program('flex')
 lgen = generator(flex,
                  output: ['@BASENAME@.c', '@BASENAME@.h'],
                  arguments: [ '--outfile=@OUTPUT0@',
-                              '-v',
                               '--header-file=@OUTPUT1@',
                               '@INPUT@' ])
 
@@ -22,6 +21,7 @@ bison = find_program('bison')
 pgen = generator(bison,
                  output: ['@BASENAME@.tab.c', '@BASENAME@.tab.h'],
                  arguments: [ '-Wall',
+                              '--report=all',
                               '--output=@OUTPUT0@',
                               '--defines=@OUTPUT1@',
                               '@INPUT@' ])
