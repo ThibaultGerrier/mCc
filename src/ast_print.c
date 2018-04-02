@@ -639,15 +639,28 @@ void mCc_ast_print_dot_expression(FILE *out,
 	print_dot_end(out);
 }
 
-void mCc_ast_print_dot_literal(FILE *out, struct mCc_ast_literal *literal)
+void mCc_ast_print_dot_statement(FILE *out, struct mCc_ast_statement *statement)
 {
 	assert(out);
-	assert(literal);
+	assert(statement);
 
 	print_dot_begin(out);
 
 	struct mCc_ast_visitor visitor = print_dot_visitor(out);
-	mCc_ast_visit_literal(literal, &visitor);
+	mCc_ast_visit_statement(statement, &visitor);
+
+	print_dot_end(out);
+}
+
+void mCc_ast_print_dot_declaration(FILE *out, struct mCc_ast_declaration *decl)
+{
+	assert(out);
+	assert(decl);
+
+	print_dot_begin(out);
+
+	struct mCc_ast_visitor visitor = print_dot_visitor(out);
+	mCc_ast_visit_declaration(decl, &visitor);
 
 	print_dot_end(out);
 }

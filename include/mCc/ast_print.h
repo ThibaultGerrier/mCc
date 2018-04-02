@@ -14,11 +14,18 @@ const char *mCc_ast_print_binary_op(enum mCc_ast_binary_op op);
 
 /* ------------------------------------------------------------- DOT Printer */
 
+void mCc_ast_print_dot_program(FILE *out, struct mCc_ast_program *program);
+
+void mCc_ast_print_dot_declaration(FILE *out, struct mCc_ast_declaration *decl);
+
+void mCc_ast_print_dot_function_def(FILE *out,
+                                    struct mCc_ast_function_def *fun_def);
+
+void mCc_ast_print_dot_statement(FILE *out,
+                                 struct mCc_ast_statement *statement);
+
 void mCc_ast_print_dot_expression(FILE *out,
                                   struct mCc_ast_expression *expression);
-
-void mCc_ast_print_dot_program(FILE *out,
-                               struct mCc_ast_program *program);
 
 void mCc_ast_print_dot_literal(FILE *out, struct mCc_ast_literal *literal);
 

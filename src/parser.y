@@ -2,7 +2,7 @@
 
 %define api.pure full
 %lex-param   {void *scanner}
-%parse-param {void *scanner} {struct mCc_ast_expression** result_e}{struct mCc_ast_program** result}
+%parse-param {void *scanner} {struct mCc_ast_expression** result_e}{struct mCc_ast_literal** result_l}{struct mCc_ast_statement** result_s}{struct mCc_ast_function_def** result_f}{struct mCc_ast_declaration** result_d}{struct mCc_ast_program** result}
 
 %define parse.trace
 %define parse.error verbose
@@ -103,6 +103,8 @@ struct mCc_parse_error parse_error;
 %token NOT_EQUALS "!="
 
 
+%token START_PROGRAM START_TEST
+
 %type <enum mCc_ast_unary_op> unary_op
 
 %type <enum mCc_ast_binary_op> binary_op binary_op_level_1 binary_op_level_2
@@ -125,8 +127,11 @@ struct mCc_parse_error parse_error;
 
 %type <struct mCc_ast_parameter *> parameters
 %type <struct mCc_ast_argument_list *> arguments
+%type <int> meta_start
 
-%start program
+%start meta_start
+
+/* %precedence ID */
 
 %%
 
@@ -244,15 +249,23 @@ function_def_list : function_def function_def_list { $$ = mCc_ast_new_function_d
 				  ;
 
 
-program : function_def_list { *result = mCc_ast_new_program($1); }
-		| expression { *result_e = $1; }
+program : function_def_list { $$ = mCc_ast_new_program($1); loc($$, @1);}
 		;
 
+meta_start : START_PROGRAM program { *result = $2; }
+		   | START_TEST program { *result = $2; }
+		   /* | START_TEST statement { *result_s = $2; } */
+		   | START_TEST expression { *result_e = $2; }
+		   ;
+
 %%
+// | expression { *result_e = $1; }
 
 #include <assert.h>
 
 #include "scanner.h"
+
+extern int start_token; // kind of a hack to enable different top level rules
 
 void mCc_parser_error(
     struct MCC_PARSER_LTYPE *yylloc,
@@ -308,6 +321,11 @@ struct mCc_parser_result mCc_parser_parse_string(const char *input)
 struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 {
 	assert(input);
+	#ifdef _UNIT_TESTS__
+	start_token = TK_START_TEST;
+	#else
+	start_token = TK_START_PROGRAM;
+	#endif
 
 	yyscan_t scanner;
 	mCc_parser_lex_init(&scanner);
@@ -320,7 +338,7 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
     // reset is_error
     parse_error.is_error = 0;
 
-	if (yyparse(scanner, &result.expression, &result.program) != 0) {
+	if (yyparse(scanner, &result.expression, &result.literal, &result.statement, &result.function_def, &result.declaration, &result.program) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
 
@@ -330,5 +348,10 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 	}
 
 	mCc_parser_lex_destroy(scanner);
+	#ifdef _UNIT_TESTS__
+	start_token = TK_START_TEST;
+	#else
+	start_token = TK_START_PROGRAM;
+	#endif
 	return result;
 }

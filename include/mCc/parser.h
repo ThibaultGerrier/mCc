@@ -33,6 +33,10 @@ struct mCc_parse_error {
 struct mCc_parser_result {
 	enum mCc_parser_status status;
 	struct mCc_ast_expression *expression;
+	struct mCc_ast_literal *literal;
+	struct mCc_ast_statement *statement;
+	struct mCc_ast_declaration *declaration;
+	struct mCc_ast_function_def *function_def;
 	struct mCc_ast_program *program;
 	struct mCc_parse_error parse_error;
 };

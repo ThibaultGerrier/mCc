@@ -15,6 +15,7 @@
 
 #define YYSTYPE MCC_PARSER_STYPE
 #define YYLTYPE MCC_PARSER_LTYPE
+int start_token = TK_START_PROGRAM;
 
 /* TODO:
  * - track lines
@@ -41,6 +42,14 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 
 
 %%
+%{
+  if (start_token)
+    {
+      int t = start_token;
+      start_token = 0;
+      return t;
+    }
+%}
 
 "bool"            { return TK_BOOL_TYPE; }
 "int"             { return TK_INT_TYPE; }

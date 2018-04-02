@@ -14,6 +14,7 @@ flex = find_program('flex')
 lgen = generator(flex,
                  output: ['@BASENAME@.c', '@BASENAME@.h'],
                  arguments: [ '--outfile=@OUTPUT0@',
+                              '-v',
                               '--header-file=@OUTPUT1@',
                               '@INPUT@' ])
 
@@ -38,6 +39,9 @@ mCc_src = [ 'src/ast.c',
 mCc_lib = library('mCc', mCc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',
                   include_directories: mCc_inc)
+mCc_lib_test = library('mCc_test', mCc_src,
+                  c_args: ['-D_POSIX_C_SOURCE=200809L', '-D_UNIT_TESTS__'],
+                  include_directories: mCc_inc)
 
 # ----------------------------------------------------------------- EXECUTABLES
 
@@ -49,6 +53,16 @@ foreach exe : mCc_exes
                link_with: mCc_lib)
 endforeach
 
+# ----------------------------------------------------------------- TEST EXEC
+
+mCc_test_exes = [ ['mCc_test', 'mCc'], ['mC_to_dot_test', 'mC_to_dot'] ]
+
+foreach exe : mCc_test_exes
+    executable(exe[0], 'src/bin/' + exe[1] + '.c',
+               include_directories: mCc_inc,
+               link_with: mCc_lib_test)
+endforeach
+
 # ------------------------------------------------------------------ UNIT TESTS
 
 gtest = dependency('gtest', fallback: ['gtest', 'gtest_main_dep'])
@@ -58,7 +72,7 @@ mCc_uts = [ 'parser' ]
 foreach ut : mCc_uts
     t = executable('ut_' + ut.underscorify(), 'test/' + ut + '.cpp',
                    include_directories: mCc_inc,
-                   link_with: mCc_lib,
+                   link_with: mCc_lib_test,
                    dependencies: gtest)
 
     test(ut, t)
