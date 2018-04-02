@@ -150,27 +150,27 @@ type : BOOL_TYPE           { $$ = MCC_AST_TYPE_BOOL; }
 	 | STRING_TYPE         { $$ = MCC_AST_TYPE_STRING; }
 	 ;
 
-expression: expression PLUS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3); loc($$, @1); }
-		  | expression MINUS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3); loc($$, @1); }
-		  | expression ASTER expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3); loc($$, @1); }
-		  | expression SLASH expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3); loc($$, @1); }
-		  | expression LESS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_LESS, $1, $3); loc($$, @1); }
-		  | expression GREATER expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER, $1, $3); loc($$, @1); }
-		  | expression LESS_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_LESS_EQUALS, $1, $3); loc($$, @1); }
+expression: expression PLUS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3);                      loc($$, @1); }
+		  | expression MINUS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3);                     loc($$, @1); }
+		  | expression ASTER expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3);                     loc($$, @1); }
+		  | expression SLASH expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3);                     loc($$, @1); }
+		  | expression LESS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_LESS, $1, $3);                     loc($$, @1); }
+		  | expression GREATER expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER, $1, $3);               loc($$, @1); }
+		  | expression LESS_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_LESS_EQUALS, $1, $3);       loc($$, @1); }
 		  | expression GREATER_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER_EQUALS, $1, $3); loc($$, @1); }
-		  | expression AND expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_AND, $1, $3); loc($$, @1); }
-		  | expression OR expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_OR, $1, $3); loc($$, @1); }
-		  | expression EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUALS, $1, $3); loc($$, @1); }
-		  | expression NOT_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOT_EQUALS, $1, $3); loc($$, @1); }
-          | single_expr                      { $$ = $1;                                           loc($$, @1); }
+		  | expression AND expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_AND, $1, $3);                       loc($$, @1); }
+		  | expression OR expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_OR, $1, $3);                         loc($$, @1); }
+		  | expression EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUALS, $1, $3);                 loc($$, @1); }
+		  | expression NOT_EQUALS expression { $$ = mCc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOT_EQUALS, $1, $3);         loc($$, @1); }
+          | single_expr                      { $$ = $1;                                                                             loc($$, @1); }
 
-single_expr : literal                                  { $$ = mCc_ast_new_expression_literal($1);                                                            loc($$, @1); }
-			| ID                                       { $$ = mCc_ast_new_expression_identifier($1);                                                         loc($$, @1); }
-			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);                                               loc($$, @1); }
-			| call_expr                                { $$ = $1;                                                                                            loc($$, @1); }
-			| MINUS expression %prec NEG_PREC          { $$ = mCc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_MINUS, $2);                                   loc($$, @1); }
-			| NOT expression %prec NOT_PREC            { $$ = mCc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);                                     loc($$, @1); }
-			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);                                                            loc($$, @1); }
+single_expr : literal                                  { $$ = mCc_ast_new_expression_literal($1);                           loc($$, @1); }
+			| ID                                       { $$ = mCc_ast_new_expression_identifier($1);                        loc($$, @1); }
+			| ID LBRACKET expression RBRACKET          { $$ = mCc_ast_new_expression_array_identifier($1, $3);              loc($$, @1); }
+			| call_expr                                { $$ = $1;                                                           loc($$, @1); }
+			| MINUS expression %prec NEG_PREC          { $$ = mCc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_MINUS, $2);  loc($$, @1); }
+			| NOT expression %prec NOT_PREC            { $$ = mCc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);    loc($$, @1); }
+			| LPARENTH expression RPARENTH             { $$ = mCc_ast_new_expression_parenth($2);                           loc($$, @1); }
 			;
 
 literal : BOOL_LITERAL   { $$ = mCc_ast_new_literal_bool($1);   loc($$, @1); }
@@ -237,8 +237,8 @@ program : function_def_list { $$ = mCc_ast_new_program($1); loc($$, @1);}
 		;
 
 meta_start : START_PROGRAM program { *result = $2; }
-		   | START_TEST program { *result = $2; }
-		   /* | START_TEST statement { *result_s = $2; } */
+		   | START_TEST program    { *result = $2; }
+		   /*| START_TEST statement  { *result_s = $2; } */
 		   | START_TEST expression { *result_e = $2; }
 		   ;
 
@@ -322,7 +322,8 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
     // reset is_error
     parse_error.is_error = 0;
 
-	if (yyparse(scanner, &result.expression, &result.literal, &result.statement, &result.function_def, &result.declaration, &result.program) != 0) {
+	if (yyparse(scanner, &result.expression, &result.literal, &result.statement,
+	    &result.function_def, &result.declaration, &result.program) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
 
