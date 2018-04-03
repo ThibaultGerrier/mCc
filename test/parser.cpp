@@ -642,4 +642,233 @@ TEST(Parser, SyntaxErrorTest)
 	ASSERT_GT(25, result.parse_error.location.last_column);
 }
 
+TEST(Parser, Declaration_test)
+{
+    const char input[] = "int dec(){int a;}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_DECLARATION, statement->type);
+    ASSERT_EQ(MCC_AST_TYPE_INT, statement->declaration->identifier_type);
+    ASSERT_EQ(0, strcmp("a", statement->declaration->normal_decl.identifier->name));
+
+}
+
+TEST(Parser, Assignment_test)
+{
+    const char input[] = "int dec(){a=5;}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_ASSIGNMENT, statement->type);
+    ASSERT_EQ(0, strcmp("a", statement->assignment->identifier->name));
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, statement->assignment->normal_ass.rhs->literal->type);
+    ASSERT_EQ(5, statement->assignment->normal_ass.rhs->literal->i_value);
+
+}
+
+
+
+TEST(Parser, Function_def)
+{
+    const char input[] = "int def(){}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto prog = result.program;
+    auto function = prog->function_def_list->function_def;
+
+    ASSERT_EQ(MCC_AST_TYPE_INT, function->return_type);
+
+}
+
+TEST(Parser, Function_parameters)
+{
+    const char input[] = "int def(float f, bool b){}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto prog = result.program;
+    auto function = prog->function_def_list->function_def;
+
+
+    auto parameter1 = function->parameters->declaration;
+    auto parameter2 = function->parameters->next->declaration;
+
+    ASSERT_EQ(MCC_AST_TYPE_FLOAT, parameter1->identifier_type);
+    ASSERT_EQ(0, strcmp("f", parameter1->normal_decl.identifier->name));
+
+    ASSERT_EQ(MCC_AST_TYPE_BOOL, parameter2->identifier_type);
+    ASSERT_EQ(0, strcmp("b", parameter2->normal_decl.identifier->name));
+
+
+}
+
+TEST(Parser, Function_call)
+{
+    const char input[] = "def()";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto expr = result.expression;
+
+    ASSERT_EQ(0, strcmp("def", expr->call_expr.identifier->name));
+
+    mCc_ast_delete_expression(expr);
+
+}
+
+TEST(Parser, Function_call_arguments)
+{
+    const char input[] = "def(1.2, true)";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto expr = result.expression;
+    auto arguments = expr->call_expr.arguments;
+
+    auto argument1=arguments->expression;
+    auto argument2=arguments->next->expression;
+
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, argument1->literal->type);
+    ASSERT_EQ(1.2, argument1->literal->f_value);
+
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_BOOL, argument2->literal->type);
+    ASSERT_EQ(true, argument2->literal->b_value);
+
+    mCc_ast_delete_expression(expr);
+
+}
+
+TEST(Parser, Function_list)
+{
+    const char input[] = "int first(int a){} int second(int b){}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto prog = result.program;
+    auto firstFunction = prog->function_def_list->function_def;
+    auto secondFunction = prog->function_def_list->next->function_def;
+
+    ASSERT_EQ(MCC_AST_TYPE_INT, firstFunction->return_type);
+
+    auto parameterFirstFunction = firstFunction->parameters->declaration;
+
+    ASSERT_EQ(MCC_AST_TYPE_INT, parameterFirstFunction->identifier_type);
+    ASSERT_EQ(0, strcmp("a", parameterFirstFunction->normal_decl.identifier->name));
+
+    ASSERT_EQ(MCC_AST_TYPE_INT, secondFunction->return_type);
+
+    auto parameterSecondFunction = secondFunction->parameters->declaration;
+
+    ASSERT_EQ(MCC_AST_TYPE_INT, parameterSecondFunction->identifier_type);
+    ASSERT_EQ(0, strcmp("b", parameterSecondFunction->normal_decl.identifier->name));
+
+}
+
+TEST(Parser, If_statement)
+{
+    const char input[] = "int fun() {if(true){}}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_IF, statement->type);
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, statement->if_condition->expression->type);
+
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_BOOL, statement->if_condition->literal->type);
+    ASSERT_EQ(true, statement->if_condition->literal->b_value);
+
+}
+
+TEST(Parser, While_statement)
+{
+    const char input[] = "int fun() {while(true){}}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_WHILE, statement->type);
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, statement->while_condition->expression->type);
+
+    ASSERT_EQ(true, statement->while_condition->literal->b_value);
+
+}
+
+TEST(Parser, Return_statement)
+{
+    const char input[] = "int fun() {return 1;}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_RETURN, statement->type);
+    ASSERT_EQ(1, statement->expression->literal->i_value);
+}
+
+
+TEST(Parser, Compound_statement)
+{
+    const char input[] = "int compound(){}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto prog=result.program;
+    auto function = prog->function_def_list->function_def;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_COMPOUND_STMT, function->compound_stmt->type);
+
+}
+
+TEST(Parser, Statement_list)
+{
+    const char input[] = "int statements(){int a; a=1; float b; b=1.1;}";
+    auto result = mCc_parser_parse_string(input);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    auto prog=result.program;
+    auto statementList = prog->function_def_list->function_def->compound_stmt->statement_list;
+
+    auto statement1=statementList->statement;
+    auto statement2=statementList->next->statement;
+    auto statement3=statementList->next->next->statement;
+    auto statement4=statementList->next->next->next->statement;
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_DECLARATION, statement1->type);
+    ASSERT_EQ(0, strcmp("a", statement1->declaration->normal_decl.identifier->name));
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_ASSIGNMENT, statement2->type);
+    ASSERT_EQ(0, strcmp("a", statement2->assignment->identifier->name));
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, statement2->assignment->normal_ass.rhs->literal->type);
+    ASSERT_EQ(1, statement2->assignment->normal_ass.rhs->literal->i_value);
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_DECLARATION, statement3->type);
+    ASSERT_EQ(0, strcmp("b", statement3->declaration->normal_decl.identifier->name));
+
+    ASSERT_EQ(MCC_AST_STATEMENT_TYPE_ASSIGNMENT, statement4->type);
+    ASSERT_EQ(0, strcmp("b", statement4->assignment->identifier->name));
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, statement4->assignment->normal_ass.rhs->literal->type);
+    ASSERT_EQ(1.1, statement4->assignment->normal_ass.rhs->literal->f_value);
+
+}
+
 
