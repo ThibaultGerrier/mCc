@@ -255,12 +255,20 @@ void mCc_parser_error(
     struct MCC_PARSER_LTYPE *yylloc,
     yyscan_t *scanner,
 	struct mCc_ast_expression** result_e,
-	struct mCc_ast_program** result,
+    struct mCc_ast_literal** result_l,
+    struct mCc_ast_statement** result_s,
+    struct mCc_ast_function_def** result_f,
+    struct mCc_ast_declaration** result_d,
+    struct mCc_ast_program** result,
 	const char *msg)
 {
     // suppress the warning unused parameter
     (void)scanner;
     (void)result_e;
+    (void)result_l;
+    (void)result_s;
+    (void)result_f;
+    (void)result_d;
     (void)result;
 
     // without global variable: save inside program/expression
