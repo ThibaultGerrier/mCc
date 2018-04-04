@@ -93,6 +93,7 @@ void mCc_ast_delete_parameter(struct mCc_ast_parameter *parameter)
 	if (parameter->next != NULL) {
 		mCc_ast_delete_parameter(parameter->next);
 	}
+	free(parameter);
 }
 
 /* ------------------------------------------------------------- Arguments */
@@ -117,6 +118,7 @@ void mCc_ast_delete_argument_list(struct mCc_ast_argument_list *argument_list)
 	if (argument_list->next != NULL) {
 		mCc_ast_delete_argument_list(argument_list->next);
 	}
+	free(argument_list);
 }
 
 /* ------------------------------------------------------------- Assignment */
@@ -449,6 +451,11 @@ void mCc_ast_delete_statement(struct mCc_ast_statement *statement)
 			mCc_ast_delete_statement(statement->else_branch);
 		}
 		break;
+	case MCC_AST_STATEMENT_TYPE_WHILE:
+		mCc_ast_delete_expression(statement->while_condition);
+		mCc_ast_delete_statement(statement->body);
+		break;
+	case MCC_AST_STATEMENT_TYPE_RETURN:
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
 		mCc_ast_delete_expression(statement->expression);
 		break;
@@ -464,8 +471,6 @@ void mCc_ast_delete_statement(struct mCc_ast_statement *statement)
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
 		mCc_ast_delete_declaration(statement->declaration);
 		break;
-	case MCC_AST_STATEMENT_TYPE_WHILE:
-	case MCC_AST_STATEMENT_TYPE_RETURN:
 	default: break;
 	}
 

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "mCc/ast.h"
 
@@ -14,20 +15,20 @@ enum mCc_parser_status {
 	MCC_PARSER_STATUS_OK,
 	MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM,
 	MCC_PARSER_STATUS_UNKNOWN_ERROR,
-    MCC_PARSER_STATUS_SYNTAX_ERROR,
+	MCC_PARSER_STATUS_SYNTAX_ERROR,
 };
 
 struct mCc_error_location {
-    int first_line;
-    int last_line;
-    int first_column;
-    int last_column;
+	int first_line;
+	int last_line;
+	int first_column;
+	int last_column;
 };
 
 struct mCc_parse_error {
-    int is_error;
-    char* msg;
-    struct mCc_error_location location;
+	bool is_error;
+	char *msg;
+	struct mCc_error_location location;
 };
 
 struct mCc_parser_result {
@@ -44,6 +45,8 @@ struct mCc_parser_result {
 struct mCc_parser_result mCc_parser_parse_string(const char *input);
 
 struct mCc_parser_result mCc_parser_parse_file(FILE *input);
+
+void mCc_parser_delete_result(struct mCc_parser_result* result);
 
 #ifdef __cplusplus
 }

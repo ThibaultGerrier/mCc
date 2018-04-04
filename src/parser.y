@@ -2,7 +2,7 @@
 
 %define api.pure full
 %lex-param   {void *scanner}
-%parse-param {void *scanner} {struct mCc_ast_expression** result_e}{struct mCc_ast_literal** result_l}{struct mCc_ast_statement** result_s}{struct mCc_ast_function_def** result_f}{struct mCc_ast_declaration** result_d}{struct mCc_ast_program** result}
+%parse-param {void *scanner} {struct mCc_ast_expression** result_e}{struct mCc_ast_literal** result_l}{struct mCc_ast_statement** result_s}{struct mCc_ast_function_def** result_f}{struct mCc_ast_declaration** result_d}{struct mCc_ast_program** result}{struct mCc_parse_error* result_error}
 
 %define parse.trace
 %define parse.error verbose
@@ -24,23 +24,10 @@ void mCc_parser_error();
 }
 
 
-struct mCc_parse_error parse_error;
-
 %}
 
 %define api.value.type union
 %define api.token.prefix {TK_}
-
-%destructor {mCc_ast_delete_expression($$);} expression
-%destructor {mCc_ast_delete_statement($$);} statement
-%destructor {mCc_ast_delete_statement_list($$);} statement_list
-%destructor {mCc_ast_delete_literal($$);} literal
-%destructor {mCc_ast_delete_declaration($$);} declaration
-%destructor {mCc_ast_delete_assignment($$);} assignment
-%destructor {mCc_ast_delete_function_def($$);} function_def
-%destructor {mCc_ast_delete_function_def_list($$);}  function_def_list
-%destructor {mCc_ast_delete_program($$);} program
-%destructor {mCc_ast_delete_parameter($$);} parameters
 
 %locations
 
@@ -153,6 +140,20 @@ struct mCc_parse_error parse_error;
 
 %start meta_start
 
+
+%destructor {mCc_ast_delete_identifier($$);} ID
+%destructor {mCc_ast_delete_expression($$);} expression call_expr
+%destructor {mCc_ast_delete_statement($$);} statement compound_stmt
+%destructor {mCc_ast_delete_statement_list($$);} statement_list
+%destructor {mCc_ast_delete_literal($$);} literal
+%destructor {mCc_ast_delete_declaration($$);} declaration
+%destructor {mCc_ast_delete_argument_list($$);} arguments
+%destructor {mCc_ast_delete_parameter($$);} parameters
+%destructor {mCc_ast_delete_assignment($$);} assignment
+%destructor {mCc_ast_delete_function_def($$);} function_def
+%destructor {mCc_ast_delete_function_def_list($$);}  function_def_list
+%destructor {mCc_ast_delete_program($$);} program
+
 %%
 
 type : BOOL_TYPE           { $$ = MCC_AST_TYPE_BOOL; }
@@ -243,7 +244,6 @@ function_def_list : function_def function_def_list { $$ = mCc_ast_new_function_d
 				  | function_def                   { $$ = mCc_ast_new_function_def_list($1);                loc($$, @1); }
 				  ;
 
-
 program : function_def_list { $$ = mCc_ast_new_program($1); loc($$, @1);}
 		;
 
@@ -263,43 +263,31 @@ meta_start : START_PROGRAM program { *result = $2; }
 extern int start_token; // kind of a hack to enable different top level rules
 
 void mCc_parser_error(
-    struct MCC_PARSER_LTYPE *yylloc,
-    yyscan_t *scanner,
+	struct MCC_PARSER_LTYPE *yylloc,
+	yyscan_t *scanner,
 	struct mCc_ast_expression** result_e,
-    struct mCc_ast_literal** result_l,
-    struct mCc_ast_statement** result_s,
-    struct mCc_ast_function_def** result_f,
-    struct mCc_ast_declaration** result_d,
-    struct mCc_ast_program** result,
+	struct mCc_ast_literal** result_l,
+	struct mCc_ast_statement** result_s,
+	struct mCc_ast_function_def** result_f,
+	struct mCc_ast_declaration** result_d,
+	struct mCc_ast_program** result,
+	struct mCc_parse_error* result_error,
 	const char *msg)
 {
-    // suppress the warning unused parameter
-    (void)scanner;
-    (void)result_e;
-    (void)result_l;
-    (void)result_s;
-    (void)result_f;
-    (void)result_d;
-    (void)result;
-
-    // without global variable: save inside program/expression
-    /*
-    *result = (struct mCc_ast_program*)malloc(sizeof(struct mCc_ast_program));
-    memset(*result, 0, sizeof(struct mCc_ast_program));
-    (*result)->error_msg = strdup(msg);
-
-    *result_e = (struct mCc_ast_expression*)malloc(sizeof(struct mCc_ast_expression));
-    memset(*result_e, 0, sizeof(struct mCc_ast_expression));
-    (*result_e)->error_msg = strdup(msg)
-    */
-
-    // save error message and location to global parse_error variable.
-    parse_error.is_error = 1;
-    parse_error.location.first_line = yylloc->first_line;
-    parse_error.location.last_line = yylloc->last_line;
-    parse_error.location.first_column = yylloc->first_column;
-    parse_error.location.last_column = yylloc->last_column;
-    parse_error.msg = strdup(msg);
+	 // suppress the warning unused parameter
+	(void)scanner;
+	(void)result_e;
+	(void)result_l;
+	(void)result_s;
+	(void)result_f;
+	(void)result_d;
+	(void)result;
+	result_error->is_error = true;
+	result_error->location.first_line = yylloc->first_line;
+	result_error->location.last_line = yylloc->last_line;
+	result_error->location.first_column = yylloc->first_column;
+	result_error->location.last_column = yylloc->last_column;
+	result_error->msg = strdup(msg);
 }
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
@@ -321,6 +309,36 @@ struct mCc_parser_result mCc_parser_parse_string(const char *input)
 	return result;
 }
 
+void mCc_parser_delete_result(struct mCc_parser_result* result) {
+	if (result->expression != NULL) {
+		mCc_ast_delete_expression(result->expression);
+	}
+
+	if (result->literal != NULL) {
+		mCc_ast_delete_literal(result->literal);
+	}
+
+	if (result->statement != NULL) {
+		mCc_ast_delete_statement(result->statement);
+	}
+
+	if (result->declaration != NULL) {
+		mCc_ast_delete_declaration(result->declaration);
+	}
+
+	if (result->function_def != NULL) {
+		mCc_ast_delete_function_def(result->function_def);
+	}
+
+	if (result->program != NULL) {
+		mCc_ast_delete_program(result->program);
+	}
+
+	if (result->parse_error.msg != NULL) {
+		free(result->parse_error.msg);
+	}
+}
+
 struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 {
 	assert(input);
@@ -338,18 +356,16 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 		.status = MCC_PARSER_STATUS_OK,
 	};
 
-    // reset is_error
-    parse_error.is_error = 0;
+	// reset is_error
+	result.parse_error.is_error = false;
 
 	if (yyparse(scanner, &result.expression, &result.literal, &result.statement,
-	    &result.function_def, &result.declaration, &result.program) != 0) {
+		&result.function_def, &result.declaration, &result.program, &result.parse_error) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
 
-	if (parse_error.is_error) {
-	    result.status = MCC_PARSER_STATUS_SYNTAX_ERROR;
-	    result.parse_error = parse_error;
-	}
+	if (result.parse_error.is_error)
+		result.status = MCC_PARSER_STATUS_SYNTAX_ERROR;
 
 	mCc_parser_lex_destroy(scanner);
 	#ifdef _UNIT_TESTS__

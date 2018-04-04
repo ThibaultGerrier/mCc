@@ -1,6 +1,6 @@
 project('mCc', 'c',
     default_options: [
-        'buildtype=release',
+        'buildtype=debug',
         'c_std=c11',
         'cpp_std=c++14',
         'warning_level=2'
