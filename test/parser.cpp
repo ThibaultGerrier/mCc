@@ -369,242 +369,242 @@ TEST(Parser, IdentifierTest)
 
 TEST(Parser, EqualsTest)
 {
-const char input[] = "192 == 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 == 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_EQUALS, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_EQUALS, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, NotEqualsTest)
 {
-const char input[] = "192 != 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 != 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_NOT_EQUALS, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_NOT_EQUALS, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, OrTest)
 {
-const char input[] = "192 || 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 || 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_OR, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_OR, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, AndTest)
 {
-const char input[] = "192 && 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 && 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_AND, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_AND, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, GreaterEqualsTest)
 {
-const char input[] = "192 >= 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 >= 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_GREATER_EQUALS, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_GREATER_EQUALS, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, LessEqualsTest)
 {
-const char input[] = "192 <= 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 <= 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_LESS_EQUALS, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_LESS_EQUALS, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, GreaterTest)
 {
-const char input[] = "192 > 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 > 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_GREATER, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_GREATER, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, LessTest)
 {
-const char input[] = "192 < 3";
-auto result = mCc_parser_parse_string(input);
+    const char input[] = "192 < 3";
+    auto result = mCc_parser_parse_string(input);
 
-ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-auto expr = result.expression;
+    auto expr = result.expression;
 
-// root
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-ASSERT_EQ(MCC_AST_BINARY_OP_LESS, expr->binary_op.op);
+    // root
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    ASSERT_EQ(MCC_AST_BINARY_OP_LESS, expr->binary_op.op);
 
-// root -> lhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
+    // root -> lhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.lhs->type);
 
-// root -> lhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
-ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
+    // root -> lhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.lhs->literal->type);
+    ASSERT_EQ(192, expr->binary_op.lhs->literal->i_value);
 
-// root -> rhs
-ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
+    // root -> rhs
+    ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->binary_op.rhs->type);
 
-// root -> rhs -> literal
-ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
-ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
+    // root -> rhs -> literal
+    ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->binary_op.rhs->literal->type);
+    ASSERT_EQ(3, expr->binary_op.rhs->literal->i_value);
 
-mCc_ast_delete_expression(expr);
+    mCc_ast_delete_expression(expr);
 }
 
 TEST(Parser, DanglingElse)
@@ -623,6 +623,8 @@ TEST(Parser, DanglingElse)
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_CALL_EXPR, if1->if_branch->if_branch->expression->type);
 	ASSERT_EQ(0, strcmp("f1", if1->if_branch->if_branch->expression->identifier->name));
 	ASSERT_EQ(0, strcmp("f2", if1->if_branch->else_branch->expression->identifier->name));
+
+    mCc_ast_delete_program(prog);
 }
 
 TEST(Parser, SyntaxErrorTest)
@@ -642,6 +644,23 @@ TEST(Parser, SyntaxErrorTest)
 	ASSERT_GT(25, result.parse_error.location.last_column);
 }
 
+TEST(Parser, SyntaxErrorTestWithComment)
+{
+    const char input[] = "int foo() { \n/*\n */ int a; a = 12 1232423; \n a = a + 1; }";
+    auto result = mCc_parser_parse_string(input);
+
+    if (result.parse_error.is_error) {
+        print_error(result.parse_error);
+    }
+
+    ASSERT_EQ(MCC_PARSER_STATUS_SYNTAX_ERROR, result.status);
+    ASSERT_EQ(3, result.parse_error.location.first_line);
+    ASSERT_EQ(3, result.parse_error.location.last_line);
+    ASSERT_LT(1, result.parse_error.location.first_column);
+    ASSERT_GT(25, result.parse_error.location.first_column);
+    ASSERT_GT(29, result.parse_error.location.last_column);
+}
+
 TEST(Parser, Declaration_test)
 {
     const char input[] = "int dec(){int a;}";
@@ -649,12 +668,13 @@ TEST(Parser, Declaration_test)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+    auto statement = result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
 
     ASSERT_EQ(MCC_AST_STATEMENT_TYPE_DECLARATION, statement->type);
     ASSERT_EQ(MCC_AST_TYPE_INT, statement->declaration->identifier_type);
     ASSERT_EQ(0, strcmp("a", statement->declaration->normal_decl.identifier->name));
-
+    
+    mCc_ast_delete_statement(statement);
 }
 
 TEST(Parser, Assignment_test)
@@ -664,13 +684,14 @@ TEST(Parser, Assignment_test)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+    auto statement = result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
 
     ASSERT_EQ(MCC_AST_STATEMENT_TYPE_ASSIGNMENT, statement->type);
     ASSERT_EQ(0, strcmp("a", statement->assignment->identifier->name));
     ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, statement->assignment->normal_ass.rhs->literal->type);
     ASSERT_EQ(5, statement->assignment->normal_ass.rhs->literal->i_value);
 
+    mCc_ast_delete_statement(statement);
 }
 
 
@@ -687,6 +708,7 @@ TEST(Parser, Function_def)
 
     ASSERT_EQ(MCC_AST_TYPE_INT, function->return_type);
 
+    mCc_ast_delete_program(prog);
 }
 
 TEST(Parser, Function_parameters)
@@ -709,7 +731,7 @@ TEST(Parser, Function_parameters)
     ASSERT_EQ(MCC_AST_TYPE_BOOL, parameter2->identifier_type);
     ASSERT_EQ(0, strcmp("b", parameter2->normal_decl.identifier->name));
 
-
+    mCc_ast_delete_program(prog);
 }
 
 TEST(Parser, Function_call)
@@ -737,8 +759,8 @@ TEST(Parser, Function_call_arguments)
     auto expr = result.expression;
     auto arguments = expr->call_expr.arguments;
 
-    auto argument1=arguments->expression;
-    auto argument2=arguments->next->expression;
+    auto argument1 = arguments->expression;
+    auto argument2 = arguments->next->expression;
 
     ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, argument1->literal->type);
     ASSERT_EQ(1.2, argument1->literal->f_value);
@@ -775,6 +797,7 @@ TEST(Parser, Function_list)
     ASSERT_EQ(MCC_AST_TYPE_INT, parameterSecondFunction->identifier_type);
     ASSERT_EQ(0, strcmp("b", parameterSecondFunction->normal_decl.identifier->name));
 
+    mCc_ast_delete_program(prog);
 }
 
 TEST(Parser, If_statement)
@@ -784,7 +807,7 @@ TEST(Parser, If_statement)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+    auto statement = result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
 
     ASSERT_EQ(MCC_AST_STATEMENT_TYPE_IF, statement->type);
     ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, statement->if_condition->expression->type);
@@ -792,6 +815,7 @@ TEST(Parser, If_statement)
     ASSERT_EQ(MCC_AST_LITERAL_TYPE_BOOL, statement->if_condition->literal->type);
     ASSERT_EQ(true, statement->if_condition->literal->b_value);
 
+    mCc_ast_delete_statement(statement);
 }
 
 TEST(Parser, While_statement)
@@ -801,13 +825,14 @@ TEST(Parser, While_statement)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+    auto statement = result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
 
     ASSERT_EQ(MCC_AST_STATEMENT_TYPE_WHILE, statement->type);
     ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, statement->while_condition->expression->type);
 
     ASSERT_EQ(true, statement->while_condition->literal->b_value);
 
+    mCc_ast_delete_statement(statement);
 }
 
 TEST(Parser, Return_statement)
@@ -817,10 +842,12 @@ TEST(Parser, Return_statement)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto statement=result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
+    auto statement = result.program->function_def_list->function_def->compound_stmt->statement_list->statement;
 
     ASSERT_EQ(MCC_AST_STATEMENT_TYPE_RETURN, statement->type);
     ASSERT_EQ(1, statement->expression->literal->i_value);
+
+    mCc_ast_delete_statement(statement);
 }
 
 
@@ -831,11 +858,12 @@ TEST(Parser, Compound_statement)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto prog=result.program;
+    auto prog = result.program;
     auto function = prog->function_def_list->function_def;
 
     ASSERT_EQ(MCC_AST_STATEMENT_TYPE_COMPOUND_STMT, function->compound_stmt->type);
 
+    mCc_ast_delete_program(prog);
 }
 
 TEST(Parser, Statement_list)
@@ -845,7 +873,7 @@ TEST(Parser, Statement_list)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto prog=result.program;
+    auto prog = result.program;
     auto statementList = prog->function_def_list->function_def->compound_stmt->statement_list;
 
     auto statement1=statementList->statement;
@@ -869,6 +897,7 @@ TEST(Parser, Statement_list)
     ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, statement4->assignment->normal_ass.rhs->literal->type);
     ASSERT_EQ(1.1, statement4->assignment->normal_ass.rhs->literal->f_value);
 
+    mCc_ast_delete_program(prog);
 }
 
 
