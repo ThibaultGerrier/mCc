@@ -31,6 +31,17 @@ struct mCc_parse_error parse_error;
 %define api.value.type union
 %define api.token.prefix {TK_}
 
+%destructor {mCc_ast_delete_expression($$);} expression
+%destructor {mCc_ast_delete_statement($$);} statement
+%destructor {mCc_ast_delete_statement_list($$);} statement_list
+%destructor {mCc_ast_delete_literal($$);} literal
+%destructor {mCc_ast_delete_declaration($$);} declaration
+%destructor {mCc_ast_delete_assignment($$);} assignment
+%destructor {mCc_ast_delete_function_def($$);} function_def
+%destructor {mCc_ast_delete_function_def_list($$);}  function_def_list
+%destructor {mCc_ast_delete_program($$);} program
+%destructor {mCc_ast_delete_parameter($$);} parameters
+
 %locations
 
 %token END 0 "EOF"
