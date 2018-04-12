@@ -32,7 +32,7 @@ add_subdirectory(src)
 add_executable(mCc src/bin/mCc.c)
 target_link_libraries(mCc mCc_lib)
 
-add_executable(mC_to_dot src/bin/mC_to_dot.c)
+add_executable(mC_to_dot src/bin/mC_to_dot.c src/tac.c include/mCc/tac.h)
 target_link_libraries(mC_to_dot mCc_lib)
 
 

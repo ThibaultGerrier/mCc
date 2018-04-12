@@ -2,6 +2,7 @@
 
 #include "mCc/ast.h"
 #include "mCc/parser.h"
+#include "mCc/tac.h"
 
 void print_error(struct mCc_parse_error parse_error)
 {
@@ -924,4 +925,12 @@ TEST(Parser, Statement_list)
 	ASSERT_EQ(1.1, statement4->assignment->normal_ass.rhs->literal->f_value);
 
 	mCc_parser_delete_result(&result);
+}
+
+TEST(Parser, Generate_Sample_TAC)
+{
+	const char input[] = "129 < 200";
+	auto result = mCc_parser_parse_string(input);
+
+	mCc_tac_generate(&result);
 }

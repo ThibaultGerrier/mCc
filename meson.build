@@ -33,6 +33,7 @@ mCc_inc = include_directories('include')
 mCc_src = [ 'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
+            'src/tac.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y') ]
 
