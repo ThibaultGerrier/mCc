@@ -929,8 +929,53 @@ TEST(Parser, Statement_list)
 
 TEST(Parser, Generate_Sample_TAC)
 {
-	const char input[] = "129 < 200";
+	const char input[] = "void main(){ int a; int b; a = 129; a = a - 12; b = "
+	                     "0; b = (a + 1) + (b - 2);}";
 	auto result = mCc_parser_parse_string(input);
 
-	mCc_tac_generate(&result);
+	mCc_ast_print_tac_program(stderr, result.program);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+}
+
+TEST(Parser, Generate_Sample_TAC2)
+{
+	const char input[] = "void main(){ int a; a = (a + 1) + (12 - 2);}";
+	auto result = mCc_parser_parse_string(input);
+
+	mCc_ast_print_tac_program(stderr, result.program);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+}
+
+TEST(Parser, Generate_Sample_IF)
+{
+	const char input[] = "void main(){ int a; a = 2; if (a == 2){ a = a + 1;} "
+	                     "else { a = a - 1; }}";
+	auto result = mCc_parser_parse_string(input);
+
+	mCc_ast_print_tac_program(stderr, result.program);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+}
+
+TEST(Parser, Generate_Sample_While)
+{
+	const char input[] =
+	    "void main(){ int a; a = 2; while (a > 0){ a = a - 1;} a = 3;}";
+	auto result = mCc_parser_parse_string(input);
+
+	mCc_ast_print_tac_program(stderr, result.program);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+}
+
+TEST(Parser, Generate_Sample_Functions)
+{
+	const char input[] = "void main(){ int asd; } void foo(){} void asd(){}";
+	auto result = mCc_parser_parse_string(input);
+
+	mCc_ast_print_tac_program(stderr, result.program);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
