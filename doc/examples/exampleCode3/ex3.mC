@@ -22,7 +22,7 @@ void main()
     print_nl();
 
 
-	int a[10];
+	int[10] a;
 	int num;
 	num=0;
 	while (num<n){

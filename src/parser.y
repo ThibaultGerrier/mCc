@@ -214,7 +214,7 @@ return_type : type { $$ = $1; }
 			;
 
 declaration : type ID                               { $$ = mCc_ast_new_declaration($1, $2);           loc($$, @1); }
-			| type ID LBRACKET INT_LITERAL RBRACKET { $$ = mCc_ast_new_array_declaration($1, $2, $4); loc($$, @1); }
+			| type LBRACKET INT_LITERAL RBRACKET ID { $$ = mCc_ast_new_array_declaration($1, $5, $3); loc($$, @1); }
 			;
 
 assignment  : ID ASSIGNMENT expression									{ $$ = mCc_ast_new_assignment($1, $3);                 loc($$, @1); }
