@@ -31,11 +31,12 @@ struct mCc_sym_table_tree {
 };
 
 struct mCc_sym_table_entry *
-mCc_sym_table_new_entry(char *name, enum mCc_sym_table_entry_type var_type,
+mCc_sym_table_new_entry(const char *name,
+                        enum mCc_sym_table_entry_type var_type,
                         enum mCc_ast_type data_type);
 
 struct mCc_sym_table_entry *
-mCc_sym_table_new_entry_array(char *name,
+mCc_sym_table_new_entry_array(const char *name,
                               enum mCc_sym_table_entry_type var_type,
                               enum mCc_ast_type data_type, size_t size);
 
@@ -44,9 +45,25 @@ mCc_sym_table_new_tree(struct mCc_sym_table_entry *entry);
 
 void mCc_sym_table_delete_entry(struct mCc_sym_table_entry *entry);
 
-void mCc_sym_table_delete_symbol_table(struct mCc_sym_table_entry *entry);
+void mCc_sym_table_delete_symbol_table(struct mCc_sym_table_entry **table);
 
 void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree);
+
+/**
+ * returns true if the entry didn't exist otherwise false
+ */
+bool mCc_sym_table_add_entry(struct mCc_sym_table_entry **table,
+                             struct mCc_sym_table_entry *entry);
+
+/**
+ * returns NULL if the key doesn't exist otherwise the found entry
+ */
+struct mCc_sym_table_entry *
+mCc_sym_table_lookup_entry(struct mCc_sym_table_entry *table, const char *key);
+
+struct mCc_sym_table_entry *
+mCc_sym_table_ascendant_tree_lookup_entry(struct mCc_sym_table_tree *tree,
+                                          const char *key);
 
 void mCc_sym_table_add_child(struct mCc_sym_table_tree *tree,
                              struct mCc_sym_table_tree *child);
