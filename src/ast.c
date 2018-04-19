@@ -456,6 +456,10 @@ void mCc_ast_delete_statement(struct mCc_ast_statement *statement)
 		mCc_ast_delete_statement(statement->body);
 		break;
 	case MCC_AST_STATEMENT_TYPE_RETURN:
+		if (statement->expression != NULL) {
+			mCc_ast_delete_expression(statement->expression);
+		}
+		break;
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
 		mCc_ast_delete_expression(statement->expression);
 		break;
@@ -536,7 +540,6 @@ mCc_ast_new_function_def(enum mCc_ast_type return_type,
                          struct mCc_ast_parameter *parameters,
                          struct mCc_ast_statement *compound_stmt)
 {
-	assert(return_type);
 	assert(function_identifier);
 	/* assert(parameters); */
 	/* assert(compound_stmt); */
