@@ -106,12 +106,12 @@ static int cgen_expression(struct mCc_ast_expression *expression, FILE *out)
 		switch (expression->unary_op.op) {
 		case MCC_AST_UNARY_OP_NOT: {
 			int t = cgen_expression(expression->unary_op.rhs, out);
-			fprintf(out, "t%d = 0 - t%d\n", i, t);
+			fprintf(out, "t%d = 0 == t%d\n", i, t);
 			break;
 		}
 		case MCC_AST_UNARY_OP_MINUS: {
 			int t = cgen_expression(expression->unary_op.rhs, out);
-			fprintf(out, "t%d = 0 == t%d\n", i, t);
+			fprintf(out, "t%d = 0 - t%d\n", i, t);
 			break;
 		}
 		}
@@ -186,6 +186,8 @@ static void cgen_function_def(struct mCc_ast_function_def *function_def,
 {
 	fprintf(out, "START FUNC %s:\n", function_def->function_identifier->name);
 	cgen_statement(function_def->compound_stmt, out);
+	fprintf(out, "END FUNC %s:\n", function_def->function_identifier->name);
+
 }
 
 static void
@@ -203,6 +205,8 @@ void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 {
 	assert(out);
 	assert(program);
+	identifier = 0;
+	label = 0;
 
 	fprintf(out, "start tac\n");
 

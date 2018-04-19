@@ -1047,7 +1047,7 @@ TEST(Parser, Generate_Sample_IF)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Sample_While)
+TEST(Parser, Generate_Sample_While)g
 {
 	const char input[] =
 	    "void main(){ int a; a = 2; while (a > 0){ a = a - 1;} a = 3;}";
