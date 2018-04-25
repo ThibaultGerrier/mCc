@@ -15,43 +15,56 @@ enum mCc_ast_visit_traversal {
 enum mCc_ast_visit_order {
 	MCC_AST_VISIT_PRE_ORDER,
 	MCC_AST_VISIT_POST_ORDER,
+	MCC_AST_VISIT_PRE_AND_POST_ORDER,
+};
+
+enum mCc_ast_visit_type {
+	MCC_AST_VISIT_BEFORE,
+	MCC_AST_VISIT_AFTER,
+	MCC_VISIT_NO_TYPE
 };
 
 /* Callbacks */
 
-typedef void (*mCc_ast_visit_program_cb)(struct mCc_ast_program *, void *);
+typedef void (*mCc_ast_visit_program_cb)(struct mCc_ast_program *,
+                                         enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_function_def_list_cb)(
-    struct mCc_ast_function_def_list *, void *);
+    struct mCc_ast_function_def_list *, enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_function_def_cb)(struct mCc_ast_function_def *,
-                                              void *);
+                                              enum mCc_ast_visit_type, void *);
 
-typedef void (*mCc_ast_visit_parameter_cb)(struct mCc_ast_parameter *, void *);
+typedef void (*mCc_ast_visit_parameter_cb)(struct mCc_ast_parameter *,
+                                           enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_argument_list_cb)(struct mCc_ast_argument_list *,
-                                               void *);
+                                               enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_declaration_cb)(struct mCc_ast_declaration *,
-                                             void *);
+                                             enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_assignment_cb)(struct mCc_ast_assignment *,
-                                            void *);
+                                            enum mCc_ast_visit_type, void *);
 
-typedef void (*mCc_ast_visit_type_cb)(enum mCc_ast_type *, void *);
+typedef void (*mCc_ast_visit_type_cb)(enum mCc_ast_type *,
+                                      enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_expression_cb)(struct mCc_ast_expression *,
-                                            void *);
+                                            enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_statement_list_cb)(struct mCc_ast_statement_list *,
+                                                enum mCc_ast_visit_type,
                                                 void *);
 
-typedef void (*mCc_ast_visit_statement_cb)(struct mCc_ast_statement *, void *);
+typedef void (*mCc_ast_visit_statement_cb)(struct mCc_ast_statement *,
+                                           enum mCc_ast_visit_type, void *);
 
-typedef void (*mCc_ast_visit_literal_cb)(struct mCc_ast_literal *, void *);
+typedef void (*mCc_ast_visit_literal_cb)(struct mCc_ast_literal *,
+                                         enum mCc_ast_visit_type, void *);
 
 typedef void (*mCc_ast_visit_identifier_cb)(struct mCc_ast_identifier *,
-                                            void *);
+                                            enum mCc_ast_visit_type, void *);
 
 struct mCc_ast_visitor {
 	enum mCc_ast_visit_traversal traversal;

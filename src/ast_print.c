@@ -118,7 +118,8 @@ static void print_dot_edge(FILE *out, const void *src_node,
 	        label);
 }
 
-static void print_dot_program(struct mCc_ast_program *program, void *data)
+static void print_dot_program(struct mCc_ast_program *program,
+                              enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(program);
 	assert(data);
@@ -132,7 +133,8 @@ static void print_dot_program(struct mCc_ast_program *program, void *data)
 	               "function def list");
 }
 
-static void print_dot_type(enum mCc_ast_type *type, void *data)
+static void print_dot_type(enum mCc_ast_type *type,
+                           enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(type);
 
@@ -145,7 +147,7 @@ static void print_dot_type(enum mCc_ast_type *type, void *data)
 
 static void
 print_dot_function_def_list(struct mCc_ast_function_def_list *function_def_list,
-                            void *data)
+                            enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(function_def_list);
 	assert(data);
@@ -164,6 +166,7 @@ print_dot_function_def_list(struct mCc_ast_function_def_list *function_def_list,
 }
 
 static void print_dot_function_def(struct mCc_ast_function_def *function_def,
+                                   enum mCc_ast_visit_type visit_type,
                                    void *data)
 {
 	assert(function_def);
@@ -186,7 +189,8 @@ static void print_dot_function_def(struct mCc_ast_function_def *function_def,
 	               "compound stmt");
 }
 
-static void print_dot_parameter(struct mCc_ast_parameter *parameter, void *data)
+static void print_dot_parameter(struct mCc_ast_parameter *parameter,
+                                enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(parameter);
 	assert(data);
@@ -203,6 +207,7 @@ static void print_dot_parameter(struct mCc_ast_parameter *parameter, void *data)
 }
 
 static void print_dot_argument_list(struct mCc_ast_argument_list *argument_list,
+                                    enum mCc_ast_visit_type visit_type,
                                     void *data)
 {
 	assert(argument_list);
@@ -221,6 +226,7 @@ static void print_dot_argument_list(struct mCc_ast_argument_list *argument_list,
 }
 
 static void print_dot_declaration(struct mCc_ast_declaration *declaration,
+                                  enum mCc_ast_visit_type visit_type,
                                   void *data)
 {
 	assert(declaration);
@@ -251,7 +257,7 @@ static void print_dot_declaration(struct mCc_ast_declaration *declaration,
 
 static void
 print_dot_statement_list(struct mCc_ast_statement_list *statement_list,
-                         void *data)
+                         enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(statement_list);
 	assert(data);
@@ -268,7 +274,8 @@ print_dot_statement_list(struct mCc_ast_statement_list *statement_list,
 	}
 }
 
-static void print_dot_statement(struct mCc_ast_statement *statement, void *data)
+static void print_dot_statement(struct mCc_ast_statement *statement,
+                                enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(statement);
 	assert(data);
@@ -283,6 +290,7 @@ static void print_dot_statement(struct mCc_ast_statement *statement, void *data)
 
 static void
 print_dot_statement_compound_stmt(struct mCc_ast_statement *statement,
+                                  enum mCc_ast_visit_type visit_type,
                                   void *data)
 {
 	assert(statement);
@@ -296,6 +304,7 @@ print_dot_statement_compound_stmt(struct mCc_ast_statement *statement,
 }
 
 static void print_dot_statement_expression(struct mCc_ast_statement *statement,
+                                           enum mCc_ast_visit_type visit_type,
                                            void *data)
 {
 	assert(statement);
@@ -309,6 +318,7 @@ static void print_dot_statement_expression(struct mCc_ast_statement *statement,
 }
 
 static void print_dot_statement_if(struct mCc_ast_statement *statement,
+                                   enum mCc_ast_visit_type visit_type,
                                    void *data)
 {
 	assert(statement);
@@ -324,6 +334,7 @@ static void print_dot_statement_if(struct mCc_ast_statement *statement,
 }
 
 static void print_dot_statement_while(struct mCc_ast_statement *statement,
+                                      enum mCc_ast_visit_type visit_type,
                                       void *data)
 {
 	assert(statement);
@@ -336,6 +347,7 @@ static void print_dot_statement_while(struct mCc_ast_statement *statement,
 }
 
 static void print_dot_statement_return(struct mCc_ast_statement *statement,
+                                       enum mCc_ast_visit_type visit_type,
                                        void *data)
 {
 	assert(statement);
@@ -343,10 +355,13 @@ static void print_dot_statement_return(struct mCc_ast_statement *statement,
 	assert(statement->type == MCC_AST_STATEMENT_TYPE_RETURN);
 
 	FILE *out = data;
-	print_dot_edge(out, statement, statement->expression, "expression");
+	if (statement->expression != NULL) {
+		print_dot_edge(out, statement, statement->expression, "expression");
+	}
 }
 
 static void print_dot_statement_assignment(struct mCc_ast_statement *statement,
+                                           enum mCc_ast_visit_type visit_type,
                                            void *data)
 {
 	assert(statement);
@@ -371,6 +386,7 @@ static void print_dot_statement_assignment(struct mCc_ast_statement *statement,
 }
 
 static void print_dot_statement_declaration(struct mCc_ast_statement *statement,
+                                            enum mCc_ast_visit_type visit_type,
                                             void *data)
 {
 	assert(statement);
@@ -399,7 +415,7 @@ static void print_dot_statement_declaration(struct mCc_ast_statement *statement,
 }
 
 static void print_dot_identifier(struct mCc_ast_identifier *identifier,
-                                 void *data)
+                                 enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(identifier);
 	assert(data);
@@ -413,7 +429,7 @@ static void print_dot_identifier(struct mCc_ast_identifier *identifier,
 
 static void
 print_dot_expression_identifier(struct mCc_ast_expression *expression,
-                                void *data)
+                                enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(expression);
 	assert(data);
@@ -428,6 +444,7 @@ print_dot_expression_identifier(struct mCc_ast_expression *expression,
 
 static void
 print_dot_expression_array_identifier(struct mCc_ast_expression *expression,
+                                      enum mCc_ast_visit_type visit_type,
                                       void *data)
 {
 	assert(expression);
@@ -446,7 +463,7 @@ print_dot_expression_array_identifier(struct mCc_ast_expression *expression,
 
 static void
 print_dot_expression_call_expr(struct mCc_ast_expression *expression,
-                               void *data)
+                               enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(expression);
 	assert(data);
@@ -464,6 +481,7 @@ print_dot_expression_call_expr(struct mCc_ast_expression *expression,
 }
 
 static void print_dot_expression_literal(struct mCc_ast_expression *expression,
+                                         enum mCc_ast_visit_type visit_type,
                                          void *data)
 {
 	assert(expression);
@@ -476,7 +494,7 @@ static void print_dot_expression_literal(struct mCc_ast_expression *expression,
 
 static void
 print_dot_expression_binary_op(struct mCc_ast_expression *expression,
-                               void *data)
+                               enum mCc_ast_visit_type visit_type, void *data)
 {
 	assert(expression);
 	assert(data);
@@ -492,6 +510,7 @@ print_dot_expression_binary_op(struct mCc_ast_expression *expression,
 }
 
 static void print_dot_expression_unary_op(struct mCc_ast_expression *expression,
+                                          enum mCc_ast_visit_type visit_type,
                                           void *data)
 {
 	assert(expression);
@@ -507,6 +526,7 @@ static void print_dot_expression_unary_op(struct mCc_ast_expression *expression,
 }
 
 static void print_dot_expression_parenth(struct mCc_ast_expression *expression,
+                                         enum mCc_ast_visit_type visit_type,
                                          void *data)
 {
 	assert(expression);
@@ -517,7 +537,9 @@ static void print_dot_expression_parenth(struct mCc_ast_expression *expression,
 	print_dot_edge(out, expression, expression->expression, "expression");
 }
 
-static void print_dot_literal_bool(struct mCc_ast_literal *literal, void *data)
+static void print_dot_literal_bool(struct mCc_ast_literal *literal,
+                                   enum mCc_ast_visit_type visit_type,
+                                   void *data)
 {
 	assert(literal);
 	assert(data);
@@ -529,7 +551,9 @@ static void print_dot_literal_bool(struct mCc_ast_literal *literal, void *data)
 	print_dot_node(out, literal, label);
 }
 
-static void print_dot_literal_int(struct mCc_ast_literal *literal, void *data)
+static void print_dot_literal_int(struct mCc_ast_literal *literal,
+                                  enum mCc_ast_visit_type visit_type,
+                                  void *data)
 {
 	assert(literal);
 	assert(data);
@@ -541,7 +565,9 @@ static void print_dot_literal_int(struct mCc_ast_literal *literal, void *data)
 	print_dot_node(out, literal, label);
 }
 
-static void print_dot_literal_float(struct mCc_ast_literal *literal, void *data)
+static void print_dot_literal_float(struct mCc_ast_literal *literal,
+                                    enum mCc_ast_visit_type visit_type,
+                                    void *data)
 {
 	assert(literal);
 	assert(data);
@@ -554,6 +580,7 @@ static void print_dot_literal_float(struct mCc_ast_literal *literal, void *data)
 }
 
 static void print_dot_literal_string(struct mCc_ast_literal *literal,
+                                     enum mCc_ast_visit_type visit_type,
                                      void *data)
 {
 	assert(literal);
