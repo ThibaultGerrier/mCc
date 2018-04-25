@@ -337,7 +337,5 @@ void mCc_ast_visit_identifier(struct mCc_ast_identifier *identifier,
 	assert(identifier);
 	assert(visitor);
 
-	visit_if_pre_order(identifier, visitor->identifier, visitor);
-
-	visit_if_post_order(identifier, visitor->identifier, visitor);
+	visit(identifier, visitor->identifier, visitor, MCC_VISIT_NO_TYPE);
 }

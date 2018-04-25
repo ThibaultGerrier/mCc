@@ -18,6 +18,7 @@ struct mCc_sym_table_entry {
 	enum mCc_sym_table_entry_type var_type;
 	enum mCc_ast_type data_type;
 	size_t array_size;
+	size_t scope_index;
 
 	char *name;        /* key of the hashmap */
 	UT_hash_handle hh; /* makes this structure hashable */
@@ -31,12 +32,12 @@ struct mCc_sym_table_tree {
 };
 
 struct mCc_sym_table_entry *
-mCc_sym_table_new_entry(const char *name,
+mCc_sym_table_new_entry(const char *name, size_t scope_index,
                         enum mCc_sym_table_entry_type var_type,
                         enum mCc_ast_type data_type);
 
 struct mCc_sym_table_entry *
-mCc_sym_table_new_entry_array(const char *name,
+mCc_sym_table_new_entry_array(const char *name, size_t scope_index,
                               enum mCc_sym_table_entry_type var_type,
                               enum mCc_ast_type data_type, size_t size);
 

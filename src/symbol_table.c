@@ -6,7 +6,7 @@
 #include <string.h>
 
 struct mCc_sym_table_entry *
-mCc_sym_table_new_entry(const char *name,
+mCc_sym_table_new_entry(const char *name, size_t scope_index,
                         enum mCc_sym_table_entry_type var_type,
                         enum mCc_ast_type data_type)
 {
@@ -16,18 +16,19 @@ mCc_sym_table_new_entry(const char *name,
 	entry->var_type = var_type;
 	entry->data_type = data_type;
 	entry->name = malloc((strlen(name) + 1) * sizeof(char));
+	entry->scope_index = scope_index;
 	assert(entry->name);
 	strcpy(entry->name, name);
 	return entry;
 }
 
 struct mCc_sym_table_entry *
-mCc_sym_table_new_entry_array(const char *name,
+mCc_sym_table_new_entry_array(const char *name, size_t scope_index,
                               enum mCc_sym_table_entry_type var_type,
                               enum mCc_ast_type data_type, size_t array_size)
 {
 	struct mCc_sym_table_entry *entry =
-	    mCc_sym_table_new_entry(name, var_type, data_type);
+	    mCc_sym_table_new_entry(name, scope_index, var_type, data_type);
 	entry->array_size = array_size;
 	return entry;
 }

@@ -9,10 +9,10 @@ TEST(SymbolTable, Existing_Entry)
 	struct mCc_sym_table_entry *table = nullptr;
 
 	struct mCc_sym_table_entry *entry =
-	    mCc_sym_table_new_entry("var1", MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
+	    mCc_sym_table_new_entry("var1", 1, MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
 
 	ASSERT_EQ(true, mCc_sym_table_add_entry(&table, entry));
-	entry = mCc_sym_table_new_entry("var1", MCC_SYM_TABLE_ARRAY,
+	entry = mCc_sym_table_new_entry("var1", 1, MCC_SYM_TABLE_ARRAY,
 	                                MCC_AST_TYPE_STRING);
 
 	ASSERT_EQ(false, mCc_sym_table_add_entry(&table, entry));
@@ -26,7 +26,7 @@ TEST(SymbolTable, Lookup_Entry)
 	struct mCc_sym_table_entry *table = nullptr;
 
 	struct mCc_sym_table_entry *entry =
-	    mCc_sym_table_new_entry("var1", MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
+	    mCc_sym_table_new_entry("var1", 1, MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
 
 	ASSERT_EQ(true, mCc_sym_table_add_entry(&table, entry));
 	struct mCc_sym_table_entry *result_entry =
@@ -55,16 +55,16 @@ TEST(SymbolTable, Lookup_Ascendant_Entry)
 	mCc_sym_table_add_child(tree_parent, tree);
 
 	struct mCc_sym_table_entry *entry =
-	    mCc_sym_table_new_entry("var1", MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
+	    mCc_sym_table_new_entry("var1", 3, MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
 
 	struct mCc_sym_table_entry *entry_parent =
-	    mCc_sym_table_new_entry("var2", MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
+	    mCc_sym_table_new_entry("var2", 2, MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
 
 	struct mCc_sym_table_entry *entry_uncle =
-	    mCc_sym_table_new_entry("var3", MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
+	    mCc_sym_table_new_entry("var3", 4, MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
 
 	struct mCc_sym_table_entry *entry_grandparent =
-	    mCc_sym_table_new_entry("var4", MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
+	    mCc_sym_table_new_entry("var4", 1, MCC_SYM_TABLE_VAR, MCC_AST_TYPE_INT);
 
 	mCc_sym_table_add_entry(&tree->symbol_table, entry);
 	mCc_sym_table_add_entry(&tree_parent->symbol_table, entry_parent);
