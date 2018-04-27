@@ -1047,7 +1047,7 @@ TEST(Parser, Generate_Sample_IF)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Sample_While)g
+TEST(Parser, Generate_Sample_While)
 {
 	const char input[] =
 	    "void main(){ int a; a = 2; while (a > 0){ a = a - 1;} a = 3;}";
@@ -1060,10 +1060,37 @@ TEST(Parser, Generate_Sample_While)g
 
 TEST(Parser, Generate_Sample_Functions)
 {
-	const char input[] = "void main(){ int asd; } void foo(){} void asd(){}";
-	auto result = mCc_parser_parse_string(input);
 
-	mCc_ast_print_tac_program(stderr, result.program);
+    const char input[] = "void main(){ int asd; } void foo(){int a; a=2;} void asd(){}";
+    auto result = mCc_parser_parse_string(input);
 
-	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
 }
+
+TEST(Parser, Generate_Function_Calls)
+{
+
+    const char input[] = "void foo(){} void main(){int a; a=1; foo();}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+}
+
+TEST(Parser, Generate_Function_Calls_Push)
+{
+
+    const char input[] = "void foo(int a, int b){int c; c=a+b;} void main(){foo(1,2);}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+}
+

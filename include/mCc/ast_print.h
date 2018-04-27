@@ -29,6 +29,8 @@ void mCc_ast_print_dot_expression(FILE *out,
 
 void mCc_ast_print_dot_literal(FILE *out, struct mCc_ast_literal *literal);
 
+const char *mCc_ast_print_type(enum mCc_ast_type type);
+
 #ifdef __cplusplus
 }
 #endif
