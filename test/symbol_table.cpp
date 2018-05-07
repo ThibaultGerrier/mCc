@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "mCc/ast.h"
+#include "mCc/ast_symbol_table.h"
+#include "mCc/parser.h"
 #include "mCc/symbol_table.h"
 #include <cstdbool>
 
@@ -79,3 +81,39 @@ TEST(SymbolTable, Lookup_Ascendant_Entry)
 	ASSERT_EQ(nullptr, mCc_sym_table_ascendant_tree_lookup_entry(tree, "var3"));
 	mCc_sym_table_delete_tree(tree_grandparent);
 }
+
+TEST(SymbolTable, Visitor_Program_Declaration)
+{
+	const char input[] = "void main(){int a; string[3] b;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	auto visitor = symbol_table_visitor(&visitor_data);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto entry_a = mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	ASSERT_NE(nullptr, entry_a);
+
+	ASSERT_EQ(0, strcmp("a", entry_a->name));
+	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
+	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
+
+	auto entry_b = mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child->symbol_table, "b");
+	ASSERT_NE(nullptr, entry_b);
+
+	ASSERT_EQ(0, strcmp("b", entry_b->name));
+	ASSERT_EQ(MCC_SYM_TABLE_ARRAY, entry_b->var_type);
+	ASSERT_EQ(3u, entry_b->array_size);
+	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_b->data_type);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+}
+

@@ -25,7 +25,7 @@
 #define visit_if_post_order(node, callback, visitor) \
 	visit_if(((visitor)->order == MCC_AST_VISIT_POST_ORDER || \
 	          (visitor)->order == MCC_AST_VISIT_PRE_AND_POST_ORDER), \
-	         node, callback, visitor, MCC_AST_VISIT_BEFORE)
+	         node, callback, visitor, MCC_AST_VISIT_AFTER)
 
 void mCc_ast_visit_program(struct mCc_ast_program *program,
                            struct mCc_ast_visitor *visitor)
@@ -62,7 +62,8 @@ void mCc_ast_visit_function_def(struct mCc_ast_function_def *function_def,
 	visit_if_pre_order(function_def, visitor->function_def, visitor);
 	mCc_ast_visit_statement(function_def->compound_stmt, visitor);
 	mCc_ast_visit_type(&function_def->return_type, visitor);
-	mCc_ast_visit_identifier(function_def->function_identifier, visitor);
+	mCc_ast_visit_function_identifier(function_def->function_identifier,
+	                                  visitor);
 	mCc_ast_visit_parameters(function_def->parameters, visitor);
 	visit_if_post_order(function_def, visitor->function_def, visitor);
 }
@@ -338,4 +339,13 @@ void mCc_ast_visit_identifier(struct mCc_ast_identifier *identifier,
 	assert(visitor);
 
 	visit(identifier, visitor->identifier, visitor, MCC_VISIT_NO_TYPE);
+}
+
+void mCc_ast_visit_function_identifier(struct mCc_ast_identifier *identifier,
+                                       struct mCc_ast_visitor *visitor)
+{
+	assert(identifier);
+	assert(visitor);
+
+	visit(identifier, visitor->function_identifier, visitor, MCC_VISIT_NO_TYPE);
 }

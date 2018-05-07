@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "mCc/ast_symbol_table.h"
-#include "mCc/ast_visit.h"
 #include "mCc/symbol_table.h"
 
 void ast_symbol_table_stack_push(
@@ -25,6 +24,19 @@ ast_symbol_table_stack_pop(struct mCc_ast_symbol_table_stack_entry **stack)
 	return s;
 }
 
+struct mCc_ast_symbol_table_stack_entry *
+ast_symbol_table_new_stack_entry(struct mCc_ast_symbol_table_stack_entry *s,
+                                 struct mCc_sym_table_tree *symbol_table_tree,
+                                 size_t cur_index)
+{
+	struct mCc_ast_symbol_table_stack_entry *stack_entry =
+	    malloc(sizeof(stack_entry));
+	stack_entry->s = s;
+	stack_entry->symbol_table_tree = symbol_table_tree;
+	stack_entry->cur_index = cur_index;
+	return stack_entry;
+}
+
 static void symbol_table_program(struct mCc_ast_program *program,
                                  enum mCc_ast_visit_type visit_type, void *data)
 {
@@ -34,7 +46,9 @@ static void symbol_table_program(struct mCc_ast_program *program,
 
 	if (visit_type == MCC_AST_VISIT_BEFORE) {
 		visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
-	} else if (visit_type == MCC_AST_VISIT_BEFORE) {
+		visit_data->stack = ast_symbol_table_new_stack_entry(NULL, visit_data->symbol_table_tree, 0);
+	} else if (visit_type == MCC_AST_VISIT_AFTER) {
+		free(ast_symbol_table_stack_pop(&visit_data->stack));
 	}
 }
 
@@ -53,8 +67,9 @@ symbol_table_statement_compound_stmt(struct mCc_ast_statement *statement,
 		visit_data->max_index++;
 
 		struct mCc_ast_symbol_table_stack_entry *stack_entry =
-		    malloc(sizeof(stack_entry));
-		struct mCc_sym_table_tree *child = malloc(sizeof(child));
+		    ast_symbol_table_new_stack_entry(NULL, NULL, 0);
+
+		struct mCc_sym_table_tree *child = mCc_sym_table_new_tree(NULL);
 
 		stack_entry->symbol_table_tree = child;
 		stack_entry->cur_index = visit_data->max_index;
@@ -67,7 +82,7 @@ symbol_table_statement_compound_stmt(struct mCc_ast_statement *statement,
 			visit_data->stack = stack_entry;
 		}
 
-	} else if (visit_type == MCC_AST_VISIT_BEFORE) {
+	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));
 	}
 }
@@ -135,15 +150,16 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	}
 }
 
-static struct mCc_ast_visitor symbol_table_visitor(FILE *out)
+struct mCc_ast_visitor
+symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data)
 {
-	assert(out);
+	assert(visit_data);
 
 	return (struct mCc_ast_visitor){
 		.traversal = MCC_AST_VISIT_DEPTH_FIRST,
 		.order = MCC_AST_VISIT_PRE_AND_POST_ORDER,
 
-		.userdata = out,
+		.userdata = visit_data,
 
 		.program = symbol_table_program,
 
@@ -172,6 +188,7 @@ static struct mCc_ast_visitor symbol_table_visitor(FILE *out)
 		.statement_expression = NULL,
 		.statement_compound_stmt = symbol_table_statement_compound_stmt,
 
+		.function_identifier = NULL,
 		.identifier = symbol_table_identifier,
 
 		.literal_bool = NULL,

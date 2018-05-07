@@ -108,6 +108,8 @@ struct mCc_ast_visitor {
 
 	mCc_ast_visit_identifier_cb identifier;
 
+	mCc_ast_visit_identifier_cb function_identifier;
+
 	mCc_ast_visit_literal_cb literal;
 	mCc_ast_visit_literal_cb literal_bool;
 	mCc_ast_visit_literal_cb literal_int;
@@ -154,6 +156,9 @@ void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
 
 void mCc_ast_visit_identifier(struct mCc_ast_identifier *identifier,
                               struct mCc_ast_visitor *visitor);
+
+void mCc_ast_visit_function_identifier(struct mCc_ast_identifier *identifier,
+                                       struct mCc_ast_visitor *visitor);
 
 #ifdef __cplusplus
 }

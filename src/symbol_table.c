@@ -76,6 +76,7 @@ void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree)
 	if (tree->next_sibling != NULL) {
 		mCc_sym_table_delete_tree(tree->next_sibling);
 	}
+	free(tree);
 }
 
 bool mCc_sym_table_add_entry(struct mCc_sym_table_entry **table,
