@@ -46,7 +46,8 @@ static void symbol_table_program(struct mCc_ast_program *program,
 
 	if (visit_type == MCC_AST_VISIT_BEFORE) {
 		visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
-		visit_data->stack = ast_symbol_table_new_stack_entry(NULL, visit_data->symbol_table_tree, 0);
+		visit_data->stack = ast_symbol_table_new_stack_entry(
+		    NULL, visit_data->symbol_table_tree, 0);
 	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));
 	}
@@ -109,7 +110,9 @@ static void symbol_table_declaration(struct mCc_ast_declaration *declaration,
 				        declaration->identifier_type));
 			} else {
 				// TODO do not directly print into stderr
-				fprintf(stderr, "error: redefinition");
+				fprintf(stderr, "error in line %d: redefinition of variable '%s'",
+				        declaration->node.sloc.start_line,
+				        declaration->normal_decl.identifier->name);
 			}
 		} else if (declaration->declaration_type ==
 		           MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION) {
@@ -126,7 +129,9 @@ static void symbol_table_declaration(struct mCc_ast_declaration *declaration,
 				        declaration->array_decl.literal->i_value));
 			} else {
 				// TODO do not directly print into stderr
-				fprintf(stderr, "error: redefinition");
+				fprintf(stderr, "error in line %d: redefinition of variable '%s'",
+				        declaration->node.sloc.start_line,
+				        declaration->normal_decl.identifier->name);
 			}
 		}
 	}

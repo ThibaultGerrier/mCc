@@ -98,17 +98,21 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 
 	mCc_ast_visit_program(prog, &visitor);
 
-	auto entry_a = mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	auto entry_a = mCc_sym_table_lookup_entry(
+	    visitor_data.symbol_table_tree->first_child->symbol_table, "a");
 	ASSERT_NE(nullptr, entry_a);
 
 	ASSERT_EQ(0, strcmp("a", entry_a->name));
+	ASSERT_EQ(1u, entry_a->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
 	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
 
-	auto entry_b = mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child->symbol_table, "b");
+	auto entry_b = mCc_sym_table_lookup_entry(
+	    visitor_data.symbol_table_tree->first_child->symbol_table, "b");
 	ASSERT_NE(nullptr, entry_b);
 
 	ASSERT_EQ(0, strcmp("b", entry_b->name));
+	ASSERT_EQ(1u, entry_b->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_ARRAY, entry_b->var_type);
 	ASSERT_EQ(3u, entry_b->array_size);
 	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_b->data_type);
@@ -117,3 +121,42 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 }
 
+TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
+{
+	const char input[] = "void main(){int a; { string[3] a;}}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	auto visitor = symbol_table_visitor(&visitor_data);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto entry_a = mCc_sym_table_lookup_entry(
+	    visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	ASSERT_NE(nullptr, entry_a);
+
+	ASSERT_EQ(0, strcmp("a", entry_a->name));
+	ASSERT_EQ(1u, entry_a->scope_index);
+	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
+	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
+
+	auto entry_a2 = mCc_sym_table_lookup_entry(
+	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table,
+	    "a");
+	ASSERT_NE(nullptr, entry_a2);
+
+	ASSERT_EQ(0, strcmp("a", entry_a2->name));
+	ASSERT_EQ(2u, entry_a2->scope_index);
+	ASSERT_EQ(MCC_SYM_TABLE_ARRAY, entry_a2->var_type);
+	ASSERT_EQ(3u, entry_a2->array_size);
+	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_a2->data_type);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+}
