@@ -160,3 +160,45 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 }
+
+TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
+{
+	const char input[] =
+	    "void main(){int a; { string a; a = \"str\";} a = 123;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	auto visitor = symbol_table_visitor(&visitor_data);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto entry_a =
+	    prog->function_def_list->function_def->compound_stmt->statement_list
+	        ->next->next->statement->assignment->identifier->symbol_table_entry;
+	ASSERT_NE(nullptr, entry_a);
+
+	ASSERT_EQ(0, strcmp("a", entry_a->name));
+	ASSERT_EQ(1u, entry_a->scope_index);
+	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
+	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
+
+	auto entry_a2 = prog->function_def_list->function_def->compound_stmt
+	                    ->statement_list->next->statement->statement_list->next
+	                    ->statement->assignment->identifier->symbol_table_entry;
+	ASSERT_NE(nullptr, entry_a2);
+
+	ASSERT_EQ(0, strcmp("a", entry_a2->name));
+	ASSERT_EQ(2u, entry_a2->scope_index);
+	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a2->var_type);
+	ASSERT_EQ(3u, entry_a2->array_size);
+	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_a2->data_type);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+}
