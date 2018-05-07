@@ -20,10 +20,13 @@ add_library(mCc_print SHARED ast_print.c)
 
 # symbol table
 add_library(mCc_symbol SHARED symbol_table.c)
+
+# ast symbol table
+add_library(mCc_ast_symbol SHARED ast_symbol_table.c)
 	
 
 # intermediate linking of libraries
-target_link_libraries(mCc_print mCc_ast mCc_visit mCc_symbol)
+target_link_libraries(mCc_print mCc_ast mCc_visit mCc_symbol mCc_ast_symbol)
 
 # setup mCc_lib
 add_library(mCc_lib SHARED ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS})
