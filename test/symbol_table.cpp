@@ -202,10 +202,10 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 }
 
-// TODO
 TEST(SymbolTable, Visitor_Program_Redefinition)
 {
-	const char input[] = "void main(){int a; string[3] a;\n\n  {int b; int b;}\n}";
+	const char input[] =
+	    "void main(){int a; string[3] a;\n\n  {int b; int b;}\n}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -215,13 +215,14 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	struct mCc_err_error_manager* error_manager = mCc_err_new_error_manager();
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
 
 	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
-	auto entry_a = mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	auto entry_a = mCc_sym_table_lookup_entry(
+	    visitor_data.symbol_table_tree->first_child->symbol_table, "a");
 	ASSERT_NE(nullptr, entry_a);
 
 	ASSERT_EQ(0, strcmp("a", entry_a->name));
@@ -229,12 +230,83 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
 	// check the error message
 	ASSERT_EQ(2u, error_manager->used);
-	ASSERT_EQ(0, strcmp("error in line 1, col: 20: redefinition of variable 'a'", error_manager->array[0]->msg));
+	ASSERT_EQ(0,
+	          strcmp("error in line 1, col: 20: redefinition of variable 'a'",
+	                 error_manager->array[0]->msg));
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);
 	ASSERT_EQ(20u, error_manager->array[0]->start_col);
-	ASSERT_EQ(0, strcmp("error in line 3, col: 11: redefinition of variable 'b'", error_manager->array[1]->msg));
+	ASSERT_EQ(0,
+	          strcmp("error in line 3, col: 11: redefinition of variable 'b'",
+	                 error_manager->array[1]->msg));
 	ASSERT_EQ(3u, error_manager->array[1]->start_line);
 	ASSERT_EQ(11u, error_manager->array[1]->start_col);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Function_Table)
+{
+	const char input[] = "int foo(int bar){return bar;}\nvoid main(){int a;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	auto visitor = symbol_table_visitor(&visitor_data, NULL);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+	auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
+	ASSERT_NE(nullptr, entry_foo);
+
+	ASSERT_EQ(0, strcmp("foo", entry_foo->name));
+
+	auto entry_main = mCc_sym_table_lookup_entry(function_table, "main");
+	ASSERT_NE(nullptr, entry_main);
+
+	ASSERT_EQ(0, strcmp("main", entry_main->name));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+}
+
+TEST(SymbolTable, Function_Table_Undefined_Function)
+{
+	fprintf(stderr, "undefined function call\n");
+	const char input[] = "void main(){int a; foo(a);}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+	auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
+	ASSERT_EQ(nullptr, entry_foo);
+
+	// check the error message
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0,strcmp("error in line 1, col: 20: not defined function call 'foo'",error_manager->array[0]->msg));
+	ASSERT_EQ(1u, error_manager->array[0]->start_line);
+	ASSERT_EQ(20u, error_manager->array[0]->start_col);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);

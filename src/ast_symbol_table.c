@@ -55,6 +55,67 @@ static void symbol_table_program(struct mCc_ast_program *program,
 	}
 }
 
+static void symbol_table_function_identifier(
+    struct mCc_ast_identifier *identifier, enum mCc_ast_visit_type visit_type,
+    struct mCc_err_error_manager *error_manager, void *data)
+{
+	assert(identifier);
+	assert(data);
+	struct mCc_ast_symbol_table_visitor_data *visit_data = data;
+
+	struct mCc_sym_table_entry *result =
+	    mCc_sym_table_ascendant_tree_lookup_entry(
+	        visit_data->stack->symbol_table_tree, identifier->name);
+
+	if (visit_data->stack->cur_index ==
+	    0) { /* cur_index is 0 at toplevel and therefore it is a function
+		        definition */
+		if (result == NULL) {
+			mCc_sym_table_add_entry(
+			    &visit_data->stack->symbol_table_tree->symbol_table,
+			    mCc_sym_table_new_entry(
+			        identifier->name, visit_data->stack->cur_index,
+			        MCC_SYM_TABLE_FUNCTION,
+			        MCC_AST_TYPE_VOID)); // TODO type is just placeholder
+		} else {
+			if (error_manager != NULL) {
+				char msg[256];
+				sprintf(msg,
+				        "error in line %d, col: %d: redefined function "
+				        "'%s'",
+				        identifier->node.sloc.start_line,
+				        identifier->node.sloc.start_col, identifier->name);
+				mCc_err_error_manager_insert_error_entry(
+				    error_manager, mCc_err_new_error_entry(
+				                       msg, identifier->node.sloc.start_line,
+				                       identifier->node.sloc.start_col,
+				                       identifier->node.sloc.end_line,
+				                       identifier->node.sloc.end_col));
+			}
+		}
+
+	} else { /* function call */
+		if (result != NULL) {
+			identifier->symbol_table_entry = result;
+		} else {
+			if (error_manager != NULL) {
+				char msg[256];
+				sprintf(msg,
+				        "error in line %d, col: %d: not defined function call "
+				        "'%s'",
+				        identifier->node.sloc.start_line,
+				        identifier->node.sloc.start_col, identifier->name);
+				mCc_err_error_manager_insert_error_entry(
+				    error_manager, mCc_err_new_error_entry(
+				                       msg, identifier->node.sloc.start_line,
+				                       identifier->node.sloc.start_col,
+				                       identifier->node.sloc.end_line,
+				                       identifier->node.sloc.end_col));
+			}
+		}
+	}
+}
+
 static void symbol_table_statement_compound_stmt(
     struct mCc_ast_statement *statement, enum mCc_ast_visit_type visit_type,
     struct mCc_err_error_manager *error_manager, void *data)
@@ -177,7 +238,7 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 		identifier->symbol_table_entry = result;
 	} else {
 		// TODO do not directly print into stderr
-		fprintf(stderr, "error: not defined identifier");
+		fprintf(stderr, "error: not defined identifier: %s\n", identifier->name);
 	}
 }
 
@@ -222,7 +283,7 @@ symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
 		.statement_expression = NULL,
 		.statement_compound_stmt = symbol_table_statement_compound_stmt,
 
-		.function_identifier = NULL,
+		.function_identifier = symbol_table_function_identifier,
 		.identifier = symbol_table_identifier,
 
 		.literal_bool = NULL,

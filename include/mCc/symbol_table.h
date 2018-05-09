@@ -12,6 +12,7 @@ extern "C" {
 enum mCc_sym_table_entry_type {
 	MCC_SYM_TABLE_VAR,
 	MCC_SYM_TABLE_ARRAY,
+	MCC_SYM_TABLE_FUNCTION,
 };
 
 struct mCc_sym_table_entry {

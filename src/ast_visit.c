@@ -174,7 +174,7 @@ void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
 
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
 		visit_if_pre_order(expression, visitor->expression_call_expr, visitor);
-		mCc_ast_visit_identifier(expression->call_expr.identifier, visitor);
+		mCc_ast_visit_function_identifier(expression->call_expr.identifier, visitor);
 		if (expression->call_expr.arguments != NULL) {
 			mCc_ast_visit_arguments(expression->call_expr.arguments, visitor);
 		}
