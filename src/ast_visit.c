@@ -6,7 +6,7 @@
 #define visit(node, callback, visitor, visit_type) \
 	do { \
 		if (callback) { \
-			(callback)(node, visit_type, (visitor)->userdata); \
+			(callback)(node, visit_type, (visitor)->error_manager, (visitor)->userdata); \
 		} \
 	} while (0)
 

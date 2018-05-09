@@ -38,7 +38,9 @@ ast_symbol_table_new_stack_entry(struct mCc_ast_symbol_table_stack_entry *s,
 }
 
 static void symbol_table_program(struct mCc_ast_program *program,
-                                 enum mCc_ast_visit_type visit_type, void *data)
+                                 enum mCc_ast_visit_type visit_type,
+                                 struct mCc_err_error_manager *error_manager,
+                                 void *data)
 {
 	assert(program);
 	assert(data);
@@ -53,10 +55,9 @@ static void symbol_table_program(struct mCc_ast_program *program,
 	}
 }
 
-static void
-symbol_table_statement_compound_stmt(struct mCc_ast_statement *statement,
-                                     enum mCc_ast_visit_type visit_type,
-                                     void *data)
+static void symbol_table_statement_compound_stmt(
+    struct mCc_ast_statement *statement, enum mCc_ast_visit_type visit_type,
+    struct mCc_err_error_manager *error_manager, void *data)
 {
 	assert(statement);
 	assert(data);
@@ -88,9 +89,9 @@ symbol_table_statement_compound_stmt(struct mCc_ast_statement *statement,
 	}
 }
 
-static void symbol_table_declaration(struct mCc_ast_declaration *declaration,
-                                     enum mCc_ast_visit_type visit_type,
-                                     void *data)
+static void symbol_table_declaration(
+    struct mCc_ast_declaration *declaration, enum mCc_ast_visit_type visit_type,
+    struct mCc_err_error_manager *error_manager, void *data)
 {
 	assert(declaration);
 	assert(data);
@@ -139,6 +140,7 @@ static void symbol_table_declaration(struct mCc_ast_declaration *declaration,
 
 static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
                                     enum mCc_ast_visit_type visit_type,
+                                    struct mCc_err_error_manager *error_manager,
                                     void *data)
 {
 	assert(identifier);
@@ -156,13 +158,16 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 }
 
 struct mCc_ast_visitor
-symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data)
+symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
+                     struct mCc_err_error_manager *error_manager)
 {
 	assert(visit_data);
 
 	return (struct mCc_ast_visitor){
 		.traversal = MCC_AST_VISIT_DEPTH_FIRST,
 		.order = MCC_AST_VISIT_PRE_AND_POST_ORDER,
+
+		.error_manager = error_manager,
 
 		.userdata = visit_data,
 

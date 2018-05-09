@@ -94,7 +94,7 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data);
+	auto visitor = symbol_table_visitor(&visitor_data, NULL);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -133,7 +133,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data);
+	auto visitor = symbol_table_visitor(&visitor_data, NULL);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -174,7 +174,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data);
+	auto visitor = symbol_table_visitor(&visitor_data, NULL);
 
 	mCc_ast_visit_program(prog, &visitor);
 
