@@ -428,3 +428,34 @@ mCc_parser_delete_result(&result);
 mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 mCc_err_delete_error_manager(error_manager);
 }
+
+
+TEST(SymbolTable, Visitor_Function_Table_Call)
+{
+const char input[] = "void foo(){} void main(){foo();}";
+auto result = mCc_parser_parse_string(input);
+
+ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+auto prog = result.program;
+
+struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+                                                          0 };
+
+struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+mCc_ast_visit_program(prog, &visitor);
+
+auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
+ASSERT_NE(nullptr, entry_foo);
+
+// check the error message
+ASSERT_EQ(0u, error_manager->used);
+
+mCc_parser_delete_result(&result);
+mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+mCc_err_delete_error_manager(error_manager);
+}
