@@ -1094,3 +1094,41 @@ TEST(Parser, Generate_Function_Calls_Push)
 
 }
 
+TEST(Parser, Generate_Function_Return)
+{
+
+    const char input[] = "void foo(){return 1;} void main(){foo();}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+}
+
+
+TEST(Parser, Generate_Function_CallinCall)
+{
+
+    const char input[] = "void foo(int i){return i;} void main(){foo(foo(1));}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+}
+
+
+TEST(Parser, Generate_Function_CallinCall1)
+{
+
+    const char input[] = "bool foo(bool i){return i;} void main(){bool a; a=foo(!true);}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
+}

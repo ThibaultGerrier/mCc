@@ -1,6 +1,6 @@
 #include "mCc/tac.h"
-#include "mCc/ast_visit.h"
 #include "mCc/ast_print.h"
+#include "mCc/ast_visit.h"
 #include <assert.h>
 #include <mCc/ast.h>
 
@@ -101,49 +101,21 @@ static int cgen_expression(struct mCc_ast_expression *expression, FILE *out)
 		fprintf(out, "t%d = t%d\n", i, t);
 		break;
 	}
-	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER: break;
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER:
+		// TODO
+		break;
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: {
-        struct mCc_ast_argument_list *next = expression->call_expr.arguments;
-        while (next != NULL) {
-            switch(next->expression->type){
-                case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
-					break;
-                case MCC_AST_EXPRESSION_TYPE_LITERAL:
-                    switch(next->expression->literal->type){
-                        case MCC_AST_TYPE_INT:
-                            fprintf(out, "PushStack((int) %d)\n", next->expression->literal->i_value);
-                            break;
-                        case MCC_AST_TYPE_BOOL:
-                            fprintf(out, "PushStack((bool) %d)\n", next->expression->literal->b_value);
-                            break;
-                        case MCC_AST_TYPE_FLOAT:
-                            fprintf(out, "PushStack((float) %f)\n", next->expression->literal->f_value);
-                            break;
-                        case MCC_AST_TYPE_STRING:
-                            fprintf(out, "(string) ");
-                            fprintf(out, "PushStack((string) %s)\n", next->expression->literal->s_value);
-                            break;
-                        case MCC_AST_TYPE_VOID:break;
-                    }
-                    break;
-				case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
-					//TODO
-					break;
-				case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-					//TODO
-					break;
-				case MCC_AST_EXPRESSION_TYPE_IDENTIFIER:
-					//TODO
-					break;
-				case MCC_AST_EXPRESSION_TYPE_PARENTH:
-					//TODO
-					break;
-            }
-            next = next->next;
-        }
-        fprintf(out, "Goto (%s)\n", expression->call_expr.identifier->name);
-        break;
-    }
+		struct mCc_ast_argument_list *next = expression->call_expr.arguments;
+		while (next != NULL) {
+			int t = cgen_expression(next->expression, out);
+			fprintf(out, "PushStack(t%d)\n", t);
+			next = next->next;
+		}
+		fprintf(out, "Call (%s)\n", expression->call_expr.identifier->name);
+		fprintf(out, "t%d = PopStack()\n", i);
+
+		break;
+	}
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP: {
 		switch (expression->unary_op.op) {
 		case MCC_AST_UNARY_OP_NOT: {
@@ -194,10 +166,14 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 		fprintf(out, "L%d:\n", labelAfter);
 		break;
 	}
-	case MCC_AST_STATEMENT_TYPE_RETURN:
-
-        break;
-	case MCC_AST_STATEMENT_TYPE_DECLARATION:break;
+	case MCC_AST_STATEMENT_TYPE_RETURN: {
+		int label = cgen_expression(statement->expression, out);
+		fprintf(out, "RETURN t%d\n", label);
+		break;
+	}
+	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		// does not matter in our tac
+		break;
 
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT: {
 		int t = cgen_expression(statement->assignment->normal_ass.rhs, out);
@@ -205,7 +181,10 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 		fprintf(out, "%s = t%d\n", identifier, t);
 		break;
 	}
-	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT: break;
+	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT:
+		// TODO
+		break;
+
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION: {
 		cgen_expression(statement->expression, out);
 		break;
@@ -230,23 +209,23 @@ static void cgen_function_def(struct mCc_ast_function_def *function_def,
                               FILE *out)
 {
 	fprintf(out, "START FUNC %s:\n", function_def->function_identifier->name);
-    //TODO: if stack, change order of pop statements!!
-    struct mCc_ast_parameter *next = function_def->parameters;
-    while (next != NULL) {
-        switch(next->declaration->declaration_type){
-            case MCC_AST_DECLARATION_TYPE_DECLARATION:
-                fprintf(out, "%s = PopStack(%s)\n", next->declaration->normal_decl.identifier->name,mCc_ast_print_type(next->declaration->identifier_type));
-                break;
-            case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION:
-                //TODO
-                break;
-
-        }
-        next = next->next;
-    }
+	// TODO: if stack, change order of pop statements!!
+	struct mCc_ast_parameter *next = function_def->parameters;
+	while (next != NULL) {
+		switch (next->declaration->declaration_type) {
+		case MCC_AST_DECLARATION_TYPE_DECLARATION:
+			fprintf(out, "%s = PopStack(%s)\n",
+			        next->declaration->normal_decl.identifier->name,
+			        mCc_ast_print_type(next->declaration->identifier_type));
+			break;
+		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION:
+			// TODO
+			break;
+		}
+		next = next->next;
+	}
 	cgen_statement(function_def->compound_stmt, out);
 	fprintf(out, "END FUNC %s:\n", function_def->function_identifier->name);
-
 }
 
 static void
