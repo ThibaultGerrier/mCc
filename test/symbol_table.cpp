@@ -196,7 +196,6 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	ASSERT_EQ(0, strcmp("a", entry_a2->name));
 	ASSERT_EQ(2u, entry_a2->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a2->var_type);
-	ASSERT_EQ(3u, entry_a2->array_size);
 	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_a2->data_type);
 
 	mCc_parser_delete_result(&result);
@@ -229,7 +228,6 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
 	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
 	// check the error message
-	std::cerr << error_manager->array[1]->msg << std::endl;
 	ASSERT_EQ(2u, error_manager->used);
 	ASSERT_EQ(0, strcmp("error in line 1, col: 20: redefinition of variable 'a'", error_manager->array[0]->msg));
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);

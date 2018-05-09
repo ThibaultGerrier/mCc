@@ -30,7 +30,7 @@ ast_symbol_table_new_stack_entry(struct mCc_ast_symbol_table_stack_entry *s,
                                  size_t cur_index)
 {
 	struct mCc_ast_symbol_table_stack_entry *stack_entry =
-	    malloc(sizeof(stack_entry));
+	    malloc(sizeof(*stack_entry));
 	stack_entry->s = s;
 	stack_entry->symbol_table_tree = symbol_table_tree;
 	stack_entry->cur_index = cur_index;

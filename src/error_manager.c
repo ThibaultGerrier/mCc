@@ -67,4 +67,5 @@ void mCc_err_delete_error_manager(struct mCc_err_error_manager *err_man)
 	free(err_man->array);
 	err_man->array = NULL;
 	err_man->used = err_man->size = 0;
+	free(err_man);
 }

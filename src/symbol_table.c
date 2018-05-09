@@ -15,10 +15,12 @@ mCc_sym_table_new_entry(const char *name, size_t scope_index,
 	assert(entry);
 	entry->var_type = var_type;
 	entry->data_type = data_type;
-	entry->name = malloc((strlen(name) + 1) * sizeof(char));
 	entry->scope_index = scope_index;
+	entry->array_size = 0;
+	size_t len = strlen(name) + 1;
+	entry->name = malloc(len);
 	assert(entry->name);
-	strcpy(entry->name, name);
+	memcpy(entry->name, name, len);
 	return entry;
 }
 
@@ -95,7 +97,7 @@ bool mCc_sym_table_add_entry(struct mCc_sym_table_entry **table,
 struct mCc_sym_table_entry *
 mCc_sym_table_lookup_entry(struct mCc_sym_table_entry *table, const char *key)
 {
-	struct mCc_sym_table_entry *entry;
+	struct mCc_sym_table_entry *entry = NULL;
 	HASH_FIND_STR(table, key, entry);
 	return entry;
 }
