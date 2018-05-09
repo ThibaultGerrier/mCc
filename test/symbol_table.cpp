@@ -202,3 +202,43 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 }
+
+// TODO
+TEST(SymbolTable, Visitor_Program_Redefinition)
+{
+	const char input[] = "void main(){int a; string[3] a;\n\n  {int b; int b;}\n}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager* error_manager = mCc_err_new_error_manager();
+
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto entry_a = mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	ASSERT_NE(nullptr, entry_a);
+
+	ASSERT_EQ(0, strcmp("a", entry_a->name));
+	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
+	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
+	// check the error message
+	std::cerr << error_manager->array[1]->msg << std::endl;
+	ASSERT_EQ(2u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error in line 1, col: 20: redefinition of variable 'a'", error_manager->array[0]->msg));
+	ASSERT_EQ(1u, error_manager->array[0]->start_line);
+	ASSERT_EQ(20u, error_manager->array[0]->start_col);
+	ASSERT_EQ(0, strcmp("error in line 3, col: 11: redefinition of variable 'b'", error_manager->array[1]->msg));
+	ASSERT_EQ(3u, error_manager->array[1]->start_line);
+	ASSERT_EQ(11u, error_manager->array[1]->start_col);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}

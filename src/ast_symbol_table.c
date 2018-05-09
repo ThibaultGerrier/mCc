@@ -110,10 +110,22 @@ static void symbol_table_declaration(
 				        visit_data->stack->cur_index, MCC_SYM_TABLE_VAR,
 				        declaration->identifier_type));
 			} else {
-				// TODO do not directly print into stderr
-				fprintf(stderr, "error in line %d: redefinition of variable '%s'",
-				        declaration->node.sloc.start_line,
-				        declaration->normal_decl.identifier->name);
+				if (error_manager != NULL) {
+					char msg[256];
+					sprintf(msg,
+					        "error in line %d, col: %d: redefinition of "
+					        "variable '%s'",
+					        declaration->node.sloc.start_line,
+					        declaration->node.sloc.start_col,
+					        declaration->normal_decl.identifier->name);
+					mCc_err_error_manager_insert_error_entry(
+					    error_manager,
+					    mCc_err_new_error_entry(
+					        msg, declaration->node.sloc.start_line,
+					        declaration->node.sloc.start_col,
+					        declaration->node.sloc.end_line,
+					        declaration->node.sloc.end_col));
+				}
 			}
 		} else if (declaration->declaration_type ==
 		           MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION) {
@@ -129,10 +141,22 @@ static void symbol_table_declaration(
 				        declaration->identifier_type,
 				        declaration->array_decl.literal->i_value));
 			} else {
-				// TODO do not directly print into stderr
-				fprintf(stderr, "error in line %d: redefinition of variable '%s'",
-				        declaration->node.sloc.start_line,
-				        declaration->normal_decl.identifier->name);
+				if (error_manager != NULL) {
+					char msg[256];
+					sprintf(msg,
+					        "error in line %d, col: %d: redefinition of "
+					        "variable '%s'",
+					        declaration->node.sloc.start_line,
+					        declaration->node.sloc.start_col,
+					        declaration->normal_decl.identifier->name);
+					mCc_err_error_manager_insert_error_entry(
+					    error_manager,
+					    mCc_err_new_error_entry(
+					        msg, declaration->node.sloc.start_line,
+					        declaration->node.sloc.start_col,
+					        declaration->node.sloc.end_line,
+					        declaration->node.sloc.end_col));
+				}
 			}
 		}
 	}
