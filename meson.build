@@ -34,15 +34,16 @@ mCc_src = [ 'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
             'src/ast_symbol_table.c',
+            'src/error_manager.c',
             'src/symbol_table.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y') ]
 
 mCc_lib = library('mCc', mCc_src,
-                  c_args: '-D_POSIX_C_SOURCE=200809L',
+                  c_args: ['-D_POSIX_C_SOURCE=200809L ', '-Wno-unused'],
                   include_directories: mCc_inc)
 mCc_lib_test = library('mCc_test', mCc_src,
-                  c_args: ['-D_POSIX_C_SOURCE=200809L', '-D_UNIT_TESTS__'],
+                  c_args: ['-D_POSIX_C_SOURCE=200809L', '-D_UNIT_TESTS__', '-Wno-unused'],
                   include_directories: mCc_inc)
 
 # ----------------------------------------------------------------- EXECUTABLES
