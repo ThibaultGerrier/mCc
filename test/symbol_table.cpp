@@ -246,7 +246,7 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(SymbolTable, Function_Table)
+TEST(SymbolTable, Visitor_Function_Table)
 {
 	const char input[] = "int foo(int bar){return bar;}\nvoid main(){int a;}";
 	auto result = mCc_parser_parse_string(input);
@@ -278,7 +278,7 @@ TEST(SymbolTable, Function_Table)
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 }
 
-TEST(SymbolTable, Function_Table_Undefined_Function)
+TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 {
 	const char input[] = "void main(){int a; foo(a);}";
 	auto result = mCc_parser_parse_string(input);
@@ -314,7 +314,7 @@ TEST(SymbolTable, Function_Table_Undefined_Function)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(SymbolTable, Function_Table_Redefined_Function)
+TEST(SymbolTable, Visitor_Function_Table_Redefined_Function)
 {
 	const char input[] = "void foo(){} void foo(){} void main(){int a;}";
 	auto result = mCc_parser_parse_string(input);
@@ -349,7 +349,7 @@ TEST(SymbolTable, Function_Table_Redefined_Function)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(SymbolTable, Function_Table_No_Main)
+TEST(SymbolTable, Visitor_Function_Table_No_Main)
 {
 	const char input[] = "void foo(){}";
 	auto result = mCc_parser_parse_string(input);
@@ -382,4 +382,49 @@ TEST(SymbolTable, Function_Table_No_Main)
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Function_Table_Built_In)
+{
+const char input[] = "void main(){print();print_nl();print_int();print_float();read_int();read_float();}";
+auto result = mCc_parser_parse_string(input);
+
+ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+auto prog = result.program;
+
+struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+                                                          0 };
+
+struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+mCc_ast_visit_program(prog, &visitor);
+
+auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+auto entry_print = mCc_sym_table_lookup_entry(function_table, "print");
+ASSERT_NE(nullptr, entry_print);
+
+auto entry_print_nl = mCc_sym_table_lookup_entry(function_table, "print_nl");
+ASSERT_NE(nullptr, entry_print_nl);
+
+auto entry_print_int = mCc_sym_table_lookup_entry(function_table, "print_int");
+ASSERT_NE(nullptr, entry_print_int);
+
+auto entry_print_float = mCc_sym_table_lookup_entry(function_table, "print_float");
+ASSERT_NE(nullptr, entry_print_float);
+
+auto entry_read_int = mCc_sym_table_lookup_entry(function_table, "read_int");
+ASSERT_NE(nullptr, entry_read_int);
+
+auto entry_read_float = mCc_sym_table_lookup_entry(function_table, "read_float");
+ASSERT_NE(nullptr, entry_read_float);
+
+// check the error message
+ASSERT_EQ(0u, error_manager->used);
+
+mCc_parser_delete_result(&result);
+mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+mCc_err_delete_error_manager(error_manager);
 }

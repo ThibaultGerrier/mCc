@@ -50,8 +50,30 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
 		visit_data->stack = ast_symbol_table_new_stack_entry(
 		    NULL, visit_data->symbol_table_tree, 0);
+
+		//add built in function to function table
+
+		const char *a[6];
+		a[0] = "print";
+		a[1] = "print_nl";
+		a[2] = "print_int";
+		a[3] = "print_float";
+		a[4] = "read_int";
+		a[5] = "read_float";
+
+		for (int i = 0; i < 6; ++i) {
+			mCc_sym_table_add_entry(
+					&visit_data->stack->symbol_table_tree->symbol_table,
+					mCc_sym_table_new_entry(
+							a[i], visit_data->stack->cur_index,
+							MCC_SYM_TABLE_FUNCTION,
+							MCC_AST_TYPE_VOID)); // TODO type is just placeholder
+		}
+
+
 	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));
+
 		// check if there is a main()
 		struct mCc_sym_table_entry *result = mCc_sym_table_lookup_entry(
 		    visit_data->symbol_table_tree->symbol_table, "main");
