@@ -30,6 +30,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>   /* ptrdiff_t */
 #include <stdlib.h>   /* exit */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /* These macros use decltype or the earlier __typeof GNU extension.
    As decltype is only available in newer compilers (VS2010 or gcc 4.3+
    when compiling c++ source) this code uses whatever method is needed
@@ -1214,4 +1217,7 @@ typedef struct UT_hash_handle {
    unsigned hashv;                   /* result of hash-fcn(key)        */
 } UT_hash_handle;
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* UTHASH_H */
