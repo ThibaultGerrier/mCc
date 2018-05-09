@@ -52,6 +52,15 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		    NULL, visit_data->symbol_table_tree, 0);
 	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));
+		// check if there is a main()
+		struct mCc_sym_table_entry *result = mCc_sym_table_lookup_entry(
+		    visit_data->symbol_table_tree->symbol_table, "main");
+		if (result == NULL) {
+			char msg[256];
+			sprintf(msg, "No main function in program");
+			mCc_err_error_manager_insert_error_entry(
+			    error_manager, mCc_err_new_error_entry(msg, 0, 0, 0, 0));
+		}
 	}
 }
 
@@ -81,7 +90,7 @@ static void symbol_table_function_identifier(
 			if (error_manager != NULL) {
 				char msg[256];
 				sprintf(msg,
-				        "error in line %d, col: %d: redefined function "
+				        "error in line %lu, col: %lu: redefined function "
 				        "'%s'",
 				        identifier->node.sloc.start_line,
 				        identifier->node.sloc.start_col, identifier->name);
@@ -101,7 +110,7 @@ static void symbol_table_function_identifier(
 			if (error_manager != NULL) {
 				char msg[256];
 				sprintf(msg,
-				        "error in line %d, col: %d: not defined function call "
+				        "error in line %lu, col: %lu: not defined function call "
 				        "'%s'",
 				        identifier->node.sloc.start_line,
 				        identifier->node.sloc.start_col, identifier->name);
@@ -174,7 +183,7 @@ static void symbol_table_declaration(
 				if (error_manager != NULL) {
 					char msg[256];
 					sprintf(msg,
-					        "error in line %d, col: %d: redefinition of "
+					        "error in line %lu, col: %lu: redefinition of "
 					        "variable '%s'",
 					        declaration->node.sloc.start_line,
 					        declaration->node.sloc.start_col,
@@ -200,12 +209,14 @@ static void symbol_table_declaration(
 				        declaration->array_decl.identifier->name,
 				        visit_data->stack->cur_index, MCC_SYM_TABLE_ARRAY,
 				        declaration->identifier_type,
-				        declaration->array_decl.literal->i_value));
+				        declaration->array_decl.literal
+				            ->i_value)); // TODO check array value (should not
+				                         // be negative)
 			} else {
 				if (error_manager != NULL) {
 					char msg[256];
 					sprintf(msg,
-					        "error in line %d, col: %d: redefinition of "
+					        "error in line %lu, col: %lu: redefinition of "
 					        "variable '%s'",
 					        declaration->node.sloc.start_line,
 					        declaration->node.sloc.start_col,
@@ -238,7 +249,8 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 		identifier->symbol_table_entry = result;
 	} else {
 		// TODO do not directly print into stderr
-		fprintf(stderr, "error: not defined identifier: %s\n", identifier->name);
+		fprintf(stderr, "error: not defined identifier: %s\n",
+		        identifier->name);
 	}
 }
 
