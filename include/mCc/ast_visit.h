@@ -28,50 +28,73 @@ enum mCc_ast_visit_type {
 /* Callbacks */
 
 typedef void (*mCc_ast_visit_program_cb)(struct mCc_ast_program *,
-                                         enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                         enum mCc_ast_visit_type,
+                                         struct mCc_err_error_manager *,
+                                         void *);
 
 typedef void (*mCc_ast_visit_function_def_list_cb)(
-    struct mCc_ast_function_def_list *, enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+    struct mCc_ast_function_def_list *, enum mCc_ast_visit_type,
+    struct mCc_err_error_manager *, void *);
 
 typedef void (*mCc_ast_visit_function_def_cb)(struct mCc_ast_function_def *,
-                                              enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                              enum mCc_ast_visit_type,
+                                              struct mCc_err_error_manager *,
+                                              void *);
 
 typedef void (*mCc_ast_visit_parameter_cb)(struct mCc_ast_parameter *,
-                                           enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                           enum mCc_ast_visit_type,
+                                           struct mCc_err_error_manager *,
+                                           void *);
 
 typedef void (*mCc_ast_visit_argument_list_cb)(struct mCc_ast_argument_list *,
-                                               enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                               enum mCc_ast_visit_type,
+                                               struct mCc_err_error_manager *,
+                                               void *);
 
 typedef void (*mCc_ast_visit_declaration_cb)(struct mCc_ast_declaration *,
-                                             enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                             enum mCc_ast_visit_type,
+                                             struct mCc_err_error_manager *,
+                                             void *);
 
 typedef void (*mCc_ast_visit_assignment_cb)(struct mCc_ast_assignment *,
-                                            enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                            enum mCc_ast_visit_type,
+                                            struct mCc_err_error_manager *,
+                                            void *);
 
 typedef void (*mCc_ast_visit_type_cb)(enum mCc_ast_type *,
-                                      enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                      enum mCc_ast_visit_type,
+                                      struct mCc_err_error_manager *, void *);
 
 typedef void (*mCc_ast_visit_expression_cb)(struct mCc_ast_expression *,
-                                            enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                            enum mCc_ast_visit_type,
+                                            struct mCc_err_error_manager *,
+                                            void *);
 
 typedef void (*mCc_ast_visit_statement_list_cb)(struct mCc_ast_statement_list *,
-                                                enum mCc_ast_visit_type, struct mCc_err_error_manager*,
+                                                enum mCc_ast_visit_type,
+                                                struct mCc_err_error_manager *,
                                                 void *);
 
 typedef void (*mCc_ast_visit_statement_cb)(struct mCc_ast_statement *,
-                                           enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                           enum mCc_ast_visit_type,
+                                           struct mCc_err_error_manager *,
+                                           void *);
 
 typedef void (*mCc_ast_visit_literal_cb)(struct mCc_ast_literal *,
-                                         enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                         enum mCc_ast_visit_type,
+                                         struct mCc_err_error_manager *,
+                                         void *);
 
 typedef void (*mCc_ast_visit_identifier_cb)(struct mCc_ast_identifier *,
-                                            enum mCc_ast_visit_type, struct mCc_err_error_manager*, void *);
+                                            enum mCc_ast_visit_type,
+                                            struct mCc_err_error_manager *,
+                                            void *);
 
 struct mCc_ast_visitor {
 	enum mCc_ast_visit_traversal traversal;
 	enum mCc_ast_visit_order order;
 
-	struct mCc_err_error_manager* error_manager;
+	struct mCc_err_error_manager *error_manager;
 
 	void *userdata;
 
@@ -110,8 +133,6 @@ struct mCc_ast_visitor {
 	mCc_ast_visit_statement_cb statement_compound_stmt;
 
 	mCc_ast_visit_identifier_cb identifier;
-
-	mCc_ast_visit_identifier_cb function_identifier;
 
 	mCc_ast_visit_literal_cb literal;
 	mCc_ast_visit_literal_cb literal_bool;
@@ -159,9 +180,6 @@ void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
 
 void mCc_ast_visit_identifier(struct mCc_ast_identifier *identifier,
                               struct mCc_ast_visitor *visitor);
-
-void mCc_ast_visit_function_identifier(struct mCc_ast_identifier *identifier,
-                                       struct mCc_ast_visitor *visitor);
 
 #ifdef __cplusplus
 }

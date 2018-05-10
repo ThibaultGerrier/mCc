@@ -94,31 +94,37 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data, NULL);
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	ASSERT_EQ(0u, error_manager->used);
+
 	auto entry_a = mCc_sym_table_lookup_entry(
-	    visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table,
+	    "a");
 	ASSERT_NE(nullptr, entry_a);
 
 	ASSERT_EQ(0, strcmp("a", entry_a->name));
-	ASSERT_EQ(1u, entry_a->scope_index);
+	ASSERT_EQ(2u, entry_a->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
 	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
 
 	auto entry_b = mCc_sym_table_lookup_entry(
-	    visitor_data.symbol_table_tree->first_child->symbol_table, "b");
+	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table,
+	    "b");
 	ASSERT_NE(nullptr, entry_b);
 
 	ASSERT_EQ(0, strcmp("b", entry_b->name));
-	ASSERT_EQ(1u, entry_b->scope_index);
+	ASSERT_EQ(2u, entry_b->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_ARRAY, entry_b->var_type);
 	ASSERT_EQ(3u, entry_b->array_size);
 	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_b->data_type);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
 }
 
 TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
@@ -133,32 +139,38 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data, NULL);
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	ASSERT_EQ(0u, error_manager->used);
+
 	auto entry_a = mCc_sym_table_lookup_entry(
-	    visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table,
+	    "a");
 	ASSERT_NE(nullptr, entry_a);
 
 	ASSERT_EQ(0, strcmp("a", entry_a->name));
-	ASSERT_EQ(1u, entry_a->scope_index);
+	ASSERT_EQ(2u, entry_a->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
 	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
 
-	auto entry_a2 = mCc_sym_table_lookup_entry(
-	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table,
-	    "a");
+	auto entry_a2 =
+	    mCc_sym_table_lookup_entry(visitor_data.symbol_table_tree->first_child
+	                                   ->first_child->first_child->symbol_table,
+	                               "a");
 	ASSERT_NE(nullptr, entry_a2);
 
 	ASSERT_EQ(0, strcmp("a", entry_a2->name));
-	ASSERT_EQ(2u, entry_a2->scope_index);
+	ASSERT_EQ(3u, entry_a2->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_ARRAY, entry_a2->var_type);
 	ASSERT_EQ(3u, entry_a2->array_size);
 	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_a2->data_type);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
 }
 
 TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
@@ -174,9 +186,12 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data, NULL);
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
+
+	ASSERT_EQ(0u, error_manager->used);
 
 	auto entry_a =
 	    prog->function_def_list->function_def->compound_stmt->statement_list
@@ -184,7 +199,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	ASSERT_NE(nullptr, entry_a);
 
 	ASSERT_EQ(0, strcmp("a", entry_a->name));
-	ASSERT_EQ(1u, entry_a->scope_index);
+	ASSERT_EQ(2u, entry_a->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a->var_type);
 	ASSERT_EQ(MCC_AST_TYPE_INT, entry_a->data_type);
 
@@ -194,12 +209,13 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 	ASSERT_NE(nullptr, entry_a2);
 
 	ASSERT_EQ(0, strcmp("a", entry_a2->name));
-	ASSERT_EQ(2u, entry_a2->scope_index);
+	ASSERT_EQ(3u, entry_a2->scope_index);
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_a2->var_type);
 	ASSERT_EQ(MCC_AST_TYPE_STRING, entry_a2->data_type);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
 }
 
 TEST(SymbolTable, Visitor_Program_Redefinition)
@@ -222,7 +238,8 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 	mCc_ast_visit_program(prog, &visitor);
 
 	auto entry_a = mCc_sym_table_lookup_entry(
-	    visitor_data.symbol_table_tree->first_child->symbol_table, "a");
+	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table,
+	    "a");
 	ASSERT_NE(nullptr, entry_a);
 
 	ASSERT_EQ(0, strcmp("a", entry_a->name));
@@ -246,6 +263,30 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 	mCc_err_delete_error_manager(error_manager);
 }
 
+TEST(SymbolTable, Visitor_Program_MultiScope)
+{
+	const char input[] = "void main(){int a; int b;{int c; a+b+c;}}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
 TEST(SymbolTable, Visitor_Function_Table)
 {
 	const char input[] = "int foo(int bar){return bar;}\nvoid main(){int a;}";
@@ -258,9 +299,12 @@ TEST(SymbolTable, Visitor_Function_Table)
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
 		                                                      0 };
 
-	auto visitor = symbol_table_visitor(&visitor_data, NULL);
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
+
+	ASSERT_EQ(0u, error_manager->used);
 
 	auto function_table = visitor_data.symbol_table_tree->symbol_table;
 
@@ -276,6 +320,7 @@ TEST(SymbolTable, Visitor_Function_Table)
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
 }
 
 TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
@@ -303,11 +348,37 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 	// check the error message
 	ASSERT_EQ(1u, error_manager->used);
 
-	ASSERT_EQ(
-	    0, strcmp("error in line 1, col: 20: not defined function call 'foo'",
-	              error_manager->array[0]->msg));
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);
 	ASSERT_EQ(20u, error_manager->array[0]->start_col);
+	std::cerr << error_manager->array[0]->msg << std::endl;
+	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Program_NoFunctionParameterRedefinition)
+{
+	const char input[] =
+	    "int foo(int a, int b) {int c; return a+b;} int bar(int a, int b) { "
+	    "int c; return a*b;} void main() {}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -330,7 +401,6 @@ TEST(SymbolTable, Visitor_Function_Table_Redefined_Function)
 	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
-
 	auto function_table = visitor_data.symbol_table_tree->symbol_table;
 
 	auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
@@ -459,30 +529,6 @@ TEST(SymbolTable, Visitor_Function_Table_Call)
 	ASSERT_NE(nullptr, entry_foo);
 
 	// check the error message
-	ASSERT_EQ(0u, error_manager->used);
-
-	mCc_parser_delete_result(&result);
-	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
-	mCc_err_delete_error_manager(error_manager);
-}
-
-TEST(SymbolTable, Visitor_Program_MultiScope)
-{
-	const char input[] = "void main(){int a; int b;{int c; a+b+c;}}";
-	auto result = mCc_parser_parse_string(input);
-
-	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-
-	auto prog = result.program;
-
-	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
-		                                                      0 };
-
-	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
-
-	mCc_ast_visit_program(prog, &visitor);
-
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);

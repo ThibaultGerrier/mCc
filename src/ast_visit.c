@@ -6,7 +6,8 @@
 #define visit(node, callback, visitor, visit_type) \
 	do { \
 		if (callback) { \
-			(callback)(node, visit_type, (visitor)->error_manager, (visitor)->userdata); \
+			(callback)(node, visit_type, (visitor)->error_manager, \
+			           (visitor)->userdata); \
 		} \
 	} while (0)
 
@@ -60,11 +61,10 @@ void mCc_ast_visit_function_def(struct mCc_ast_function_def *function_def,
 	assert(function_def);
 	assert(visitor);
 	visit_if_pre_order(function_def, visitor->function_def, visitor);
-	mCc_ast_visit_statement(function_def->compound_stmt, visitor);
 	mCc_ast_visit_type(&function_def->return_type, visitor);
-	mCc_ast_visit_function_identifier(function_def->function_identifier,
-	                                  visitor);
+	mCc_ast_visit_identifier(function_def->function_identifier, visitor);
 	mCc_ast_visit_parameters(function_def->parameters, visitor);
+	mCc_ast_visit_statement(function_def->compound_stmt, visitor);
 	visit_if_post_order(function_def, visitor->function_def, visitor);
 }
 
@@ -174,7 +174,7 @@ void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
 
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
 		visit_if_pre_order(expression, visitor->expression_call_expr, visitor);
-		mCc_ast_visit_function_identifier(expression->call_expr.identifier, visitor);
+		mCc_ast_visit_identifier(expression->call_expr.identifier, visitor);
 		if (expression->call_expr.arguments != NULL) {
 			mCc_ast_visit_arguments(expression->call_expr.arguments, visitor);
 		}
@@ -339,13 +339,4 @@ void mCc_ast_visit_identifier(struct mCc_ast_identifier *identifier,
 	assert(visitor);
 
 	visit(identifier, visitor->identifier, visitor, MCC_VISIT_NO_TYPE);
-}
-
-void mCc_ast_visit_function_identifier(struct mCc_ast_identifier *identifier,
-                                       struct mCc_ast_visitor *visitor)
-{
-	assert(identifier);
-	assert(visitor);
-
-	visit(identifier, visitor->function_identifier, visitor, MCC_VISIT_NO_TYPE);
 }

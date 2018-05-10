@@ -650,7 +650,6 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 		.statement_compound_stmt = print_dot_statement_compound_stmt,
 
 		.identifier = print_dot_identifier,
-		.function_identifier = print_dot_identifier,
 
 		.literal_bool = print_dot_literal_bool,
 		.literal_int = print_dot_literal_int,
