@@ -50,6 +50,117 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
 		visit_data->stack = ast_symbol_table_new_stack_entry(
 		    NULL, visit_data->symbol_table_tree, 0);
+
+		// add built in function to function table
+
+		const char *a[6];
+		a[0] = "print";
+		a[1] = "print_nl";
+		a[2] = "print_int";
+		a[3] = "print_float";
+		a[4] = "read_int";
+		a[5] = "read_float";
+
+		for (int i = 0; i < 4; ++i) {
+			mCc_sym_table_add_entry(
+			    &visit_data->stack->symbol_table_tree->symbol_table,
+			    mCc_sym_table_new_entry(a[i], visit_data->stack->cur_index,
+			                            MCC_SYM_TABLE_FUNCTION,
+			                            MCC_AST_TYPE_VOID));
+		}
+
+		mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    mCc_sym_table_new_entry(a[4], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_INT));
+		mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    mCc_sym_table_new_entry(a[5], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION,
+		                            MCC_AST_TYPE_FLOAT));
+
+	} else if (visit_type == MCC_AST_VISIT_AFTER) {
+		free(ast_symbol_table_stack_pop(&visit_data->stack));
+
+		// check if there is a main()
+		struct mCc_sym_table_entry *result = mCc_sym_table_lookup_entry(
+		    visit_data->symbol_table_tree->symbol_table, "main");
+		if (result == NULL) {
+			char msg[256];
+			sprintf(msg, "No main function in program");
+			mCc_err_error_manager_insert_error_entry(
+			    error_manager, mCc_err_new_error_entry(msg, 0, 0, 0, 0));
+		}
+	}
+}
+
+static void
+symbol_table_function_identifier(enum mCc_ast_type return_type,
+                                 struct mCc_ast_identifier *identifier,
+                                 struct mCc_err_error_manager *error_manager,
+                                 struct mCc_ast_symbol_table_stack_entry *stack)
+{
+	assert(identifier);
+	assert(stack);
+
+	struct mCc_sym_table_entry *result =
+	    mCc_sym_table_ascendant_tree_lookup_entry(stack->symbol_table_tree,
+	                                              identifier->name);
+
+	if (result == NULL) {
+		mCc_sym_table_add_entry(
+		    &stack->symbol_table_tree->symbol_table,
+		    mCc_sym_table_new_entry(identifier->name, stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, return_type));
+	} else {
+		if (error_manager != NULL) {
+			char msg[256];
+			sprintf(msg,
+			        "error in line %lu, col: %lu: redefined function "
+			        "'%s'",
+			        identifier->node.sloc.start_line,
+			        identifier->node.sloc.start_col, identifier->name);
+			mCc_err_error_manager_insert_error_entry(
+			    error_manager,
+			    mCc_err_new_error_entry(msg, identifier->node.sloc.start_line,
+			                            identifier->node.sloc.start_col,
+			                            identifier->node.sloc.end_line,
+			                            identifier->node.sloc.end_col));
+		}
+	}
+}
+
+static void
+symbol_table_function_def(struct mCc_ast_function_def *function_def,
+                          enum mCc_ast_visit_type visit_type,
+                          struct mCc_err_error_manager *error_manager,
+                          void *data)
+{
+	assert(function_def);
+	assert(data);
+
+	struct mCc_ast_symbol_table_visitor_data *visit_data = data;
+
+	if (visit_type == MCC_AST_VISIT_BEFORE) {
+		symbol_table_function_identifier(function_def->return_type,
+		                                 function_def->function_identifier,
+		                                 error_manager, visit_data->stack);
+		visit_data->max_index++;
+
+		struct mCc_ast_symbol_table_stack_entry *stack_entry =
+		    ast_symbol_table_new_stack_entry(NULL, NULL, 0);
+
+		struct mCc_sym_table_tree *child = mCc_sym_table_new_tree(NULL);
+
+		stack_entry->symbol_table_tree = child;
+
+		if (visit_data->stack != NULL) {
+			mCc_sym_table_add_child(visit_data->stack->symbol_table_tree,
+			                        child);
+			ast_symbol_table_stack_push(&visit_data->stack, stack_entry);
+		} else {
+			visit_data->stack = stack_entry;
+		}
 	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));
 	}
@@ -113,7 +224,7 @@ static void symbol_table_declaration(
 				if (error_manager != NULL) {
 					char msg[256];
 					sprintf(msg,
-					        "error in line %d, col: %d: redefinition of "
+					        "error in line %lu, col: %lu: redefinition of "
 					        "variable '%s'",
 					        declaration->node.sloc.start_line,
 					        declaration->node.sloc.start_col,
@@ -139,12 +250,14 @@ static void symbol_table_declaration(
 				        declaration->array_decl.identifier->name,
 				        visit_data->stack->cur_index, MCC_SYM_TABLE_ARRAY,
 				        declaration->identifier_type,
-				        declaration->array_decl.literal->i_value));
+				        declaration->array_decl.literal
+				            ->i_value)); // TODO check array value (should not
+				                         // be negative)
 			} else {
 				if (error_manager != NULL) {
 					char msg[256];
 					sprintf(msg,
-					        "error in line %d, col: %d: redefinition of "
+					        "error in line %lu, col: %lu: redefinition of "
 					        "variable '%s'",
 					        declaration->node.sloc.start_line,
 					        declaration->node.sloc.start_col,
@@ -176,8 +289,19 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	if (result != NULL) {
 		identifier->symbol_table_entry = result;
 	} else {
-		// TODO do not directly print into stderr
-		fprintf(stderr, "error: not defined identifier");
+		if (error_manager != NULL) {
+			char msg[256];
+			sprintf(msg,
+			        "error in line %lu, col: %lu: undefined identifier: '%s'",
+			        identifier->node.sloc.start_line,
+			        identifier->node.sloc.start_col, identifier->name);
+			mCc_err_error_manager_insert_error_entry(
+			    error_manager,
+			    mCc_err_new_error_entry(msg, identifier->node.sloc.start_line,
+			                            identifier->node.sloc.start_col,
+			                            identifier->node.sloc.end_line,
+			                            identifier->node.sloc.end_col));
+		}
 	}
 }
 
@@ -199,7 +323,7 @@ symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
 
 		.type = NULL,
 		.function_def_list = NULL,
-		.function_def = NULL,
+		.function_def = symbol_table_function_def,
 		.parameter = NULL,
 		.argument_list = NULL,
 		.declaration = symbol_table_declaration,
@@ -222,7 +346,6 @@ symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
 		.statement_expression = NULL,
 		.statement_compound_stmt = symbol_table_statement_compound_stmt,
 
-		.function_identifier = NULL,
 		.identifier = symbol_table_identifier,
 
 		.literal_bool = NULL,

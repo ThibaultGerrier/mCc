@@ -2,6 +2,7 @@
 #define MCC_AST_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,10 +17,10 @@ struct mCc_sym_table_entry;
 /* ---------------------------------------------------------------- AST Node */
 
 struct mCc_ast_source_location {
-	int start_line;
-	int start_col;
-	int end_line;
-	int end_col;
+	size_t start_line;
+    size_t start_col;
+    size_t end_line;
+    size_t end_col;
 };
 
 /* Data contained by every AST node. */
