@@ -51,7 +51,7 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		visit_data->stack = ast_symbol_table_new_stack_entry(
 		    NULL, visit_data->symbol_table_tree, 0);
 
-		//add built in function to function table
+		// add built in function to function table
 
 		const char *a[6];
 		a[0] = "print";
@@ -61,15 +61,23 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		a[4] = "read_int";
 		a[5] = "read_float";
 
-		for (int i = 0; i < 6; ++i) {
+		for (int i = 0; i < 4; ++i) {
 			mCc_sym_table_add_entry(
-					&visit_data->stack->symbol_table_tree->symbol_table,
-					mCc_sym_table_new_entry(
-							a[i], visit_data->stack->cur_index,
-							MCC_SYM_TABLE_FUNCTION,
-							MCC_AST_TYPE_VOID)); // TODO type is just placeholder
+			    &visit_data->stack->symbol_table_tree->symbol_table,
+			    mCc_sym_table_new_entry(a[i], visit_data->stack->cur_index,
+			                            MCC_SYM_TABLE_FUNCTION,
+			                            MCC_AST_TYPE_VOID));
 		}
 
+		mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    mCc_sym_table_new_entry(a[4], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_INT));
+		mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    mCc_sym_table_new_entry(a[5], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION,
+		                            MCC_AST_TYPE_FLOAT));
 
 	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));
@@ -131,11 +139,12 @@ static void symbol_table_function_identifier(
 		} else {
 			if (error_manager != NULL) {
 				char msg[256];
-				sprintf(msg,
-				        "error in line %lu, col: %lu: not defined function call "
-				        "'%s'",
-				        identifier->node.sloc.start_line,
-				        identifier->node.sloc.start_col, identifier->name);
+				sprintf(
+				    msg,
+				    "error in line %lu, col: %lu: not defined function call "
+				    "'%s'",
+				    identifier->node.sloc.start_line,
+				    identifier->node.sloc.start_col, identifier->name);
 				mCc_err_error_manager_insert_error_entry(
 				    error_manager, mCc_err_new_error_entry(
 				                       msg, identifier->node.sloc.start_line,
