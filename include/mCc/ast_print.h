@@ -23,6 +23,7 @@ void mCc_ast_print_dot_statement(FILE *out,
 
 void mCc_ast_print_dot_expression(FILE *out,
                                   struct mCc_ast_expression *expression);
+const char *mCc_ast_print_type(enum mCc_ast_type type);
 
 #ifdef __cplusplus
 }
