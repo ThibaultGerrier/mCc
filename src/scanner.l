@@ -110,7 +110,14 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
                     return TK_STRING_LITERAL;
                   }
 
-{identifier}      { yylval->TK_ID = mCc_ast_new_identifier(yytext); return TK_ID; }
+{identifier}      {
+                    yylval->TK_ID = mCc_ast_new_identifier(yytext);
+                    yylval->TK_ID->node.sloc.start_line = yylloc->first_line;
+                    yylval->TK_ID->node.sloc.end_line = yylloc->last_line;
+                    yylval->TK_ID->node.sloc.start_col = yylloc->first_column;
+                    yylval->TK_ID->node.sloc.end_col = yylloc->last_column;
+                    return TK_ID;
+                  }
 
 <<EOF>>           { my_yycolumn = 1; return TK_END; }
 

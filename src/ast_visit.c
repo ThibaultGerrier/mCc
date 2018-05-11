@@ -3,27 +3,30 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#define visit(node, callback, visitor) \
+#define visit(node, callback, visitor, visit_type) \
 	do { \
 		if (callback) { \
-			(callback)(node, (visitor)->userdata); \
+			(callback)(node, visit_type, (visitor)->error_manager, \
+			           (visitor)->userdata); \
 		} \
 	} while (0)
 
-#define visit_if(cond, node, callback, visitor) \
+#define visit_if(cond, node, callback, visitor, visit_type) \
 	do { \
 		if (cond) { \
-			visit(node, callback, visitor); \
+			visit(node, callback, visitor, visit_type); \
 		} \
 	} while (0)
 
 #define visit_if_pre_order(node, callback, visitor) \
-	visit_if((visitor)->order == MCC_AST_VISIT_PRE_ORDER, node, callback, \
-	         visitor)
+	visit_if(((visitor)->order == MCC_AST_VISIT_PRE_ORDER || \
+	          (visitor)->order == MCC_AST_VISIT_PRE_AND_POST_ORDER), \
+	         node, callback, visitor, MCC_AST_VISIT_BEFORE)
 
 #define visit_if_post_order(node, callback, visitor) \
-	visit_if((visitor)->order == MCC_AST_VISIT_POST_ORDER, node, callback, \
-	         visitor)
+	visit_if(((visitor)->order == MCC_AST_VISIT_POST_ORDER || \
+	          (visitor)->order == MCC_AST_VISIT_PRE_AND_POST_ORDER), \
+	         node, callback, visitor, MCC_AST_VISIT_AFTER)
 
 void mCc_ast_visit_program(struct mCc_ast_program *program,
                            struct mCc_ast_visitor *visitor)
@@ -58,10 +61,10 @@ void mCc_ast_visit_function_def(struct mCc_ast_function_def *function_def,
 	assert(function_def);
 	assert(visitor);
 	visit_if_pre_order(function_def, visitor->function_def, visitor);
-	mCc_ast_visit_statement(function_def->compound_stmt, visitor);
 	mCc_ast_visit_type(&function_def->return_type, visitor);
 	mCc_ast_visit_identifier(function_def->function_identifier, visitor);
 	mCc_ast_visit_parameters(function_def->parameters, visitor);
+	mCc_ast_visit_statement(function_def->compound_stmt, visitor);
 	visit_if_post_order(function_def, visitor->function_def, visitor);
 }
 
@@ -137,7 +140,7 @@ void mCc_ast_visit_type(enum mCc_ast_type *type,
 {
 	assert(visitor);
 
-	visit(type, visitor->type, visitor);
+	visit(type, visitor->type, visitor, MCC_VISIT_NO_TYPE);
 
 	/* visit_if_post_order(type, visitor->type, visitor); */
 	/* visit_if_pre_order(type, visitor->type, visitor); */
@@ -254,7 +257,9 @@ void mCc_ast_visit_statement(struct mCc_ast_statement *statement,
 
 	case MCC_AST_STATEMENT_TYPE_RETURN:
 		visit_if_pre_order(statement, visitor->statement_return, visitor);
-		mCc_ast_visit_expression(statement->expression, visitor);
+		if (statement->expression != NULL) {
+			mCc_ast_visit_expression(statement->expression, visitor);
+		}
 		visit_if_post_order(statement, visitor->statement_return, visitor);
 		break;
 
@@ -308,19 +313,19 @@ void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
 
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_BOOL:
-		visit(literal, visitor->literal_bool, visitor);
+		visit(literal, visitor->literal_bool, visitor, MCC_VISIT_NO_TYPE);
 		break;
 
 	case MCC_AST_LITERAL_TYPE_INT:
-		visit(literal, visitor->literal_int, visitor);
+		visit(literal, visitor->literal_int, visitor, MCC_VISIT_NO_TYPE);
 		break;
 
 	case MCC_AST_LITERAL_TYPE_FLOAT:
-		visit(literal, visitor->literal_float, visitor);
+		visit(literal, visitor->literal_float, visitor, MCC_VISIT_NO_TYPE);
 		break;
 
 	case MCC_AST_LITERAL_TYPE_STRING:
-		visit(literal, visitor->literal_string, visitor);
+		visit(literal, visitor->literal_string, visitor, MCC_VISIT_NO_TYPE);
 		break;
 	}
 
@@ -333,7 +338,5 @@ void mCc_ast_visit_identifier(struct mCc_ast_identifier *identifier,
 	assert(identifier);
 	assert(visitor);
 
-	visit_if_pre_order(identifier, visitor->identifier, visitor);
-
-	visit_if_post_order(identifier, visitor->identifier, visitor);
+	visit(identifier, visitor->identifier, visitor, MCC_VISIT_NO_TYPE);
 }
