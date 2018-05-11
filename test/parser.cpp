@@ -1120,10 +1120,22 @@ TEST(Parser, Generate_Function_CallinCall)
 }
 
 
-TEST(Parser, Generate_Function_CallinCall1)
+TEST(Parser, Generate_Function_Array)
 {
 
-    const char input[] = "bool foo(bool i){return i;} void main(){bool a; a=foo(!true);}";
+    const char input[] = "void main(){float[5] arr; arr[0]=1.2;arr[4]=1.2;}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+}
+
+TEST(Parser, Generate_Function_Array_Decl)
+{
+
+    const char input[] = "void foo(float[5] arr){ float[5] arr2; arr2=arr; return 1;} void main(){float[5] arr;foo(arr);}";
     auto result = mCc_parser_parse_string(input);
 
     mCc_ast_print_tac_program(stderr, result.program);
