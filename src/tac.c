@@ -101,10 +101,12 @@ static int cgen_expression(struct mCc_ast_expression *expression, FILE *out)
 		fprintf(out, "t%d = t%d\n", i, t);
 		break;
 	}
-	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER:
-		// TODO
-        fprintf(out, "ARRAY_IDENTIFIER \n");
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER: {
+		int t = cgen_expression(expression->array_identifier.expression, out);
+		int u = cgen_identifier(expression->array_identifier.identifier, out);
+		fprintf(out, "t%d = t%d + t%d\n", i, u, t);
 		break;
+	}
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: {
 		struct mCc_ast_argument_list *next = expression->call_expr.arguments;
 		while (next != NULL) {
@@ -113,7 +115,7 @@ static int cgen_expression(struct mCc_ast_expression *expression, FILE *out)
 			next = next->next;
 		}
 		fprintf(out, "Call (%s)\n", expression->call_expr.identifier->name);
-        //TODO: add type of pop variable?
+		// TODO: add type of pop variable?
 		fprintf(out, "t%d = PopStack()\n", i);
 
 		break;
@@ -174,17 +176,19 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
-        switch (statement->declaration->declaration_type) {
-            case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
-                fprintf(out, "ARRAY_DECL %s %s (%d) \n", statement->declaration->array_decl.identifier->name,mCc_ast_print_type(statement->declaration->identifier_type),statement->declaration->array_decl.literal->i_value);
-                break;
-            }
-            case MCC_AST_DECLARATION_TYPE_DECLARATION: {
-                // does not matter in our tac
-                break;
-
-            }
-        }
+		switch (statement->declaration->declaration_type) {
+		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
+			fprintf(out, "ARRAY_DECL %s %s (%d) \n",
+			        statement->declaration->array_decl.identifier->name,
+			        mCc_ast_print_type(statement->declaration->identifier_type),
+			        statement->declaration->array_decl.literal->i_value);
+			break;
+		}
+		case MCC_AST_DECLARATION_TYPE_DECLARATION: {
+			// does not matter in our tac
+			break;
+		}
+		}
 		break;
 
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT: {
@@ -196,8 +200,9 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT: {
 		// TODO: Maybe add type of array assignment?
 		int t = cgen_expression(statement->assignment->array_ass.rhs, out);
-		fprintf(out, "ARRAY_ASSIGNMENT %s[%d]=",statement->assignment->identifier->name,
-				statement->assignment->array_ass.index->expression->literal);
+		fprintf(out, "ARRAY_ASSIGNMENT %s[%d]=",
+		        statement->assignment->identifier->name,
+		        statement->assignment->array_ass.index->expression->literal);
 		fprintf(out, "t%d\n", t);
 		break;
 	}
@@ -235,11 +240,10 @@ static void cgen_function_def(struct mCc_ast_function_def *function_def,
 			        mCc_ast_print_type(next->declaration->identifier_type));
 			break;
 		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION:
-            fprintf(out,"%s = PopStackArray(%s) size-%d\n",
-                    next->declaration->array_decl.identifier->name,
-                    mCc_ast_print_type(next->declaration->identifier_type),
-                    next->declaration->array_decl.literal->i_value
-                    );
+			fprintf(out, "%s = PopStackArray(%s) size-%d\n",
+			        next->declaration->array_decl.identifier->name,
+			        mCc_ast_print_type(next->declaration->identifier_type),
+			        next->declaration->array_decl.literal->i_value);
 			break;
 		}
 		next = next->next;
