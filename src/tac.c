@@ -1,27 +1,53 @@
 #include "mCc/tac.h"
 #include "mCc/ast_print.h"
+#include "mCc/ast_symbol_table.h"
 #include "mCc/ast_visit.h"
 #include <assert.h>
 #include <mCc/ast.h>
+#include <mCc/symbol_table.h>
 
-static void cgen_statement_list(struct mCc_ast_statement_list *, FILE *);
+void cgen_statement_list(struct mCc_ast_statement_list *, FILE *);
 
-static int identifier = 0;
-static int label = 0;
+int identifier = 0;
+int label = 0;
 
-static int newIdentifier()
+int newIdentifier()
 {
 	identifier++;
 	return identifier;
 }
 
-static int newLabel()
+int newLabel()
 {
 	label++;
 	return label;
 }
 
-static const char *mCc_get_binary_op(enum mCc_ast_binary_op op)
+struct tac_var {
+	int num;
+	enum mCc_ast_type type;
+};
+
+char getRetType(enum mCc_ast_type t)
+{
+	switch (t) {
+	case MCC_AST_TYPE_BOOL: return 'b';
+	case MCC_AST_TYPE_INT: return 'i';
+	case MCC_AST_TYPE_FLOAT: return 'f';
+	case MCC_AST_TYPE_STRING: return 's';
+	case MCC_AST_TYPE_VOID: return '-';
+	default: return '-';
+	}
+}
+
+char *print_tac_var(struct tac_var t, char *buffer)
+{
+	// fprintf(stderr, "%d\n", t.num);
+	sprintf(buffer, "t%d_%c", t.num, getRetType(t.type));
+	return buffer;
+}
+
+const char *mCc_get_binary_op(enum mCc_ast_binary_op op)
 {
 	switch (op) {
 	/* math operations */
@@ -53,106 +79,143 @@ static const char *mCc_get_binary_op(enum mCc_ast_binary_op op)
     return "unknown_unary_op";
 }*/
 
-static int cgen_literal(struct mCc_ast_literal *literal, FILE *out)
+struct tac_var cgen_literal(struct mCc_ast_literal *literal, FILE *out)
 {
-	int i = newIdentifier();
+	char buffer[15] = { 0 };
+	struct tac_var ret = {
+		num : newIdentifier(),
+		type : MCC_AST_TYPE_VOID,
+	};
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_BOOL:
-		fprintf(out, "t%d = %d\n", i, literal->b_value);
+		ret.type = MCC_AST_TYPE_BOOL;
+		fprintf(out, "%s = %d\n", print_tac_var(ret, buffer), literal->b_value);
 		break;
 	case MCC_AST_LITERAL_TYPE_INT:
-		fprintf(out, "t%d = %ld\n", i, literal->i_value);
+		ret.type = MCC_AST_TYPE_INT;
+		fprintf(out, "%s = %ld\n", print_tac_var(ret, buffer),
+		        literal->i_value);
 		break;
 	case MCC_AST_LITERAL_TYPE_FLOAT:
-		fprintf(out, "t%d = %f\n", i, literal->f_value);
+		ret.type = MCC_AST_TYPE_FLOAT;
+		fprintf(out, "%s = %f\n", print_tac_var(ret, buffer), literal->f_value);
 		break;
 	case MCC_AST_LITERAL_TYPE_STRING:
-		fprintf(out, "t%d = %s\n", i, literal->s_value);
+		ret.type = MCC_AST_TYPE_STRING;
+		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer), literal->s_value);
 		break;
 	}
-	return i;
+	return ret;
 }
 
-static int cgen_identifier(struct mCc_ast_identifier *identifier, FILE *out)
+struct tac_var cgen_identifier(struct mCc_ast_identifier *identifier, FILE *out)
 {
-	int i = newIdentifier();
-	fprintf(out, "t%d = %s\n", i, identifier->name);
-	return i;
+	char buffer[15] = { 0 };
+	struct tac_var ret = {
+		num : newIdentifier(),
+		type : identifier->symbol_table_entry->data_type,
+	};
+	fprintf(out, "%s = %s\n", print_tac_var(ret, buffer), identifier->name);
+	return ret;
 }
 
-static int cgen_expression(struct mCc_ast_expression *expression, FILE *out)
+struct tac_var cgen_expression(struct mCc_ast_expression *expression, FILE *out)
 {
-	int i = newIdentifier();
+	char buffer[15] = { 0 };
+	char buffer2[15] = { 0 };
+	char buffer3[15] = { 0 };
+
+	struct tac_var ret = {
+		num : newIdentifier(),
+		type : MCC_AST_TYPE_VOID,
+	};
+
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP: {
-		int t1 = cgen_expression(expression->binary_op.lhs, out);
-		int t2 = cgen_expression(expression->binary_op.rhs, out);
-		fprintf(out, "t%d = t%d %s t%d\n", i, t1,
-		        mCc_get_binary_op(expression->binary_op.op), t2);
+		struct tac_var t1 = cgen_expression(expression->binary_op.lhs, out);
+		struct tac_var t2 = cgen_expression(expression->binary_op.rhs, out);
+		ret.type = t1.type; // any of the two
+		fprintf(out, "%s = %s %s %s\n", print_tac_var(ret, buffer),
+		        print_tac_var(t1, buffer2),
+		        mCc_get_binary_op(expression->binary_op.op),
+		        print_tac_var(t2, buffer3));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_LITERAL: {
-		int t = cgen_literal(expression->literal, out);
-		fprintf(out, "t%d = t%d\n", i, t);
+		struct tac_var t = cgen_literal(expression->literal, out);
+		ret.type = t.type;
+		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer),
+		        print_tac_var(t, buffer2));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_IDENTIFIER: {
-		int t = cgen_identifier(expression->identifier, out);
-		fprintf(out, "t%d = t%d\n", i, t);
+		struct tac_var t = cgen_identifier(expression->identifier, out);
+		ret.type = t.type;
+		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer),
+		        print_tac_var(t, buffer2));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER: {
-		int t = cgen_expression(expression->array_identifier.expression, out);
-		int u = cgen_identifier(expression->array_identifier.identifier, out);
-		fprintf(out, "t%d = t%d + t%d\n", i, u, t);
+		struct tac_var t =
+		    cgen_expression(expression->array_identifier.expression, out);
+		struct tac_var u =
+		    cgen_identifier(expression->array_identifier.identifier, out);
+		fprintf(out, "%s = %s + %s\n", print_tac_var(ret, buffer),
+		        print_tac_var(u, buffer2), print_tac_var(t, buffer3));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: {
 		struct mCc_ast_argument_list *next = expression->call_expr.arguments;
 		while (next != NULL) {
-			int t = cgen_expression(next->expression, out);
-			fprintf(out, "PushStack(t%d)\n", t);
+			struct tac_var t = cgen_expression(next->expression, out);
+			fprintf(out, "PushStack(%s)\n", print_tac_var(t, buffer));
 			next = next->next;
 		}
+		struct mCc_sym_table_entry *symbol_table_entry =
+		    expression->call_expr.identifier->symbol_table_entry;
+		ret.type = symbol_table_entry->data_type;
 		fprintf(out, "Call (%s)\n", expression->call_expr.identifier->name);
-		// TODO: add type of pop variable?
-		fprintf(out, "t%d = PopStack()\n", i);
-
+		fprintf(out, "%s = PopStack()\n", print_tac_var(ret, buffer));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP: {
+		struct tac_var t = cgen_expression(expression->unary_op.rhs, out);
+		ret.type = t.type; // not sure
 		switch (expression->unary_op.op) {
 		case MCC_AST_UNARY_OP_NOT: {
-			int t = cgen_expression(expression->unary_op.rhs, out);
-			fprintf(out, "t%d = 0 == t%d\n", i, t);
+			fprintf(out, "%s = 0 == %s\n", print_tac_var(ret, buffer),
+			        print_tac_var(t, buffer2));
 			break;
 		}
 		case MCC_AST_UNARY_OP_MINUS: {
-			int t = cgen_expression(expression->unary_op.rhs, out);
-			fprintf(out, "t%d = 0 - t%d\n", i, t);
+			fprintf(out, "%s = 0 - %s\n", print_tac_var(ret, buffer),
+			        print_tac_var(t, buffer2));
 			break;
 		}
 		}
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_PARENTH: {
-		int t = cgen_expression(expression->expression, out);
-		fprintf(out, "t%d = t%d\n", i, t);
+		struct tac_var t = cgen_expression(expression->expression, out);
+		ret.type = t.type;
+		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer),
+		        print_tac_var(t, buffer2));
 		break;
 	}
 	}
-	return i;
+	return ret;
 }
 
-static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
+void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 {
+	char buffer[15] = { 0 };
 	switch (statement->type) {
 	case MCC_AST_STATEMENT_TYPE_WHILE: {
 		int labelBefore = newLabel();
 		int labelAfter = newLabel();
 		fprintf(out, "L%d:\n", labelBefore);
-		int t = cgen_expression(statement->while_condition, out);
-		fprintf(out, "Ifz t%d Goto L%d\n", t, labelAfter);
+		struct tac_var t = cgen_expression(statement->while_condition, out);
+		fprintf(out, "Ifz %s Goto L%d\n", print_tac_var(t, buffer), labelAfter);
 		cgen_statement(statement->body, out);
 		fprintf(out, "Goto L%d\n", labelBefore);
 		fprintf(out, "L%d:\n", labelAfter);
@@ -161,8 +224,8 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 	case MCC_AST_STATEMENT_TYPE_IF: {
 		int labelElse = newLabel();
 		int labelAfter = newLabel();
-		int t = cgen_expression(statement->if_condition, out);
-		fprintf(out, "Ifz t%d Goto L%d\n", t, labelElse);
+		struct tac_var t = cgen_expression(statement->if_condition, out);
+		fprintf(out, "Ifz %s Goto L%d\n", print_tac_var(t, buffer), labelElse);
 		cgen_statement(statement->if_branch, out);
 		fprintf(out, "Goto L%d\n", labelAfter);
 		fprintf(out, "L%d:\n", labelElse);
@@ -171,14 +234,14 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_RETURN: {
-		int label = cgen_expression(statement->expression, out);
-		fprintf(out, "RETURN t%d\n", label);
+		struct tac_var label = cgen_expression(statement->expression, out);
+		fprintf(out, "RETURN %s\n", print_tac_var(label, buffer));
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
 		switch (statement->declaration->declaration_type) {
 		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
-			fprintf(out, "ARRAY_DECL %s %s (%d) \n",
+			fprintf(out, "ARRAY_DECL %s %s (%ld) \n",
 			        statement->declaration->array_decl.identifier->name,
 			        mCc_ast_print_type(statement->declaration->identifier_type),
 			        statement->declaration->array_decl.literal->i_value);
@@ -192,18 +255,22 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 		break;
 
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT: {
-		int t = cgen_expression(statement->assignment->normal_ass.rhs, out);
+		struct tac_var t =
+		    cgen_expression(statement->assignment->normal_ass.rhs, out);
 		char *identifier = statement->assignment->identifier->name;
-		fprintf(out, "%s = t%d\n", identifier, t);
+		fprintf(out, "%s = %s\n", identifier, print_tac_var(t, buffer));
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT: {
 		// TODO: Maybe add type of array assignment?
-		int t = cgen_expression(statement->assignment->array_ass.rhs, out);
-		fprintf(out, "ARRAY_ASSIGNMENT %s[%d]=",
+		struct tac_var t =
+		    cgen_expression(statement->assignment->array_ass.rhs, out);
+		struct tac_var index =
+		    cgen_expression(statement->assignment->array_ass.index, out);
+		fprintf(out, "ARRAY_ASSIGNMENT %s[%s]=",
 		        statement->assignment->identifier->name,
-		        statement->assignment->array_ass.index->expression->literal);
-		fprintf(out, "t%d\n", t);
+		        print_tac_var(index, buffer));
+		fprintf(out, "%s\n", print_tac_var(t, buffer));
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION: {
@@ -216,8 +283,8 @@ static void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 	}
 }
 
-static void cgen_statement_list(struct mCc_ast_statement_list *statement_list,
-                                FILE *out)
+void cgen_statement_list(struct mCc_ast_statement_list *statement_list,
+                         FILE *out)
 {
 	struct mCc_ast_statement_list *next = statement_list;
 	while (next != NULL) {
@@ -226,8 +293,7 @@ static void cgen_statement_list(struct mCc_ast_statement_list *statement_list,
 	}
 }
 
-static void cgen_function_def(struct mCc_ast_function_def *function_def,
-                              FILE *out)
+void cgen_function_def(struct mCc_ast_function_def *function_def, FILE *out)
 {
 	fprintf(out, "START FUNC %s:\n", function_def->function_identifier->name);
 	// TODO: if stack, change order of pop statements!!
@@ -240,7 +306,7 @@ static void cgen_function_def(struct mCc_ast_function_def *function_def,
 			        mCc_ast_print_type(next->declaration->identifier_type));
 			break;
 		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION:
-			fprintf(out, "%s = PopStackArray(%s) size-%d\n",
+			fprintf(out, "%s = PopStackArray(%s) size-%ld\n",
 			        next->declaration->array_decl.identifier->name,
 			        mCc_ast_print_type(next->declaration->identifier_type),
 			        next->declaration->array_decl.literal->i_value);
@@ -252,9 +318,8 @@ static void cgen_function_def(struct mCc_ast_function_def *function_def,
 	fprintf(out, "END FUNC %s:\n", function_def->function_identifier->name);
 }
 
-static void
-cgen_function_def_list(struct mCc_ast_function_def_list *function_def_list,
-                       FILE *out)
+void cgen_function_def_list(struct mCc_ast_function_def_list *function_def_list,
+                            FILE *out)
 {
 	struct mCc_ast_function_def_list *next = function_def_list;
 	while (next != NULL) {
@@ -269,6 +334,14 @@ void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 	assert(program);
 	identifier = 0;
 	label = 0;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { NULL, NULL, 0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_visitor visitor =
+	    symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(program, &visitor);
 
 	fprintf(out, "start tac\n");
 

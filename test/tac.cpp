@@ -114,7 +114,7 @@ TEST(Parser, Generate_Function_Return)
 TEST(Parser, Generate_Function_CallinCall)
 {
 
-	const char input[] = "void foo(int i){return i;} void main(){foo(foo(1));}";
+	const char input[] = "int fooInt(int i){return i;} void main(){fooInt(fooInt(1));}";
 	auto result = mCc_parser_parse_string(input);
 
 	mCc_ast_print_tac_program(stderr, result.program);
