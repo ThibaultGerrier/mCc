@@ -535,3 +535,42 @@ TEST(SymbolTable, Visitor_Function_Table_Call)
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 	mCc_err_delete_error_manager(error_manager);
 }
+
+TEST(SymbolTable, Visitor_Function_Reuse_Id_Name)
+{
+	const char input[] = "void foo(){int foo;} void main(){foo();}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+	auto entry_foo_function = mCc_sym_table_lookup_entry(function_table, "foo");
+	ASSERT_NE(nullptr, entry_foo_function);
+
+	ASSERT_EQ(MCC_SYM_TABLE_FUNCTION, entry_foo_function->var_type);
+
+	auto foo_symbol_table = visitor_data.symbol_table_tree->first_child->first_child->symbol_table;
+
+	auto entry_foo_var = mCc_sym_table_lookup_entry(foo_symbol_table, "foo");
+	ASSERT_NE(nullptr, entry_foo_var);
+
+	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_foo_var->var_type);
+
+	// check the error message
+	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
