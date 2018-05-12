@@ -305,9 +305,9 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	}
 }
 
-struct mCc_ast_visitor
-symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
-                     struct mCc_err_error_manager *error_manager)
+struct mCc_ast_visitor mCc_ast_symbol_table_visitor(
+    struct mCc_ast_symbol_table_visitor_data *visit_data,
+    struct mCc_err_error_manager *error_manager)
 {
 	assert(visit_data);
 
@@ -328,6 +328,7 @@ symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
 		.argument_list = NULL,
 		.declaration = symbol_table_declaration,
 
+		.expression = NULL,
 		.expression_identifier = NULL,
 		.expression_array_identifier = NULL,
 		.expression_call_expr = NULL,

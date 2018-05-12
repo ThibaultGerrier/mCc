@@ -631,6 +631,7 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 		.argument_list = print_dot_argument_list,
 		.declaration = print_dot_declaration,
 
+		.expression = NULL,
 		.expression_identifier = print_dot_expression_identifier,
 		.expression_array_identifier = print_dot_expression_array_identifier,
 		.expression_call_expr = print_dot_expression_call_expr,
