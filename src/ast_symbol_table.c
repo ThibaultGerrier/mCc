@@ -143,9 +143,8 @@ symbol_table_function_def(struct mCc_ast_function_def *function_def,
 	struct mCc_ast_symbol_table_visitor_data *visit_data = data;
 
 	if (visit_type == MCC_AST_VISIT_BEFORE) {
-		symbol_table_function_identifier(function_def->return_type,
-		                                 function_def->function_identifier,
-		                                 error_manager, visit_data->stack);
+		symbol_table_function_identifier(function_def, error_manager,
+		                                 visit_data->stack);
 		visit_data->max_index++;
 
 		struct mCc_ast_symbol_table_stack_entry *stack_entry =
