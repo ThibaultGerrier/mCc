@@ -549,7 +549,7 @@ TEST(SymbolTable, Visitor_Function_Reuse_Id_Name)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -589,7 +589,7 @@ TEST(SymbolTable, Visitor_Function_And_Variable_Shadowing)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
