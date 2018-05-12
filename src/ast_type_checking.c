@@ -121,8 +121,17 @@ static void type_checking_statement_assignment(
 	}
 }
 
+static void type_checking_function_def(
+    struct mCc_ast_function_def *function_def, enum mCc_ast_visit_type visit_type,
+    struct mCc_err_error_manager *error_manager, void *data)
+{
+	if (visit_type == MCC_AST_VISIT_BEFORE) {
+		data = &function_def;
+	}
+}
+
 struct mCc_ast_visitor
-mCc_ast_type_checking_visitor(struct mCc_err_error_manager *error_manager)
+mCc_ast_type_checking_visitor(struct mCc_ast_function_def** cur_function, struct mCc_err_error_manager *error_manager)
 {
 	return (struct mCc_ast_visitor){
 		.traversal = MCC_AST_VISIT_DEPTH_FIRST,
@@ -130,13 +139,13 @@ mCc_ast_type_checking_visitor(struct mCc_err_error_manager *error_manager)
 
 		.error_manager = error_manager,
 
-		.userdata = NULL,
+		.userdata = cur_function,
 
 		.program = NULL,
 
 		.type = NULL,
 		.function_def_list = NULL,
-		.function_def = NULL,
+		.function_def = type_checking_function_def,
 		.parameter = NULL,
 		.argument_list = NULL,
 		.declaration = NULL,

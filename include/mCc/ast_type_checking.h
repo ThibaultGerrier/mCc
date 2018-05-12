@@ -8,7 +8,8 @@ extern "C" {
 #endif
 
 struct mCc_ast_visitor
-mCc_ast_type_checking_visitor(struct mCc_err_error_manager *error_manager);
+mCc_ast_type_checking_visitor(struct mCc_ast_function_def **cur_function,
+                              struct mCc_err_error_manager *error_manager);
 
 #ifdef __cplusplus
 }

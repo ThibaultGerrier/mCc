@@ -22,9 +22,11 @@ TEST(TypeChecking, SimpleAssignment)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = mCc_ast_type_checking_visitor(error_manager);
-
-	mCc_ast_visit_program(prog, &visitor);
+  struct mCc_ast_function_def* cur_function;
+	auto symbol_table_visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor = mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
 
 	ASSERT_EQ(0u, error_manager->used);
 
