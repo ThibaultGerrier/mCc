@@ -5,56 +5,74 @@
 #include <assert.h>
 #include <mCc/ast.h>
 #include <mCc/symbol_table.h>
+#include <stdarg.h>
 
-void cgen_statement_list(struct mCc_ast_statement_list *, FILE *);
+int mCc_tac_identifier = 0;
+int mCc_tac_label = 0;
 
-int identifier = 0;
-int label = 0;
-
-int newIdentifier()
+int mCc_tac_new_identifier()
 {
-	identifier++;
-	return identifier;
+	mCc_tac_identifier++;
+	return mCc_tac_identifier;
 }
 
-int newLabel()
+int mCc_tac_new_label()
 {
-	label++;
-	return label;
+	mCc_tac_label++;
+	return mCc_tac_label;
 }
 
-struct tac_var {
-	int num;
-	enum mCc_ast_type type;
-};
-
-char getRetType(enum mCc_ast_type t)
+char mCc_tac_get_ret_type(enum mCc_ast_type t)
 {
 	switch (t) {
 	case MCC_AST_TYPE_BOOL: return 'b';
 	case MCC_AST_TYPE_INT: return 'i';
 	case MCC_AST_TYPE_FLOAT: return 'f';
 	case MCC_AST_TYPE_STRING: return 's';
-	case MCC_AST_TYPE_VOID: return '-';
+	case MCC_AST_TYPE_VOID: return 'v';
 	default: return '-';
 	}
 }
 
-char *print_tac_var(struct tac_var t, char *buffer)
+char *mCc_tac_get_tac_var(struct mCc_tac_var t)
 {
-	// fprintf(stderr, "%d\n", t.num);
-	sprintf(buffer, "t%d_%c", t.num, getRetType(t.type));
-	return buffer;
+	char *str = malloc(10);
+	sprintf(str, "t%d_%c", t.num, mCc_tac_get_ret_type(t.type));
+	return str;
 }
 
-const char *mCc_get_binary_op(enum mCc_ast_binary_op op)
+char *mCc_tac_get_binary_op(enum mCc_ast_binary_op op, enum mCc_ast_type t)
 {
 	switch (op) {
 	/* math operations */
-	case MCC_AST_BINARY_OP_ADD: return "+";
-	case MCC_AST_BINARY_OP_SUB: return "-";
-	case MCC_AST_BINARY_OP_MUL: return "*";
-	case MCC_AST_BINARY_OP_DIV: return "/";
+	case MCC_AST_BINARY_OP_ADD: {
+		switch (t) {
+		case MCC_AST_TYPE_INT: return "+_i";
+		case MCC_AST_TYPE_FLOAT: return "+_f";
+		default: return "+";
+		}
+	}
+	case MCC_AST_BINARY_OP_SUB: {
+		switch (t) {
+		case MCC_AST_TYPE_INT: return "-_i";
+		case MCC_AST_TYPE_FLOAT: return "-_f";
+		default: return "-";
+		}
+	}
+	case MCC_AST_BINARY_OP_MUL: {
+		switch (t) {
+		case MCC_AST_TYPE_INT: return "*_i";
+		case MCC_AST_TYPE_FLOAT: return "*_f";
+		default: return "*";
+		}
+	}
+	case MCC_AST_BINARY_OP_DIV: {
+		switch (t) {
+		case MCC_AST_TYPE_INT: return "/_i";
+		case MCC_AST_TYPE_FLOAT: return "/_f";
+		default: return "/";
+		}
+	}
 
 	/* compare operations */
 	case MCC_AST_BINARY_OP_LESS: return "<";
@@ -66,7 +84,6 @@ const char *mCc_get_binary_op(enum mCc_ast_binary_op op)
 	case MCC_AST_BINARY_OP_EQUALS: return "==";
 	case MCC_AST_BINARY_OP_NOT_EQUALS: return "!=";
 	}
-
 	return "unknown_op";
 }
 
@@ -79,172 +96,275 @@ const char *mCc_get_binary_op(enum mCc_ast_binary_op op)
     return "unknown_unary_op";
 }*/
 
-struct tac_var cgen_literal(struct mCc_ast_literal *literal, FILE *out)
+mCc_tac_node mCc_tac_create_node()
 {
-	char buffer[15] = { 0 };
-	struct tac_var ret = {
-		num : newIdentifier(),
+	mCc_tac_node temp;
+	temp = (mCc_tac_node)malloc(sizeof(struct mCc_tac));
+	temp->next = NULL;
+	return temp;
+}
+
+mCc_tac_node mCc_tac_add_node(mCc_tac_node head, char *arg0, char *arg1,
+                              char *arg2, char *op, enum mCc_tac_line_type type)
+{
+	mCc_tac_node temp, p;
+	temp = mCc_tac_create_node();
+	temp->arg0 = arg0;
+	temp->arg1 = arg1;
+	temp->arg2 = arg2;
+	temp->op = op;
+	temp->type = type;
+	if (head == NULL) {
+		head = temp;
+	} else {
+		p = head;
+		while (p->next != NULL) {
+			p = p->next;
+		}
+		p->next = temp;
+	}
+	return head;
+}
+
+void mCc_tac_print_tac(mCc_tac_node head, FILE *out)
+{
+	mCc_tac_node p;
+	p = head;
+	while (p != NULL) {
+		switch (p->type) {
+		case TAC_LINE_TYPE_SIMPLE:
+			fprintf(out, "%s = %s\n", p->arg0, p->arg1);
+			break;
+		case TAC_LINE_TYPE_DOUBLE:
+			fprintf(out, "%s = %s %s %s\n", p->arg0, p->arg1, p->op, p->arg2);
+			break;
+		case TAC_LINE_TYPE_SPECIAL: fprintf(out, "%s", p->arg0); break;
+		}
+		p = p->next;
+	}
+}
+void mCc_tac_delete_tac(mCc_tac_node head)
+{
+	mCc_tac_node curr;
+	while ((curr = head) != NULL) {
+		head = head->next;
+		free(curr->arg0);
+		free(curr->arg1);
+		free(curr->arg2);
+		free(curr);
+	}
+}
+
+void mCc_tac_emitDouble(mCc_tac_node tac, char *arg0, char *arg1, char *arg2,
+                        char *op)
+{
+	mCc_tac_add_node(tac, arg0, arg1, arg2, op, TAC_LINE_TYPE_DOUBLE);
+}
+
+void mCc_tac_emitSimple(mCc_tac_node tac, char *arg0, char *arg1)
+{
+	mCc_tac_add_node(tac, arg0, arg1, NULL, NULL, TAC_LINE_TYPE_SIMPLE);
+}
+
+void mCc_tac_emitSpecial(mCc_tac_node tac, char *str)
+{
+	mCc_tac_add_node(tac, str, NULL, NULL, NULL, TAC_LINE_TYPE_SPECIAL);
+}
+
+void mCc_tac_emitS(mCc_tac_node tac, char *format, ...)
+{
+	char *str = malloc(sizeof(char) * 100);
+	va_list argptr;
+	va_start(argptr, format);
+	vsnprintf(str, 100, format, argptr);
+	va_end(argptr);
+	mCc_tac_emitSpecial(tac, str);
+}
+
+struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
+                                        mCc_tac_node tac)
+{
+	char *str;
+	struct mCc_tac_var ret = {
+		num : mCc_tac_new_identifier(),
 		type : MCC_AST_TYPE_VOID,
 	};
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_BOOL:
 		ret.type = MCC_AST_TYPE_BOOL;
-		fprintf(out, "%s = %d\n", print_tac_var(ret, buffer), literal->b_value);
+		str = malloc(sizeof(char) * 10);
+		sprintf(str, "%d", literal->b_value);
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret), str);
 		break;
 	case MCC_AST_LITERAL_TYPE_INT:
 		ret.type = MCC_AST_TYPE_INT;
-		fprintf(out, "%s = %ld\n", print_tac_var(ret, buffer),
-		        literal->i_value);
+		str = malloc(sizeof(char) * 10);
+		sprintf(str, "%ld", literal->i_value);
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret), str);
 		break;
 	case MCC_AST_LITERAL_TYPE_FLOAT:
 		ret.type = MCC_AST_TYPE_FLOAT;
-		fprintf(out, "%s = %f\n", print_tac_var(ret, buffer), literal->f_value);
+		str = malloc(sizeof(char) * 10);
+		sprintf(str, "%f", literal->f_value);
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret), str);
 		break;
 	case MCC_AST_LITERAL_TYPE_STRING:
 		ret.type = MCC_AST_TYPE_STRING;
-		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer), literal->s_value);
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret), literal->s_value);
 		break;
 	}
 	return ret;
 }
 
-struct tac_var cgen_identifier(struct mCc_ast_identifier *identifier, FILE *out)
+struct mCc_tac_var
+mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 {
-	char buffer[15] = { 0 };
-	struct tac_var ret = {
-		num : newIdentifier(),
+	struct mCc_tac_var ret = {
+		num : mCc_tac_new_identifier(),
 		type : identifier->symbol_table_entry->data_type,
 	};
-	fprintf(out, "%s = %s\n", print_tac_var(ret, buffer), identifier->name);
+	mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret), identifier->name);
 	return ret;
 }
 
-struct tac_var cgen_expression(struct mCc_ast_expression *expression, FILE *out)
+struct mCc_tac_var
+mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 {
-	char buffer[15] = { 0 };
-	char buffer2[15] = { 0 };
-	char buffer3[15] = { 0 };
-
-	struct tac_var ret = {
-		num : newIdentifier(),
+	struct mCc_tac_var ret = {
+		num : mCc_tac_new_identifier(),
 		type : MCC_AST_TYPE_VOID,
 	};
 
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP: {
-		struct tac_var t1 = cgen_expression(expression->binary_op.lhs, out);
-		struct tac_var t2 = cgen_expression(expression->binary_op.rhs, out);
+		struct mCc_tac_var t1 =
+		    mCc_tac_cgen_expression(expression->binary_op.lhs, tac);
+		struct mCc_tac_var t2 =
+		    mCc_tac_cgen_expression(expression->binary_op.rhs, tac);
 		ret.type = t1.type; // any of the two
-		fprintf(out, "%s = %s %s %s\n", print_tac_var(ret, buffer),
-		        print_tac_var(t1, buffer2),
-		        mCc_get_binary_op(expression->binary_op.op),
-		        print_tac_var(t2, buffer3));
+		mCc_tac_emitDouble(
+		    tac, mCc_tac_get_tac_var(ret), mCc_tac_get_tac_var(t1),
+		    mCc_tac_get_tac_var(t2),
+		    mCc_tac_get_binary_op(expression->binary_op.op, t1.type));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_LITERAL: {
-		struct tac_var t = cgen_literal(expression->literal, out);
+		struct mCc_tac_var t = mCc_tac_cgen_literal(expression->literal, tac);
 		ret.type = t.type;
-		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer),
-		        print_tac_var(t, buffer2));
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret),
+		                   mCc_tac_get_tac_var(t));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_IDENTIFIER: {
-		struct tac_var t = cgen_identifier(expression->identifier, out);
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_identifier(expression->identifier, tac);
 		ret.type = t.type;
-		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer),
-		        print_tac_var(t, buffer2));
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret),
+		                   mCc_tac_get_tac_var(t));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER: {
-		struct tac_var t =
-		    cgen_expression(expression->array_identifier.expression, out);
-		struct tac_var u =
-		    cgen_identifier(expression->array_identifier.identifier, out);
-		fprintf(out, "%s = %s + %s\n", print_tac_var(ret, buffer),
-		        print_tac_var(u, buffer2), print_tac_var(t, buffer3));
+		struct mCc_tac_var expr = mCc_tac_cgen_expression(
+		    expression->array_identifier.expression, tac);
+		struct mCc_tac_var id = mCc_tac_cgen_identifier(
+		    expression->array_identifier.identifier, tac);
+		ret.type = expr.type;
+		mCc_tac_emitDouble(tac, mCc_tac_get_tac_var(ret),
+		                   mCc_tac_get_tac_var(id), mCc_tac_get_tac_var(expr),
+		                   "+_i");
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: {
 		struct mCc_ast_argument_list *next = expression->call_expr.arguments;
 		while (next != NULL) {
-			struct tac_var t = cgen_expression(next->expression, out);
-			fprintf(out, "PushStack(%s)\n", print_tac_var(t, buffer));
+			struct mCc_tac_var t =
+			    mCc_tac_cgen_expression(next->expression, tac);
+			mCc_tac_emitS(tac, "PushStack(%s)\n", mCc_tac_get_tac_var(t));
 			next = next->next;
 		}
 		struct mCc_sym_table_entry *symbol_table_entry =
 		    expression->call_expr.identifier->symbol_table_entry;
 		ret.type = symbol_table_entry->data_type;
-		fprintf(out, "Call (%s)\n", expression->call_expr.identifier->name);
-		fprintf(out, "%s = PopStack()\n", print_tac_var(ret, buffer));
+		mCc_tac_emitS(tac, "Call (%s)\n",
+		              expression->call_expr.identifier->name);
+		mCc_tac_emitS(tac, "%s = PopStack()\n", mCc_tac_get_tac_var(ret));
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP: {
-		struct tac_var t = cgen_expression(expression->unary_op.rhs, out);
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_expression(expression->unary_op.rhs, tac);
 		ret.type = t.type; // not sure
 		switch (expression->unary_op.op) {
 		case MCC_AST_UNARY_OP_NOT: {
-			fprintf(out, "%s = 0 == %s\n", print_tac_var(ret, buffer),
-			        print_tac_var(t, buffer2));
+			mCc_tac_emitDouble(tac, mCc_tac_get_tac_var(ret), "0",
+			                   mCc_tac_get_tac_var(t), "==");
 			break;
 		}
 		case MCC_AST_UNARY_OP_MINUS: {
-			fprintf(out, "%s = 0 - %s\n", print_tac_var(ret, buffer),
-			        print_tac_var(t, buffer2));
+			mCc_tac_emitDouble(tac, mCc_tac_get_tac_var(ret), "0",
+			                   mCc_tac_get_tac_var(t), "-");
 			break;
 		}
 		}
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_PARENTH: {
-		struct tac_var t = cgen_expression(expression->expression, out);
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_expression(expression->expression, tac);
 		ret.type = t.type;
-		fprintf(out, "%s = %s\n", print_tac_var(ret, buffer),
-		        print_tac_var(t, buffer2));
+		mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret),
+		                   mCc_tac_get_tac_var(t));
 		break;
 	}
 	}
 	return ret;
 }
 
-void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
+void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
+                            mCc_tac_node tac)
 {
-	char buffer[15] = { 0 };
 	switch (statement->type) {
 	case MCC_AST_STATEMENT_TYPE_WHILE: {
-		int labelBefore = newLabel();
-		int labelAfter = newLabel();
-		fprintf(out, "L%d:\n", labelBefore);
-		struct tac_var t = cgen_expression(statement->while_condition, out);
-		fprintf(out, "Ifz %s Goto L%d\n", print_tac_var(t, buffer), labelAfter);
-		cgen_statement(statement->body, out);
-		fprintf(out, "Goto L%d\n", labelBefore);
-		fprintf(out, "L%d:\n", labelAfter);
+		int labelBefore = mCc_tac_new_label();
+		int labelAfter = mCc_tac_new_label();
+		mCc_tac_emitS(tac, "L%d:\n", labelBefore);
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_expression(statement->while_condition, tac);
+		mCc_tac_emitS(tac, "Ifz %s Goto L%d\n", mCc_tac_get_tac_var(t),
+		              labelAfter);
+		mCc_tac_cgen_statement(statement->body, tac);
+		mCc_tac_emitS(tac, "Goto L%d\n", labelBefore);
+		mCc_tac_emitS(tac, "L%d:\n", labelAfter);
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_IF: {
-		int labelElse = newLabel();
-		int labelAfter = newLabel();
-		struct tac_var t = cgen_expression(statement->if_condition, out);
-		fprintf(out, "Ifz %s Goto L%d\n", print_tac_var(t, buffer), labelElse);
-		cgen_statement(statement->if_branch, out);
-		fprintf(out, "Goto L%d\n", labelAfter);
-		fprintf(out, "L%d:\n", labelElse);
-		cgen_statement(statement->else_branch, out);
-		fprintf(out, "L%d:\n", labelAfter);
+		int labelElse = mCc_tac_new_label();
+		int labelAfter = mCc_tac_new_label();
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_expression(statement->if_condition, tac);
+		mCc_tac_emitS(tac, "Ifz %s Goto L%d\n", mCc_tac_get_tac_var(t),
+		              labelElse);
+		mCc_tac_cgen_statement(statement->if_branch, tac);
+		mCc_tac_emitS(tac, "Goto L%d\n", labelAfter);
+		mCc_tac_emitS(tac, "L%d:\n", labelElse);
+		mCc_tac_cgen_statement(statement->else_branch, tac);
+		mCc_tac_emitS(tac, "L%d:\n", labelAfter);
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_RETURN: {
-		struct tac_var label = cgen_expression(statement->expression, out);
-		fprintf(out, "RETURN %s\n", print_tac_var(label, buffer));
+		struct mCc_tac_var label =
+		    mCc_tac_cgen_expression(statement->expression, tac);
+		mCc_tac_emitS(tac, "RETURN %s\n", mCc_tac_get_tac_var(label));
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
 		switch (statement->declaration->declaration_type) {
 		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
-			fprintf(out, "ARRAY_DECL %s %s (%ld) \n",
-			        statement->declaration->array_decl.identifier->name,
-			        mCc_ast_print_type(statement->declaration->identifier_type),
-			        statement->declaration->array_decl.literal->i_value);
+			mCc_tac_emitS(
+			    tac, "ARRAY_DECL %s %s (%ld) \n",
+			    statement->declaration->array_decl.identifier->name,
+			    mCc_ast_print_type(statement->declaration->identifier_type),
+			    statement->declaration->array_decl.literal->i_value);
 			break;
 		}
 		case MCC_AST_DECLARATION_TYPE_DECLARATION: {
@@ -255,85 +375,93 @@ void cgen_statement(struct mCc_ast_statement *statement, FILE *out)
 		break;
 
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT: {
-		struct tac_var t =
-		    cgen_expression(statement->assignment->normal_ass.rhs, out);
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_expression(statement->assignment->normal_ass.rhs, tac);
 		char *identifier = statement->assignment->identifier->name;
-		fprintf(out, "%s = %s\n", identifier, print_tac_var(t, buffer));
+		mCc_tac_emitSimple(tac, identifier, mCc_tac_get_tac_var(t));
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT: {
 		// TODO: Maybe add type of array assignment?
-		struct tac_var t =
-		    cgen_expression(statement->assignment->array_ass.rhs, out);
-		struct tac_var index =
-		    cgen_expression(statement->assignment->array_ass.index, out);
-		fprintf(out, "ARRAY_ASSIGNMENT %s[%s]=",
-		        statement->assignment->identifier->name,
-		        print_tac_var(index, buffer));
-		fprintf(out, "%s\n", print_tac_var(t, buffer));
+		struct mCc_tac_var t =
+		    mCc_tac_cgen_expression(statement->assignment->array_ass.rhs, tac);
+		struct mCc_tac_var index = mCc_tac_cgen_expression(
+		    statement->assignment->array_ass.index, tac);
+		mCc_tac_emitS(tac, "ARRAY_ASSIGNMENT %s[%s]=%s\n",
+		              statement->assignment->identifier->name,
+		              mCc_tac_get_tac_var(index), mCc_tac_get_tac_var(t));
+
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION: {
-		cgen_expression(statement->expression, out);
+		mCc_tac_cgen_expression(statement->expression, tac);
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-		cgen_statement_list(statement->statement_list, out);
+		mCc_tac_cgen_statement_list(statement->statement_list, tac);
 		break;
 	}
 }
 
-void cgen_statement_list(struct mCc_ast_statement_list *statement_list,
-                         FILE *out)
+void mCc_tac_cgen_statement_list(struct mCc_ast_statement_list *statement_list,
+                                 mCc_tac_node tac)
 {
 	struct mCc_ast_statement_list *next = statement_list;
 	while (next != NULL) {
-		cgen_statement(next->statement, out);
+		mCc_tac_cgen_statement(next->statement, tac);
 		next = next->next;
 	}
 }
 
-void cgen_function_def(struct mCc_ast_function_def *function_def, FILE *out)
+void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
+                               mCc_tac_node tac)
 {
-	fprintf(out, "START FUNC %s:\n", function_def->function_identifier->name);
+	mCc_tac_emitS(tac, "START FUNC %s\n",
+	              function_def->function_identifier->name);
 	// TODO: if stack, change order of pop statements!!
 	struct mCc_ast_parameter *next = function_def->parameters;
 	while (next != NULL) {
 		switch (next->declaration->declaration_type) {
-		case MCC_AST_DECLARATION_TYPE_DECLARATION:
-			fprintf(out, "%s = PopStack(%s)\n",
-			        next->declaration->normal_decl.identifier->name,
-			        mCc_ast_print_type(next->declaration->identifier_type));
+		case MCC_AST_DECLARATION_TYPE_DECLARATION: {
+			mCc_tac_emitS(
+			    tac, "%s = PopStack(%s)\n",
+			    next->declaration->normal_decl.identifier->name,
+			    mCc_ast_print_type(next->declaration->identifier_type));
 			break;
-		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION:
-			fprintf(out, "%s = PopStackArray(%s) size-%ld\n",
-			        next->declaration->array_decl.identifier->name,
-			        mCc_ast_print_type(next->declaration->identifier_type),
-			        next->declaration->array_decl.literal->i_value);
+		}
+		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
+			mCc_tac_emitS(
+			    tac, "%s = PopStackArray(%s) size-%ld\n",
+			    next->declaration->array_decl.identifier->name,
+			    mCc_ast_print_type(next->declaration->identifier_type),
+			    next->declaration->array_decl.literal->i_value);
 			break;
+		}
 		}
 		next = next->next;
 	}
-	cgen_statement(function_def->compound_stmt, out);
-	fprintf(out, "END FUNC %s:\n", function_def->function_identifier->name);
+	mCc_tac_cgen_statement(function_def->compound_stmt, tac);
+	mCc_tac_emitS(tac, "END FUNC %s\n",
+	              function_def->function_identifier->name);
 }
 
-void cgen_function_def_list(struct mCc_ast_function_def_list *function_def_list,
-                            FILE *out)
+mCc_tac_node mCc_tac_cgen_function_def_list(
+    struct mCc_ast_function_def_list *function_def_list, mCc_tac_node tac)
 {
 	struct mCc_ast_function_def_list *next = function_def_list;
 	while (next != NULL) {
-		cgen_function_def(next->function_def, out);
+		mCc_tac_cgen_function_def(next->function_def, tac);
 		next = next->next;
 	}
+	return tac;
 }
 
 void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 {
 	assert(out);
 	assert(program);
-	identifier = 0;
-	label = 0;
+	mCc_tac_identifier = 0;
+	mCc_tac_label = 0;
 
 	struct mCc_ast_symbol_table_visitor_data visitor_data = { NULL, NULL, 0 };
 
@@ -344,8 +472,15 @@ void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 	mCc_ast_visit_program(program, &visitor);
 
 	fprintf(out, "start tac\n");
+	char *start = malloc(sizeof(char) * 25);
+	sprintf(start, "start\n");
 
-	cgen_function_def_list(program->function_def_list, out);
+	mCc_tac_node tac =
+	    mCc_tac_add_node(NULL, start, NULL, NULL, NULL, TAC_LINE_TYPE_SPECIAL);
+
+	mCc_tac_cgen_function_def_list(program->function_def_list, tac);
+	mCc_tac_print_tac(tac, out);
+	mCc_tac_delete_tac(tac);
 
 	fprintf(out, "end tac\n\n");
 }
