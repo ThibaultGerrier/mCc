@@ -143,9 +143,8 @@ symbol_table_function_def(struct mCc_ast_function_def *function_def,
 	struct mCc_ast_symbol_table_visitor_data *visit_data = data;
 
 	if (visit_type == MCC_AST_VISIT_BEFORE) {
-		symbol_table_function_identifier(function_def->return_type,
-		                                 function_def->function_identifier,
-		                                 error_manager, visit_data->stack);
+		symbol_table_function_identifier(function_def, error_manager,
+		                                 visit_data->stack);
 		visit_data->max_index++;
 
 		struct mCc_ast_symbol_table_stack_entry *stack_entry =
@@ -306,9 +305,9 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	}
 }
 
-struct mCc_ast_visitor
-symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
-                     struct mCc_err_error_manager *error_manager)
+struct mCc_ast_visitor mCc_ast_symbol_table_visitor(
+    struct mCc_ast_symbol_table_visitor_data *visit_data,
+    struct mCc_err_error_manager *error_manager)
 {
 	assert(visit_data);
 
@@ -329,6 +328,7 @@ symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
 		.argument_list = NULL,
 		.declaration = symbol_table_declaration,
 
+		.expression = NULL,
 		.expression_identifier = NULL,
 		.expression_array_identifier = NULL,
 		.expression_call_expr = NULL,

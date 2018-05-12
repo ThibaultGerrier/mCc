@@ -95,7 +95,7 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -140,7 +140,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -187,7 +187,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -233,7 +233,7 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
 
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -276,7 +276,7 @@ TEST(SymbolTable, Visitor_Program_MultiScope)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -300,7 +300,7 @@ TEST(SymbolTable, Visitor_Function_Table)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -336,7 +336,7 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -374,7 +374,7 @@ TEST(SymbolTable, Visitor_Program_NoFunctionParameterRedefinition)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -398,7 +398,7 @@ TEST(SymbolTable, Visitor_Function_Table_Redefined_Function)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 	auto function_table = visitor_data.symbol_table_tree->symbol_table;
@@ -432,7 +432,7 @@ TEST(SymbolTable, Visitor_Function_Table_No_Main)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -469,7 +469,7 @@ TEST(SymbolTable, Visitor_Function_Table_Built_In)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -519,7 +519,7 @@ TEST(SymbolTable, Visitor_Function_Table_Call)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
