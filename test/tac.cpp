@@ -22,7 +22,7 @@ void print_error(struct mCc_parse_error parse_error)
 	        parse_error.msg);
 }
 
-TEST(Parser, Generate_Sample_TAC)
+TEST(ThreeAdressCode, Generate_Sample_TAC)
 {
 	const char input[] = "void main(){ int a; int b; a = 129; a = a - 12; b = "
 	                     "0; b = (a + 1) + (b - 2);}";
@@ -33,7 +33,7 @@ TEST(Parser, Generate_Sample_TAC)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Sample_TAC2)
+TEST(ThreeAdressCode, Generate_Sample_TAC2)
 {
 	const char input[] = "void main(){ int a; a = (a + 1) + (12 - 2);}";
 	auto result = mCc_parser_parse_string(input);
@@ -43,7 +43,7 @@ TEST(Parser, Generate_Sample_TAC2)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Sample_IF)
+TEST(ThreeAdressCode, Generate_Sample_IF)
 {
 	const char input[] = "void main(){ int a; a = 2; if (a == 2){ a = a + 1;} "
 	                     "else { a = a - 1; }}";
@@ -54,7 +54,7 @@ TEST(Parser, Generate_Sample_IF)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Sample_While)
+TEST(ThreeAdressCode, Generate_Sample_While)
 {
 	const char input[] =
 	    "void main(){ int a; a = 2; while (a > 0){ a = a - 1;} a = 3;}";
@@ -65,7 +65,7 @@ TEST(Parser, Generate_Sample_While)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Sample_Functions)
+TEST(ThreeAdressCode, Generate_Sample_Functions)
 {
 
 	const char input[] =
@@ -77,7 +77,7 @@ TEST(Parser, Generate_Sample_Functions)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Function_Calls)
+TEST(ThreeAdressCode, Generate_Function_Calls)
 {
 
 	const char input[] = "void foo(){} void main(){int a; a=1; foo();}";
@@ -88,7 +88,7 @@ TEST(Parser, Generate_Function_Calls)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Function_Calls_Push)
+TEST(ThreeAdressCode, Generate_Function_Calls_Push)
 {
 
 	const char input[] =
@@ -100,7 +100,7 @@ TEST(Parser, Generate_Function_Calls_Push)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Function_Return)
+TEST(ThreeAdressCode, Generate_Function_Return)
 {
 
 	const char input[] = "void foo(){return 1;} void main(){foo();}";
@@ -111,7 +111,7 @@ TEST(Parser, Generate_Function_Return)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Function_CallinCall)
+TEST(ThreeAdressCode, Generate_Function_CallinCall)
 {
 
 	const char input[] = "int fooInt(int i){return i;} void main(){fooInt(fooInt(1));}";
@@ -122,7 +122,7 @@ TEST(Parser, Generate_Function_CallinCall)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-TEST(Parser, Generate_Function_Array)
+TEST(ThreeAdressCode, Generate_Function_Array)
 {
 
 	const char input[] = "void main(){float[5] arr; arr[0]=1.2;arr[4]=1.2;}";
@@ -134,7 +134,7 @@ TEST(Parser, Generate_Function_Array)
 }
 
 
-TEST(Parser, Generate_Function_Array_Expr)
+TEST(ThreeAdressCode, Generate_Function_Array_Expr)
 {
     const char input[] = "void main(){int[5] arr; arr[0] = 1; arr[1] = 4; int b; b = arr[1];}";
     auto result = mCc_parser_parse_string(input);
