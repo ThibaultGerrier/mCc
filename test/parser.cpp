@@ -251,13 +251,13 @@ TEST(Parser, UnaryOperatorExclamationTest)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
-	ASSERT_EQ(1, expr->node.sloc.start_col);
+	ASSERT_EQ(1u, expr->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->unary_op.rhs->type);
-	ASSERT_EQ(2, expr->unary_op.rhs->node.sloc.start_col);
+	ASSERT_EQ(2u, expr->unary_op.rhs->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->unary_op.rhs->type);
-	ASSERT_EQ(2, expr->unary_op.rhs->literal->node.sloc.start_col);
+	ASSERT_EQ(2u, expr->unary_op.rhs->literal->node.sloc.start_col);
 
 	mCc_parser_delete_result(&result);
 }
@@ -272,13 +272,13 @@ TEST(Parser, UnaryOperatorMinusTest)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
-	ASSERT_EQ(1, expr->node.sloc.start_col);
+	ASSERT_EQ(1u, expr->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->unary_op.rhs->type);
-	ASSERT_EQ(2, expr->unary_op.rhs->node.sloc.start_col);
+	ASSERT_EQ(2u, expr->unary_op.rhs->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, expr->unary_op.rhs->type);
-	ASSERT_EQ(2, expr->unary_op.rhs->literal->node.sloc.start_col);
+	ASSERT_EQ(2u, expr->unary_op.rhs->literal->node.sloc.start_col);
 
 	mCc_parser_delete_result(&result);
 }
@@ -299,7 +299,7 @@ TEST(Parser, BoolLiteralTest)
 
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_LITERAL, valid_bool_expr->type);
 	ASSERT_EQ(MCC_AST_LITERAL_TYPE_BOOL, valid_bool_expr->literal->type);
-	ASSERT_EQ(1, valid_bool_expr->node.sloc.start_col);
+	ASSERT_EQ(1u, valid_bool_expr->node.sloc.start_col);
 
 	EXPECT_EQ(true, valid_bool_expr->literal->b_value);
 
@@ -320,18 +320,18 @@ TEST(Parser, SourceLocation_SingleLineColumn)
 	auto expr = result.expression;
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_PARENTH, expr->type);
-	ASSERT_EQ(1, expr->node.sloc.start_col);
+	ASSERT_EQ(1u, expr->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->expression->type);
-	ASSERT_EQ(2, expr->expression->node.sloc.start_col);
+	ASSERT_EQ(2u, expr->expression->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_LITERAL_TYPE_INT,
 	          expr->expression->binary_op.lhs->literal->type);
-	ASSERT_EQ(2, expr->expression->binary_op.lhs->literal->node.sloc.start_col);
+	ASSERT_EQ(2u, expr->expression->binary_op.lhs->literal->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_LITERAL_TYPE_INT,
 	          expr->expression->binary_op.rhs->literal->type);
-	ASSERT_EQ(7, expr->expression->binary_op.rhs->literal->node.sloc.start_col);
+	ASSERT_EQ(7u, expr->expression->binary_op.rhs->literal->node.sloc.start_col);
 
 	mCc_parser_delete_result(&result);
 }
@@ -353,8 +353,8 @@ TEST(Parser, IdentifierTest)
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_IDENTIFIER, id_expr->type);
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER, array_expr->type);
 
-	ASSERT_EQ(1, id_expr->node.sloc.start_col);
-	ASSERT_EQ(10, id_expr->node.sloc.end_col);
+	ASSERT_EQ(1u, id_expr->node.sloc.start_col);
+	ASSERT_EQ(10u, id_expr->node.sloc.end_col);
 	ASSERT_EQ(0, strcmp("some_id123", id_expr->identifier->name));
 	ASSERT_EQ(0,
 	          strcmp("array", array_expr->array_identifier.identifier->name));
@@ -365,7 +365,7 @@ TEST(Parser, IdentifierTest)
 
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_IDENTIFIER, id_expr->type);
 	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER, array_expr->type);
-	ASSERT_EQ(1, id_expr->node.sloc.start_col);
+	ASSERT_EQ(1u, id_expr->node.sloc.start_col);
 
 	mCc_ast_delete_expression(id_expr);
 	mCc_ast_delete_expression(array_expr);

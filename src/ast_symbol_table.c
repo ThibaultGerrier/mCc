@@ -95,37 +95,38 @@ static void symbol_table_program(struct mCc_ast_program *program,
 }
 
 static void
-symbol_table_function_identifier(enum mCc_ast_type return_type,
-                                 struct mCc_ast_identifier *identifier,
+symbol_table_function_identifier(struct mCc_ast_function_def *function_def,
                                  struct mCc_err_error_manager *error_manager,
                                  struct mCc_ast_symbol_table_stack_entry *stack)
 {
-	assert(identifier);
+	assert(function_def);
 	assert(stack);
+
+	struct mCc_ast_identifier *iden = function_def->function_identifier;
 
 	struct mCc_sym_table_entry *result =
 	    mCc_sym_table_ascendant_tree_lookup_entry(stack->symbol_table_tree,
-	                                              identifier->name);
+	                                              iden->name);
 
 	if (result == NULL) {
-		mCc_sym_table_add_entry(
-		    &stack->symbol_table_tree->symbol_table,
-		    mCc_sym_table_new_entry(identifier->name, stack->cur_index,
-		                            MCC_SYM_TABLE_FUNCTION, return_type));
+		struct mCc_sym_table_entry *entry = mCc_sym_table_new_entry(
+		    iden->name, stack->cur_index, MCC_SYM_TABLE_FUNCTION,
+		    function_def->return_type);
+		entry->function_def = function_def;
+		mCc_sym_table_add_entry(&stack->symbol_table_tree->symbol_table, entry);
 	} else {
 		if (error_manager != NULL) {
 			char msg[256];
 			sprintf(msg,
 			        "error in line %lu, col: %lu: redefined function "
 			        "'%s'",
-			        identifier->node.sloc.start_line,
-			        identifier->node.sloc.start_col, identifier->name);
+			        iden->node.sloc.start_line, iden->node.sloc.start_col,
+			        iden->name);
 			mCc_err_error_manager_insert_error_entry(
 			    error_manager,
-			    mCc_err_new_error_entry(msg, identifier->node.sloc.start_line,
-			                            identifier->node.sloc.start_col,
-			                            identifier->node.sloc.end_line,
-			                            identifier->node.sloc.end_col));
+			    mCc_err_new_error_entry(
+			        msg, iden->node.sloc.start_line, iden->node.sloc.start_col,
+			        iden->node.sloc.end_line, iden->node.sloc.end_col));
 		}
 	}
 }

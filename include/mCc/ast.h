@@ -13,14 +13,15 @@ struct mCc_ast_expression;
 struct mCc_ast_statement;
 struct mCc_ast_literal;
 struct mCc_sym_table_entry;
+struct mCc_sym_table_tree;
 
 /* ---------------------------------------------------------------- AST Node */
 
 struct mCc_ast_source_location {
 	size_t start_line;
-    size_t start_col;
-    size_t end_line;
-    size_t end_col;
+	size_t start_col;
+	size_t end_line;
+	size_t end_col;
 };
 
 /* Data contained by every AST node. */
@@ -33,7 +34,7 @@ struct mCc_ast_node {
 struct mCc_ast_identifier {
 	struct mCc_ast_node node;
 
-	struct mCc_sym_table_entry* symbol_table_entry;
+	struct mCc_sym_table_entry *symbol_table_entry;
 
 	char *name;
 };

@@ -17,6 +17,7 @@ mCc_sym_table_new_entry(const char *name, size_t scope_index,
 	entry->data_type = data_type;
 	entry->scope_index = scope_index;
 	entry->array_size = 0;
+	entry->function_def = NULL;
 	size_t len = strlen(name) + 1;
 	entry->name = malloc(len);
 	assert(entry->name);

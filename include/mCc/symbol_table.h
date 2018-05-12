@@ -21,6 +21,9 @@ struct mCc_sym_table_entry {
 	size_t array_size;
 	size_t scope_index;
 
+	// back reference for function call expression, NULL if not a function
+	struct mCc_ast_function_def *function_def;
+
 	char *name;        /* key of the hashmap */
 	UT_hash_handle hh; /* makes this structure hashable */
 };
