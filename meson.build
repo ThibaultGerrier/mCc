@@ -36,6 +36,7 @@ mCc_src = [ 'src/ast.c',
             'src/ast_symbol_table.c',
             'src/error_manager.c',
             'src/symbol_table.c',
+            'src/ast_function_return_check.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y') ]
 
@@ -70,7 +71,7 @@ endforeach
 
 gtest = dependency('gtest', fallback: ['gtest', 'gtest_main_dep'])
 
-mCc_uts = [ 'parser', 'symbol_table' ]
+mCc_uts = [ 'parser', 'symbol_table', 'return_check' ]
 
 foreach ut : mCc_uts
     t = executable('ut_' + ut.underscorify(), 'test/' + ut + '.cpp',

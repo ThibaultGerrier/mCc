@@ -10,7 +10,7 @@ bison_target(parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.c COMPILE_FL
 add_flex_bison_dependency(scanner parser)
 
 # basic ast
-add_library(mCc_ast SHARED  ast.c)
+add_library(mCc_ast SHARED  ast.c ast_function_return_check.c ../include/mCc/ast_function_return_check.h)
 
 # visitors
 add_library(mCc_visit SHARED ast_visit.c)
