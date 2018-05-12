@@ -336,6 +336,34 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleWhile)
 	mCc_err_delete_error_manager(error_manager);
 }
 
+TEST(ReturnCheck, nonVoidFunctionMultipleCorrect)
+{
+const char input[] =
+        "int foo(){while(true){return 1;} return 2;} float bar(int b){if(b){return "
+        "1;}else{} return 1.0;}void main(){int a; return;}";
+auto result = mCc_parser_parse_string(input);
+
+ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+auto prog = result.program;
+
+struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+                                                          0 };
+
+struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+
+mCc_ast_visit_program(prog, &visitor);
+
+mCc_ast_function_return_checks(prog, error_manager);
+
+ASSERT_EQ(0, error_manager->used);
+
+mCc_parser_delete_result(&result);
+mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+mCc_err_delete_error_manager(error_manager);
+}
+
 TEST(ReturnCheck, nonVoidFunctionIncorrectSingleWithReturnVoid)
 {
 	const char input[] = "int foo(){return;} void main(){int a; return;}";
@@ -500,7 +528,7 @@ TEST(ReturnCheck, nonVoidFunctionMultipleIncorrect)
 	    strcmp(
 	        "error in line 1, col: 35: no return in a non void function: 'bar'",
 	        error_manager->array[1]->msg));
-	
+
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 	mCc_err_delete_error_manager(error_manager);
