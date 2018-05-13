@@ -323,7 +323,7 @@ TEST(SymbolTable, Visitor_Function_Table)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
+TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionI)
 {
 	const char input[] = "void main(){int a; foo(a);}";
 	auto result = mCc_parser_parse_string(input);
@@ -344,6 +344,43 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 
 	auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
 	ASSERT_EQ(nullptr, entry_foo);
+
+	// check the error message
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(1u, error_manager->array[0]->start_line);
+	ASSERT_EQ(20u, error_manager->array[0]->start_col);
+	std::cerr << error_manager->array[0]->msg << std::endl;
+	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionII)
+{
+	const char input[] =
+	    "void main(){int a; foo(a);} float foo(int a) {return 3.14;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+	auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
+	ASSERT_NE(nullptr, entry_foo);
 
 	// check the error message
 	ASSERT_EQ(1u, error_manager->used);
