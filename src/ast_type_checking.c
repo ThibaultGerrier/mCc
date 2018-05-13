@@ -184,10 +184,6 @@ static void type_checking_statement_return(
 			    msg, line_nm, col_nm, line_nm_end, col_nm_end);
 			mCc_err_error_manager_insert_error_entry(error_manager, entry);
 		}
-		check_statement_expression_type(
-		    statement->expression, function_def->return_type,
-		    mCc_ast_print_statement(statement->type),
-		    (struct mCc_ast_function_def *)data, error_manager);
 	}
 }
 
