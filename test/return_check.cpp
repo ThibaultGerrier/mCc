@@ -6,6 +6,16 @@
 #include "mCc/parser.h"
 #include "mCc/symbol_table.h"
 #include <cstdbool>
+#include <string>
+
+void print_all_errors(std::string prefix,
+                      struct mCc_err_error_manager *error_manager)
+{
+	for (size_t i = 0; i < error_manager->used; i++) {
+		std::cerr << prefix << ": " << error_manager->array[i]->msg
+		          << std::endl;
+	}
+}
 
 TEST(ReturnCheck, voidFunctionCorrectSingle)
 {
@@ -26,6 +36,9 @@ TEST(ReturnCheck, voidFunctionCorrectSingle)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -52,6 +65,9 @@ TEST(ReturnCheck, voidFunctionCorrectSingleWithReturn)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -79,6 +95,9 @@ TEST(ReturnCheck, voidFunctionCorrectMultiple)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -168,6 +187,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingle)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -195,6 +217,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectMultiple)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -221,6 +246,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIf)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -248,6 +276,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElse)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -275,6 +306,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleI)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -302,6 +336,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleII)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -329,6 +366,9 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleWhile)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -357,6 +397,9 @@ TEST(ReturnCheck, nonVoidFunctionMultipleCorrect)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0, error_manager->used);
 
 	mCc_parser_delete_result(&result);

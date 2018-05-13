@@ -5,6 +5,16 @@
 #include "mCc/parser.h"
 #include "mCc/symbol_table.h"
 #include <cstdbool>
+#include <string>
+
+void print_all_errors(std::string prefix,
+                      struct mCc_err_error_manager *error_manager)
+{
+	for (size_t i = 0; i < error_manager->used; i++) {
+		std::cerr << prefix << ": " << error_manager->array[i]->msg
+		          << std::endl;
+	}
+}
 
 TEST(SymbolTable, Existing_Entry)
 {
@@ -99,6 +109,9 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	auto entry_a = mCc_sym_table_lookup_entry(
@@ -144,6 +157,9 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	auto entry_a = mCc_sym_table_lookup_entry(
@@ -191,6 +207,9 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	auto entry_a =
@@ -280,6 +299,9 @@ TEST(SymbolTable, Visitor_Program_MultiScope)
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -304,6 +326,9 @@ TEST(SymbolTable, Visitor_Function_Table)
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	auto function_table = visitor_data.symbol_table_tree->symbol_table;
@@ -350,7 +375,7 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);
 	ASSERT_EQ(20u, error_manager->array[0]->start_col);
-	std::cerr << error_manager->array[0]->msg << std::endl;
+
 	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
 	                    error_manager->array[0]->msg));
 
@@ -378,6 +403,9 @@ TEST(SymbolTable, Visitor_Program_NoFunctionParameterRedefinition)
 
 	mCc_ast_visit_program(prog, &visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -499,6 +527,9 @@ TEST(SymbolTable, Visitor_Function_Table_Built_In)
 	ASSERT_NE(nullptr, entry_read_float);
 
 	// check the error message
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -529,6 +560,9 @@ TEST(SymbolTable, Visitor_Function_Table_Call)
 	ASSERT_NE(nullptr, entry_foo);
 
 	// check the error message
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -560,7 +594,8 @@ TEST(SymbolTable, Visitor_Function_Reuse_Id_Name)
 
 	ASSERT_EQ(MCC_SYM_TABLE_FUNCTION, entry_foo_function->var_type);
 
-	auto foo_symbol_table = visitor_data.symbol_table_tree->first_child->first_child->symbol_table;
+	auto foo_symbol_table =
+	    visitor_data.symbol_table_tree->first_child->first_child->symbol_table;
 
 	auto entry_foo_var = mCc_sym_table_lookup_entry(foo_symbol_table, "foo");
 	ASSERT_NE(nullptr, entry_foo_var);
@@ -568,6 +603,9 @@ TEST(SymbolTable, Visitor_Function_Reuse_Id_Name)
 	ASSERT_EQ(MCC_SYM_TABLE_VAR, entry_foo_var->var_type);
 
 	// check the error message
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
