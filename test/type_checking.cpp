@@ -7,6 +7,16 @@
 #include "mCc/symbol_table.h"
 
 #include <cstdbool>
+#include <string>
+
+void print_all_errors(std::string prefix,
+                      struct mCc_err_error_manager *error_manager)
+{
+	for (size_t i = 0; i < error_manager->used; i++) {
+		std::cerr << prefix << ": " << error_manager->array[i]->msg
+		          << std::endl;
+	}
+}
 
 TEST(TypeChecking, SimpleAssignmentCorrect)
 {
@@ -29,6 +39,9 @@ TEST(TypeChecking, SimpleAssignmentCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -57,6 +70,9 @@ TEST(TypeChecking, SimpleArrayAssignmentCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -85,6 +101,9 @@ TEST(TypeChecking, SimpleAdditionCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -114,6 +133,9 @@ TEST(TypeChecking, ComplexAdditionCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -143,6 +165,9 @@ TEST(TypeChecking, SimpleReturnAssigmentCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -171,6 +196,9 @@ TEST(TypeChecking, VoidReturnCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -202,6 +230,9 @@ TEST(TypeChecking, FunctionCallCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -231,6 +262,9 @@ TEST(TypeChecking, FunctionReturnAssigmentCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -259,6 +293,9 @@ TEST(TypeChecking, SimpleIfTypeCheckCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -287,6 +324,9 @@ TEST(TypeChecking, ComplexIfTypeCheckCorrectI)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -315,6 +355,9 @@ TEST(TypeChecking, ComplexIfTypeCheckCorrectII)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -343,6 +386,9 @@ TEST(TypeChecking, NegationBoolCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
@@ -371,6 +417,9 @@ TEST(TypeChecking, NegationIntCorrect)
 	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
