@@ -111,10 +111,10 @@ TEST(TypeChecking, SimpleAdditionCorrect)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(TypeChecking, ComplexAdditionCorrect)
+TEST(TypeChecking, ComplexMathCorrect)
 {
 	const char input[] = "void main(){int a; a = 123; int b; b = 321; int c; c "
-	                     "= a; (a + b) + c;}";
+	                     "= a; (a + b) * c;}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -243,7 +243,7 @@ TEST(TypeChecking, FunctionCallCorrect)
 TEST(TypeChecking, FunctionReturnAssigmentCorrect)
 {
 	const char input[] =
-	    "float foo(){return 1.0;}void main(){float a; a = foo();}";
+	    "float foo(){return 1.0;}void main(){float a; a = foo() + 3;}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -452,6 +452,323 @@ TEST(TypeChecking, SimpleAssignmentIncorrect)
 	ASSERT_EQ(0, strcmp("error: the type of the ass statement in line 1, col: "
 	                    "24 is not int but float",
 	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, SimpleArrayAssignmentInorrect)
+{
+	const char input[] = "void main(){string[3] b; b[0] = 123;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the ass[] statement in line 1, "
+	                    "col: 33 is not string but int",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, ArrayAssignmentInorrectI)
+{
+	const char input[] =
+	    "void main(){string[3] a; float b; b = 15.33; a[0] = b;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the ass[] statement in line 1, "
+	                    "col: 53 is not string but float",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, ArrayAssignmentInorrectII)
+{
+	const char input[] = "void main(){string[3] a; float b; b = 15.33; a = b;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the ass statement in line 1, "
+	                    "col: 50 is not string but float",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, SimpleAdditionInorrect)
+{
+	const char input[] =
+	    "void main(){int a; a = 123; float b; b = 3.21; a + b;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the binary expression 'int' '+' "
+	                    "'float' in line 1, col: 48 is not allowed",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, ComplexMathInorrect)
+{
+	const char input[] =
+	    "void main(){int a; a = 123; bool b; b = true; int c; c "
+	    "= a; (a * c) / b;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the binary expression 'int' '/' "
+	                    "'bool' in line 1, col: 61 is not allowed",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, VoidReturnInorrect)
+{
+	const char input[] = "void main(){return 1;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the return statement in line 1, "
+	                    "col: 13 is not void but int",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, NegationIncorrect)
+{
+	const char input[] = "void main(){string a; a = \"foo\"; a = -a;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the unary expression '-' 'string' "
+	                    "in line 1, col: 38 is not allowed",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, SimpleIfTypeCheckIncorrectI)
+{
+	const char input[] = "void main(){int a; a = 34; if (a){return;}}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the if statement in line 1, col: "
+	                    "32 is not bool but int",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, ComplexIfTypeCheckIncorrectII)
+{
+	const char input[] = "void main(){if ((3 < 1) || \"foo\"){return;}}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the binary expression 'bool' '||' "
+	                    "'string' in line 1, col: 17 is not allowed",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, TwoIncorrect)
+{
+	const char input[] = "void main(){if (false || 3.14){return true;}}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(2u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the binary expression 'bool' '||' "
+	                    "'float' in line 1, col: 17 is not allowed",
+	                    error_manager->array[0]->msg));
+	ASSERT_EQ(0, strcmp("error: the type of the return statement in line 1, "
+	                    "col: 32 is not void but bool",
+	                    error_manager->array[1]->msg));
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
