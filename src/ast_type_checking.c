@@ -14,7 +14,7 @@ void binary_operation_error(enum mCc_ast_type lhs, enum mCc_ast_type rhs,
 {
 	char msg[256];
 	sprintf(msg,
-	        "error: the type of the binary expression %s %s %s in line %lu, "
+	        "error: the type of the binary expression '%s' '%s' '%s' in line %lu, "
 	        "col: %lu is not allowed",
 	        mCc_ast_print_type(lhs), mCc_ast_print_binary_op(op),
 	        mCc_ast_print_type(rhs), line_nm, col_nm);
@@ -31,7 +31,7 @@ void unary_operation_error(enum mCc_ast_type rhs, enum mCc_ast_unary_op op,
 {
 	char msg[256];
 	sprintf(msg,
-	        "error: the type of the unary expression %s %s in line %lu, "
+	        "error: the type of the unary expression '%s' '%s' in line %lu, "
 	        "col: %lu is not allowed",
 	        mCc_ast_print_unary_op(op), mCc_ast_print_type(rhs), line_nm,
 	        col_nm);
