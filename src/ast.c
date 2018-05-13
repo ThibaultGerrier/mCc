@@ -4,6 +4,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* ------------------------------------------------------------- Types */
+enum mCc_ast_type
+mCc_ast_literal_type_convert(enum mCc_ast_literal_type literal_type)
+{
+	switch (literal_type) {
+	case MCC_AST_LITERAL_TYPE_BOOL: return MCC_AST_TYPE_BOOL;
+	case MCC_AST_LITERAL_TYPE_INT: return MCC_AST_TYPE_INT;
+	case MCC_AST_LITERAL_TYPE_FLOAT: return MCC_AST_TYPE_FLOAT;
+	case MCC_AST_LITERAL_TYPE_STRING: return MCC_AST_TYPE_STRING;
+	default: return MCC_AST_TYPE_VOID;
+	}
+}
 /* ------------------------------------------------------------- Identifier */
 
 struct mCc_ast_identifier *mCc_ast_new_identifier(const char *name)
