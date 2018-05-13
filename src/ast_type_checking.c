@@ -164,6 +164,26 @@ static void type_checking_statement_return(
 		assert(data);
 		struct mCc_ast_function_def *function_def =
 		    (struct mCc_ast_function_def *)data;
+
+		enum mCc_ast_type cond_type = resolve_expression(
+		    statement->expression, function_def, error_manager);
+		if (cond_type != function_def->return_type && error_manager != NULL) {
+			char msg[256];
+			size_t line_nm = statement->node.sloc.start_line;
+			size_t col_nm = statement->node.sloc.start_col;
+			size_t line_nm_end = statement->node.sloc.end_line;
+			size_t col_nm_end = statement->node.sloc.end_col;
+			sprintf(msg,
+			        "error: the type of the %s statement in line %lu, "
+			        "col: %lu is not %s but %s",
+			        mCc_ast_print_statement(statement->type), line_nm, col_nm,
+			        mCc_ast_print_type(function_def->return_type),
+			        mCc_ast_print_type(cond_type));
+
+			struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
+			    msg, line_nm, col_nm, line_nm_end, col_nm_end);
+			mCc_err_error_manager_insert_error_entry(error_manager, entry);
+		}
 		check_statement_expression_type(
 		    statement->expression, function_def->return_type,
 		    mCc_ast_print_statement(statement->type),
