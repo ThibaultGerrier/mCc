@@ -114,7 +114,8 @@ TEST(ThreeAdressCode, Generate_Function_Return)
 TEST(ThreeAdressCode, Generate_Function_CallinCall)
 {
 
-	const char input[] = "int fooInt(int i){return i;} void main(){fooInt(fooInt(1));}";
+	const char input[] =
+	    "int fooInt(int i){return i;} void main(){fooInt(fooInt(1));}";
 	auto result = mCc_parser_parse_string(input);
 
 	mCc_ast_print_tac_program(stderr, result.program);
@@ -133,26 +134,25 @@ TEST(ThreeAdressCode, Generate_Function_Array)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
-
 TEST(ThreeAdressCode, Generate_Function_Array_Expr)
 {
-    const char input[] = "void main(){int[2] arr; arr[0] = 1; arr[1] = 4; int[2] arr2; arr2[0] = arr[0];}";
-    auto result = mCc_parser_parse_string(input);
+	const char input[] = "void main(){int[2] arr; arr[0] = 1; arr[1] = 4; "
+	                     "int[2] arr2; arr2[0] = arr[0];}";
+	auto result = mCc_parser_parse_string(input);
 
-    mCc_ast_print_tac_program(stderr, result.program);
+	mCc_ast_print_tac_program(stderr, result.program);
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 }
 
 TEST(ThreeAdressCode, Generate_PushPopOrder)
 {
-    const char input[] = "void foo(int a, int b){} void main(){foo(1,2);}";
-    auto result = mCc_parser_parse_string(input);
+	const char input[] = "void foo(int a, int b){} void main(){foo(1,2);}";
+	auto result = mCc_parser_parse_string(input);
 
-    mCc_ast_print_tac_program(stderr, result.program);
+	mCc_ast_print_tac_program(stderr, result.program);
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
 }
