@@ -22,6 +22,17 @@ int mCc_tac_new_label()
 	return mCc_tac_label;
 }
 
+struct mCc_ast_parameter* mCc_tac_reverse_parameter(struct mCc_ast_parameter* root) {
+    struct mCc_ast_parameter* new_root = 0;
+    while (root) {
+        struct mCc_ast_parameter* next = root->next;
+        root->next = new_root;
+        new_root = root;
+        root = next;
+    }
+    return new_root;
+}
+
 char mCc_tac_get_ret_type(enum mCc_ast_type t)
 {
 	switch (t) {
@@ -37,8 +48,14 @@ char mCc_tac_get_ret_type(enum mCc_ast_type t)
 char *mCc_tac_get_tac_var(struct mCc_tac_var t)
 {
 	char *str = malloc(10);
-	sprintf(str, "t%d_%c", t.num, mCc_tac_get_ret_type(t.type));
-	return str;
+    if(t.array){
+        sprintf(str, "t%d_%c_%d", t.num, mCc_tac_get_ret_type(t.type),t.array);
+        return str;
+    }else{
+        sprintf(str, "t%d_%c", t.num, mCc_tac_get_ret_type(t.type));
+        return str;
+    }
+
 }
 
 char *mCc_tac_get_binary_op(enum mCc_ast_binary_op op, enum mCc_ast_type t)
@@ -188,6 +205,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 	struct mCc_tac_var ret = {
 		num : mCc_tac_new_identifier(),
 		type : MCC_AST_TYPE_VOID,
+
 	};
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_BOOL:
@@ -222,6 +240,7 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 	struct mCc_tac_var ret = {
 		num : mCc_tac_new_identifier(),
 		type : identifier->symbol_table_entry->data_type,
+        array : identifier->symbol_table_entry->array_size,
 	};
 	mCc_tac_emitSimple(tac, mCc_tac_get_tac_var(ret), identifier->name);
 	return ret;
@@ -382,7 +401,6 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 		break;
 	}
 	case MCC_AST_STATEMENT_TYPE_ARRAY_ASSIGNMENT: {
-		// TODO: Maybe add type of array assignment?
 		struct mCc_tac_var t =
 		    mCc_tac_cgen_expression(statement->assignment->array_ass.rhs, tac);
 		struct mCc_tac_var index = mCc_tac_cgen_expression(
@@ -418,8 +436,8 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 {
 	mCc_tac_emitS(tac, "START FUNC %s\n",
 	              function_def->function_identifier->name);
-	// TODO: if stack, change order of pop statements!!
-	struct mCc_ast_parameter *next = function_def->parameters;
+	//reverse the order
+    struct mCc_ast_parameter *next = mCc_tac_reverse_parameter(function_def->parameters);
 	while (next != NULL) {
 		switch (next->declaration->declaration_type) {
 		case MCC_AST_DECLARATION_TYPE_DECLARATION: {
@@ -431,7 +449,7 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 		}
 		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
 			mCc_tac_emitS(
-			    tac, "%s = PopStackArray(%s) size-%ld\n",
+			    tac, "%s = PopStackArray(%s_%ld)\n",
 			    next->declaration->array_decl.identifier->name,
 			    mCc_ast_print_type(next->declaration->identifier_type),
 			    next->declaration->array_decl.literal->i_value);
@@ -484,3 +502,4 @@ void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 
 	fprintf(out, "end tac\n\n");
 }
+

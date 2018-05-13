@@ -15,9 +15,12 @@
 extern "C" {
 #endif
 
+
+
 struct mCc_tac_var {
-	int num;
-	enum mCc_ast_type type;
+    int num;
+    enum mCc_ast_type type;
+    int array;
 };
 
 struct mCc_tac_op {
