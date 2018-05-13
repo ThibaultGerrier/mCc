@@ -240,7 +240,7 @@ TEST(TypeChecking, FunctionReturnAssigmentCorrect)
 
 TEST(TypeChecking, SimpleIfTypeCheckCorrect)
 {
-	const char input[] = "main(){bool a; a = true; if (a){return;}}";
+	const char input[] = "void main(){bool a; a = true; if (a){return;}}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -268,7 +268,7 @@ TEST(TypeChecking, SimpleIfTypeCheckCorrect)
 
 TEST(TypeChecking, ComplexIfTypeCheckCorrectI)
 {
-	const char input[] = "main(){if (3 < 1){return;}}";
+	const char input[] = "void main(){if (3 < 1){return;}}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -296,7 +296,7 @@ TEST(TypeChecking, ComplexIfTypeCheckCorrectI)
 
 TEST(TypeChecking, ComplexIfTypeCheckCorrectII)
 {
-	const char input[] = "main(){if (false || true){return;}}";
+	const char input[] = "void main(){if (false || true){return;}}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -324,7 +324,7 @@ TEST(TypeChecking, ComplexIfTypeCheckCorrectII)
 
 TEST(TypeChecking, NegationBoolCorrect)
 {
-	const char input[] = "main(){bool b = false; b = !b;}";
+	const char input[] = "void main(){bool b; b = false; b = !b;}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -352,7 +352,7 @@ TEST(TypeChecking, NegationBoolCorrect)
 
 TEST(TypeChecking, NegationIntCorrect)
 {
-	const char input[] = "main(){int a = 3; a = -a;}}";
+	const char input[] = "void main(){int a; a = 3; a = -a;}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -372,6 +372,37 @@ TEST(TypeChecking, NegationIntCorrect)
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
 	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, SimpleAssignmentIncorrect)
+{
+	const char input[] = "void main(){int a; a = 1.0;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: the type of the ass statement in line 1, col: "
+	                    "24 is not int but float",
+	                    error_manager->array[0]->msg));
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
