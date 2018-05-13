@@ -272,7 +272,7 @@ TEST(TypeChecking, FunctionReturnAssigmentCorrect)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(TypeChecking, SimpleIfTypeCheckCorrect)
+TEST(TypeChecking, SimpleIfTypeCheckCorrectI)
 {
 	const char input[] = "void main(){bool a; a = true; if (a){return;}}";
 	auto result = mCc_parser_parse_string(input);
@@ -303,7 +303,7 @@ TEST(TypeChecking, SimpleIfTypeCheckCorrect)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(TypeChecking, ComplexIfTypeCheckCorrectI)
+TEST(TypeChecking, ComplexIfTypeCheckCorrectII)
 {
 	const char input[] = "void main(){if (3 < 1){return;}}";
 	auto result = mCc_parser_parse_string(input);
@@ -334,7 +334,7 @@ TEST(TypeChecking, ComplexIfTypeCheckCorrectI)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(TypeChecking, ComplexIfTypeCheckCorrectII)
+TEST(TypeChecking, ComplexIfTypeCheckCorrectIII)
 {
 	const char input[] = "void main(){if (false || true){return;}}";
 	auto result = mCc_parser_parse_string(input);
