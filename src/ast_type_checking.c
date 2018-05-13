@@ -42,6 +42,11 @@ void unary_operation_error(enum mCc_ast_type rhs, enum mCc_ast_unary_op op,
 }
 
 static enum mCc_ast_type
+resolve_binary_expression(struct mCc_ast_expression *expression,
+                          struct mCc_ast_function_def *cur_function,
+                          struct mCc_err_error_manager *error_manager);
+
+static enum mCc_ast_type
 resolve_expression(struct mCc_ast_expression *expression,
                    struct mCc_ast_function_def *cur_function,
                    struct mCc_err_error_manager *error_manager)
@@ -67,7 +72,8 @@ resolve_expression(struct mCc_ast_expression *expression,
 		                                cur_function, error_manager);
 		return expression->array_identifier.identifier->symbol_table_entry
 		    ->data_type;
-	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: return MCC_AST_TYPE_VOID;
+	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
+		return MCC_AST_TYPE_VOID;
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
 		rhs_type = resolve_expression(expression->unary_op.rhs, cur_function,
 		                              error_manager);
@@ -81,12 +87,57 @@ resolve_expression(struct mCc_ast_expression *expression,
 			                      error_manager);
 		}
 		return rhs_type;
-	case MCC_AST_EXPRESSION_TYPE_BINARY_OP: return MCC_AST_TYPE_VOID;
+	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
+		return resolve_binary_expression(expression, cur_function,
+		                                 error_manager);
+
+		return MCC_AST_TYPE_VOID;
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
 		return resolve_expression(expression->expression, cur_function,
 		                          error_manager);
 	}
 	return MCC_AST_TYPE_VOID;
+}
+
+static enum mCc_ast_type
+resolve_binary_expression(struct mCc_ast_expression *expression,
+                          struct mCc_ast_function_def *cur_function,
+                          struct mCc_err_error_manager *error_manager)
+{
+
+	size_t line_nm = expression->node.sloc.start_line;
+	size_t col_nm = expression->node.sloc.start_col;
+	size_t line_nm_end = expression->node.sloc.end_line;
+	size_t col_nm_end = expression->node.sloc.end_col;
+	enum mCc_ast_type lhs_type = resolve_expression(
+	    expression->binary_op.lhs, cur_function, error_manager);
+	enum mCc_ast_type rhs_type = resolve_expression(
+	    expression->binary_op.rhs, cur_function, error_manager);
+	enum mCc_ast_binary_op op = expression->binary_op.op;
+
+	bool equals_comparison =
+	    op == MCC_AST_BINARY_OP_EQUALS || op == MCC_AST_BINARY_OP_NOT_EQUALS;
+	bool bool_comparison =
+	    op == MCC_AST_BINARY_OP_AND || op == MCC_AST_BINARY_OP_OR;
+	bool num_comparison = op == MCC_AST_BINARY_OP_LESS ||
+	                      op == MCC_AST_BINARY_OP_LESS_EQUALS ||
+	                      op == MCC_AST_BINARY_OP_GREATER ||
+	                      op == MCC_AST_BINARY_OP_GREATER_EQUALS;
+	bool op_calc = op == MCC_AST_BINARY_OP_ADD || op == MCC_AST_BINARY_OP_SUB ||
+	               op == MCC_AST_BINARY_OP_MUL || op == MCC_AST_BINARY_OP_DIV;
+	bool typesEqual = lhs_type == rhs_type;
+	bool bothNum = typesEqual && (lhs_type == MCC_AST_TYPE_INT ||
+	                              lhs_type == MCC_AST_TYPE_FLOAT);
+	bool bothBool = typesEqual && lhs_type == MCC_AST_TYPE_BOOL;
+
+	if (!(bool_comparison && bothBool) && !(num_comparison && bothNum) &&
+	    !(op_calc && bothNum) && !(typesEqual && equals_comparison)) {
+		binary_operation_error(lhs_type, rhs_type, op, line_nm, col_nm,
+		                       line_nm_end, col_nm_end, error_manager);
+	}
+	if ((num_comparison && bothNum) || (typesEqual && equals_comparison))
+		return MCC_AST_TYPE_BOOL;
+	return lhs_type;
 }
 
 static void check_statement_expression_type(
@@ -123,7 +174,7 @@ static void type_checking_statement_expression(
 		assert(statement);
 		assert(data);
 		resolve_expression(statement->expression,
-		                   (struct mCc_ast_function_def *)data, error_manager);
+		                   *((struct mCc_ast_function_def **)data), error_manager);
 	}
 }
 
@@ -137,7 +188,7 @@ static void type_checking_statement_while(
 		check_statement_expression_type(
 		    statement->while_condition, MCC_AST_TYPE_BOOL,
 		    mCc_ast_print_statement(statement->type),
-		    (struct mCc_ast_function_def *)data, error_manager);
+		    *((struct mCc_ast_function_def **)data), error_manager);
 	}
 }
 
@@ -151,7 +202,7 @@ static void type_checking_statement_if(
 		check_statement_expression_type(
 		    statement->if_condition, MCC_AST_TYPE_BOOL,
 		    mCc_ast_print_statement(statement->type),
-		    (struct mCc_ast_function_def *)data, error_manager);
+		    *((struct mCc_ast_function_def **)data), error_manager);
 	}
 }
 
@@ -163,7 +214,7 @@ static void type_checking_statement_return(
 		assert(statement);
 		assert(data);
 		struct mCc_ast_function_def *function_def =
-		    (struct mCc_ast_function_def *)data;
+		    *((struct mCc_ast_function_def **)data);
 
 		enum mCc_ast_type cond_type = resolve_expression(
 		    statement->expression, function_def, error_manager);
@@ -196,7 +247,7 @@ static void type_checking_statement_assignment(
 		assert(statement->assignment);
 		assert(data);
 		struct mCc_ast_function_def *function_def =
-		    (struct mCc_ast_function_def *)data;
+		    *((struct mCc_ast_function_def **)data);
 		enum mCc_ast_type lhs_type =
 		    statement->assignment->identifier->symbol_table_entry->data_type;
 		struct mCc_ast_expression *rhs_expr;
@@ -210,7 +261,7 @@ static void type_checking_statement_assignment(
 		}
 		check_statement_expression_type(
 		    rhs_expr, lhs_type, mCc_ast_print_statement(statement->type),
-		    (struct mCc_ast_function_def *)data, error_manager);
+		    *((struct mCc_ast_function_def **)data), error_manager);
 	}
 }
 
@@ -221,7 +272,7 @@ type_checking_function_def(struct mCc_ast_function_def *function_def,
                            void *data)
 {
 	if (visit_type == MCC_AST_VISIT_BEFORE) {
-		data = &function_def;
+		*((struct mCc_ast_function_def **)data) = function_def;
 	}
 }
 
