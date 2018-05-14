@@ -96,7 +96,7 @@ resolve_expression(struct mCc_ast_expression *expression,
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
 		return resolve_binary_expression(expression, cur_function,
 		                                 error_manager);
-		
+
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
 		return resolve_expression(expression->expression, cur_function,
 		                          error_manager);
@@ -153,7 +153,21 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 
 	struct mCc_ast_function_def *called_function =
 	    expression->call_expr.identifier->symbol_table_entry->function_def;
-	assert(called_function); // should be an errror message
+	if (called_function == NULL) {
+		char msg[256];
+		sprintf(msg,
+		        "error: function '%s', naming conflict with a varaible in this "
+		        "scope or unknown function, line: %lu, col: %lu",
+		        expression->call_expr.identifier->name,
+		        expression->node.sloc.start_line,
+		        expression->node.sloc.start_col);
+		struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
+		    msg, expression->node.sloc.start_line,
+		    expression->node.sloc.start_col, expression->node.sloc.end_line,
+		    expression->node.sloc.end_col);
+		mCc_err_error_manager_insert_error_entry(error_manager, entry);
+		return MCC_AST_TYPE_VOID; // TODO Maybe introduce error state in enum type?
+	}
 
 	enum mCc_ast_type ret_type = called_function->return_type;
 	struct mCc_err_error_entry *entry;
