@@ -158,7 +158,17 @@ TEST(ThreeAdressCode, Generate_PushPopOrder)
 
 TEST(ThreeAdressCode, Generate_DOUBLE)
 {
-    const char input[] = "void main(){int a; int b; b = 2; a = b;}";
+    const char input[] = "void main(int[5] arr){int[5] avcvv; avcvv[0]=arr[0];}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+}
+
+TEST(ThreeAdressCode, Generate_exprearr)
+{
+    const char input[] = "void main(){int[5] arr; int b; b = 1 + (2 - arr[0]);}";
     auto result = mCc_parser_parse_string(input);
 
     mCc_ast_print_tac_program(stderr, result.program);
