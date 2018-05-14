@@ -52,6 +52,9 @@ void mCc_sym_table_delete_entry(struct mCc_sym_table_entry *entry);
 
 void mCc_sym_table_delete_symbol_table(struct mCc_sym_table_entry **table);
 
+void mCc_sym_table_delete_tree_recursive(struct mCc_sym_table_tree *tree);
+
+//deletes a symbol table including the built-in functions
 void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree);
 
 /**

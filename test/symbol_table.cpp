@@ -79,7 +79,7 @@ TEST(SymbolTable, Lookup_Ascendant_Entry)
 	ASSERT_EQ(entry_grandparent,
 	          mCc_sym_table_ascendant_tree_lookup_entry(tree, "var4"));
 	ASSERT_EQ(nullptr, mCc_sym_table_ascendant_tree_lookup_entry(tree, "var3"));
-	mCc_sym_table_delete_tree(tree_grandparent);
+	mCc_sym_table_delete_tree_recursive(tree_grandparent);
 }
 
 TEST(SymbolTable, Visitor_Program_Declaration)

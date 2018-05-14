@@ -96,8 +96,7 @@ resolve_expression(struct mCc_ast_expression *expression,
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
 		return resolve_binary_expression(expression, cur_function,
 		                                 error_manager);
-
-		return MCC_AST_TYPE_VOID;
+		
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
 		return resolve_expression(expression->expression, cur_function,
 		                          error_manager);
