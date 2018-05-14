@@ -839,3 +839,284 @@ TEST(TypeChecking, FunctionArrayParamCorrect)
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 	mCc_err_delete_error_manager(error_manager);
 }
+
+TEST(TypeChecking, FunctionArrayParamInorrect)
+{
+	const char input[] =
+	    "int foo(int a, string b, float[3] c) {return c[0] + c[1];} void "
+	    "main() { float[3] arr; foo(1, \"bar\", arr); }";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: the type of the return statement in line 1, "
+	                    "col: 39 is not int but float",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, FunctionArrayParamAssigmentCorrect)
+{
+	const char input[] =
+	    "float foo(int a, string b, float[3] c) {return c[0] + c[1];} void "
+	    "main() { float[3] arr; float a; a = foo(1, \"bar\", arr); }";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
+	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, FunctionCallInorrect)
+{
+	const char input[] =
+	    "int foo(int i, float f, string s, bool b) {} void main(){int i; float "
+	    "f; string s; bool b; b = false; i = 1; f = 2.0; s = \"three\"; foo(i, "
+	    "f, b, s);}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(2u, error_manager->used);
+
+	ASSERT_EQ(
+	    0, strcmp("error: in function 'foo' the 3rd argument expr should be of "
+	              "type 'string' but is of type 'bool' in line 1, col: 132",
+	              error_manager->array[0]->msg));
+	ASSERT_EQ(
+	    0, strcmp("error: in function 'foo' the 4th argument expr should be of "
+	              "type 'bool' but is of type 'string' in line 1, col: 132",
+	              error_manager->array[1]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, FunctionReturnAssigmentInorrect)
+{
+	const char input[] =
+	    "int foo(){return 1;}void main(){float a; a = foo() + 3.0;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(2u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: the type of the binary expression 'int' '+' "
+	                    "'float' in line 1, col: 46 is not allowed",
+	                    error_manager->array[0]->msg));
+	ASSERT_EQ(0, strcmp("error: the type of the ass statement in line 1, col: "
+	                    "46 is not float but int",
+	                    error_manager->array[1]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, SimpleFunctionReturnAssigmentInorrect)
+{
+	const char input[] = "int foo(){return 1;}void main(){float a; a = foo();}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: the type of the ass statement in line 1, col: "
+	                    "46 is not float but int",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, FunctionChainReturnAssigmentIncorrect)
+{
+	const char input[] = "int foo(){return 1;} int bar(float in){return "
+	                     "42;} void main(){int a; a = bar(foo());}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0,
+	          strcmp("error: in function 'bar' the 1st argument expr should be "
+	                 "of type 'float' but is of type 'int' in line 1, col: 75",
+	                 error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, FunctionCallFewArgumentsInorrect)
+{
+	const char input[] =
+	    "int foo(int i, float f, string s, bool b) {} void main(){int i; float "
+	    "f; string s; bool b; b = false; i = 1; f = 2.0; s = \"three\"; foo(i, "
+	    "f, s);}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: in function 'foo' the call argument count is "
+	                    "not equal to the function definition parameter count: "
+	                    "3 != 4 in line 1, col: 132",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, FunctionCallTooManyArgumentsInorrect)
+{
+	const char input[] =
+	    "int foo(int i, float f, string s, bool b) {} void main(){int i; float "
+	    "f; string s; bool b; b = false; i = 1; f = 2.0; s = \"three\"; foo(i, "
+	    "f, s, b, b);}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: in function 'foo' the call argument count is "
+	                    "not equal to the function definition parameter count: "
+	                    "5 != 4 in line 1, col: 132",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
