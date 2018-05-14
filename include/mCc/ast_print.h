@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+const char *mCc_ast_print_ordinal_suffix(size_t num);
 const char *mCc_ast_print_type(enum mCc_ast_type type);
 const char *mCc_ast_print_statement(enum mCc_ast_statement_type stmt);
 

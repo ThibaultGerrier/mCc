@@ -13,11 +13,12 @@ void binary_operation_error(enum mCc_ast_type lhs, enum mCc_ast_type rhs,
                             struct mCc_err_error_manager *error_manager)
 {
 	char msg[256];
-	sprintf(msg,
-	        "error: the type of the binary expression '%s' '%s' '%s' in line %lu, "
-	        "col: %lu is not allowed",
-	        mCc_ast_print_type(lhs), mCc_ast_print_binary_op(op),
-	        mCc_ast_print_type(rhs), line_nm, col_nm);
+	sprintf(
+	    msg,
+	    "error: the type of the binary expression '%s' '%s' '%s' in line %lu, "
+	    "col: %lu is not allowed",
+	    mCc_ast_print_type(lhs), mCc_ast_print_binary_op(op),
+	    mCc_ast_print_type(rhs), line_nm, col_nm);
 
 	struct mCc_err_error_entry *entry =
 	    mCc_err_new_error_entry(msg, line_nm, col_nm, line_nm_end, col_nm_end);
@@ -47,6 +48,11 @@ resolve_binary_expression(struct mCc_ast_expression *expression,
                           struct mCc_err_error_manager *error_manager);
 
 static enum mCc_ast_type
+resolve_call_expression(struct mCc_ast_expression *expression,
+                        struct mCc_ast_function_def *cur_function,
+                        struct mCc_err_error_manager *error_manager);
+
+static enum mCc_ast_type
 resolve_expression(struct mCc_ast_expression *expression,
                    struct mCc_ast_function_def *cur_function,
                    struct mCc_err_error_manager *error_manager)
@@ -73,7 +79,7 @@ resolve_expression(struct mCc_ast_expression *expression,
 		return expression->array_identifier.identifier->symbol_table_entry
 		    ->data_type;
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR:
-		return MCC_AST_TYPE_VOID;
+		return resolve_call_expression(expression, cur_function, error_manager);
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
 		rhs_type = resolve_expression(expression->unary_op.rhs, cur_function,
 		                              error_manager);
@@ -140,6 +146,120 @@ resolve_binary_expression(struct mCc_ast_expression *expression,
 	return lhs_type;
 }
 
+static enum mCc_ast_type
+resolve_call_expression(struct mCc_ast_expression *expression,
+                        struct mCc_ast_function_def *cur_function,
+                        struct mCc_err_error_manager *error_manager)
+{
+
+	struct mCc_ast_function_def *called_function =
+	    expression->call_expr.identifier->symbol_table_entry->function_def;
+	assert(called_function); // should be an errror message
+
+	enum mCc_ast_type ret_type = called_function->return_type;
+	struct mCc_err_error_entry *entry;
+
+	size_t count_params = 0;
+	size_t count_arguments = 0;
+
+	size_t line_nm = expression->node.sloc.start_line;
+	size_t col_nm = expression->node.sloc.start_col;
+	size_t line_nm_end = expression->node.sloc.end_line;
+	size_t col_nm_end = expression->node.sloc.end_col;
+
+	const char *called_function_name =
+	    called_function->function_identifier->name;
+
+	char msg[256];
+
+	struct mCc_ast_argument_list *cur_argument =
+	    expression->call_expr.arguments;
+	while (cur_argument != NULL) {
+		count_arguments++;
+		cur_argument = cur_argument->next;
+	}
+	struct mCc_ast_parameter *cur_parameter = called_function->parameters;
+	while (cur_parameter != NULL) {
+		count_params++;
+		cur_parameter = cur_parameter->next;
+	}
+	if (count_arguments != count_params) {
+		sprintf(msg,
+		        "error: in function '%s' the call argument count is not equal "
+		        "to the function "
+		        "definition parameter count: %lu != %lu in line %lu, "
+		        "col: %lu",
+		        called_function_name, count_arguments, count_params, line_nm,
+		        col_nm);
+		entry = mCc_err_new_error_entry(msg, line_nm, col_nm, line_nm_end,
+		                                col_nm_end);
+		mCc_err_error_manager_insert_error_entry(error_manager, entry);
+	}
+
+	if (count_params != 0) {
+
+		cur_argument = expression->call_expr.arguments;
+		cur_parameter = called_function->parameters;
+
+		size_t cur_arg_num = 1;
+
+		while (cur_parameter != NULL && cur_argument != NULL) {
+			// special case, if the parameter is an array, the argument has to
+			// be an identifier with same array size (check for identifier
+			// if it is an array should be redundant because of size check)
+			if (cur_parameter->declaration->declaration_type ==
+			    MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION) {
+				bool isIdent = cur_argument->expression->type ==
+				               MCC_AST_EXPRESSION_TYPE_IDENTIFIER;
+				size_t paramArraySize =
+				    cur_parameter->declaration->array_decl.literal->i_value;
+				if (!(isIdent &&
+				      cur_argument->expression->identifier->symbol_table_entry
+				              ->array_size == paramArraySize)) {
+					sprintf(msg,
+					        "error: in function '%s' the %lu%s argument expr "
+					        "should be an array of type '%s' with size %lu in "
+					        "line %lu, col: %lu",
+					        called_function_name, cur_arg_num,
+					        mCc_ast_print_ordinal_suffix(cur_arg_num),
+					        mCc_ast_print_type(
+					            cur_parameter->declaration->identifier_type),
+					        paramArraySize, line_nm, col_nm);
+					entry = mCc_err_new_error_entry(msg, line_nm, col_nm,
+					                                line_nm_end, col_nm_end);
+					mCc_err_error_manager_insert_error_entry(error_manager,
+					                                         entry);
+				}
+			} else { // the argument has to be of simple type
+				enum mCc_ast_type param_type =
+				    cur_parameter->declaration->identifier_type;
+				enum mCc_ast_type arg_type = resolve_expression(
+				    cur_argument->expression, cur_function, error_manager);
+				if (param_type != arg_type) {
+					sprintf(msg,
+					        "error: in function '%s' the %lu%s argument expr "
+					        "should be of type '%s' but is of type '%s' in "
+					        "line %lu, col: %lu",
+					        called_function_name, cur_arg_num,
+					        mCc_ast_print_ordinal_suffix(cur_arg_num),
+					        mCc_ast_print_type(
+					            cur_parameter->declaration->identifier_type),
+					        mCc_ast_print_type(arg_type), line_nm, col_nm);
+					entry = mCc_err_new_error_entry(msg, line_nm, col_nm,
+					                                line_nm_end, col_nm_end);
+					mCc_err_error_manager_insert_error_entry(error_manager,
+					                                         entry);
+				}
+			}
+			cur_parameter = cur_parameter->next;
+			cur_argument = cur_argument->next;
+			cur_arg_num++;
+		}
+	}
+
+	return ret_type;
+}
+
 static void check_statement_expression_type(
     struct mCc_ast_expression *expression, enum mCc_ast_type expected_type,
     const char *statement_str, struct mCc_ast_function_def *cur_function,
@@ -174,7 +294,8 @@ static void type_checking_statement_expression(
 		assert(statement);
 		assert(data);
 		resolve_expression(statement->expression,
-		                   *((struct mCc_ast_function_def **)data), error_manager);
+		                   *((struct mCc_ast_function_def **)data),
+		                   error_manager);
 	}
 }
 
