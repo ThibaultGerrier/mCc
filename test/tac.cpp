@@ -175,5 +175,30 @@ TEST(ThreeAdressCode, Generate_exprearr)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
+    fprintf(stderr, "\nSUCCESS\n");
+
+    mCc_parser_delete_result(&result);
+
+
+   // ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
+}
+
+
+TEST(ThreeAdressCode, Generate_asdaf)
+{
+    const char input[] = "void main(){int[5] ghsdjkfghksjdg;}";
+    auto result = mCc_parser_parse_string(input);
+
+    auto tac = mCc_ast_get_tac_program(result.program);
+    mCc_tac_print_tac(tac, stderr);
+    mCc_tac_delete_tac(tac);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    fprintf(stderr, "\nSUCCESS\n");
+
+    mCc_parser_delete_result(&result);
+
+
     ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
 }

@@ -1,5 +1,4 @@
 #include "mCc/ast_symbol_table.h"
-#include <mCc/ast.h>
 #include <mCc/tac.h>
 
 int mCc_tac_identifier = 0;
@@ -242,39 +241,53 @@ void mCc_tac_print_tac(mCc_tac_node head, FILE *out)
 
 void mCc_tac_delete_tac(mCc_tac_node head)
 {
-	{
-		mCc_tac_node p;
-		p = head;
-		while (p != NULL) {
-			switch (p->type) {
-			case TAC_LINE_TYPE_SIMPLE: break;
+	mCc_tac_node p;
+	p = head;
+	while (p != NULL) {
+		switch (p->type) {
+		case TAC_LINE_TYPE_SIMPLE:
 
-			case TAC_LINE_TYPE_DOUBLE: break;
+			free(p->type_simple.arg0.val);
+			free(p->type_simple.arg1.val);
+			break;
 
-			case TAC_LINE_TYPE_CALL: break;
-			case TAC_LINE_TYPE_POP: break;
+		case TAC_LINE_TYPE_DOUBLE:
+			free(p->type_double.arg0.val);
+			free(p->type_double.arg1.val);
+			free(p->type_double.arg2.val);
+			break;
 
-			case TAC_LINE_TYPE_PUSH: break;
+		case TAC_LINE_TYPE_CALL: break;
+		case TAC_LINE_TYPE_POP: free(p->type_pop.var.val); break;
 
-			case TAC_LINE_TYPE_RETURN: break;
+		case TAC_LINE_TYPE_PUSH: free(p->type_push.var.val); break;
 
-			case TAC_LINE_TYPE_IFZ: break;
+		case TAC_LINE_TYPE_RETURN: free(p->type_return.var.val); break;
 
-			case TAC_LINE_TYPE_DECL_ARRAY: break;
+		case TAC_LINE_TYPE_IFZ: free(p->type_ifz.var.val); break;
 
-			case TAC_LINE_TYPE_IDEN_ARRAY: break;
+		case TAC_LINE_TYPE_DECL_ARRAY: free(p->type_decl_array.var.val); break;
 
-			case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: break;
+		case TAC_LINE_TYPE_IDEN_ARRAY:
+			free(p->type_array_iden.var.val);
+			free(p->type_array_iden.arr.val);
+			free(p->type_array_iden.loc.val);
+			break;
 
-			case TAC_LINE_TYPE_LABEL: break;
-			case TAC_LINE_TYPE_JUMP: break;
-			case TAC_LINE_TYPE_LABELFUNC: break;
-			case TAC_LINE_TYPE_LABELFUNC_END: break;
-			case TAC_LINE_TYPE_BEGIN: break;
-			default: break;
-			}
-			p = p->next;
+		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY:
+			free(p->type_assign_array.var.val);
+			free(p->type_assign_array.arr.val);
+			free(p->type_assign_array.loc.val);
+			break;
+
+		case TAC_LINE_TYPE_LABEL: break;
+		case TAC_LINE_TYPE_JUMP: break;
+		case TAC_LINE_TYPE_LABELFUNC: break;
+		case TAC_LINE_TYPE_LABELFUNC_END: break;
+		case TAC_LINE_TYPE_BEGIN: break;
+		default: break;
 		}
+		p = p->next;
 	}
 }
 
@@ -327,7 +340,11 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 	}
 	}
 	mCc_tac_add_node(node, tac);
-	return ret;
+
+	char *val = malloc(sizeof(char) * 30);
+	sprintf(val, "%s", ret.val);
+	struct mCc_tac_var temp = { ret.type, ret.array, val };
+	return temp;
 }
 
 struct mCc_tac_var
@@ -349,13 +366,16 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 
 	node->type_simple.arg1 = arg1;
 	mCc_tac_add_node(node, tac);
-	return ret;
+
+	char *val = malloc(sizeof(char) * 30);
+	sprintf(val, "%s", ret.val);
+	struct mCc_tac_var temp = { ret.type, ret.array, val };
+	return temp;
 }
 
 struct mCc_tac_var
 mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 {
-	// TODO: return array length
 	struct mCc_tac_var ret = {
 		val : mCc_tac_new_identifier(),
 		type : MCC_AST_TYPE_VOID,
@@ -500,7 +520,11 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		break;
 	}
 	}
-	return ret;
+
+	char *val = malloc(sizeof(char) * 30);
+	sprintf(val, "%s", ret.val);
+	struct mCc_tac_var temp = { ret.type, ret.array, val };
+	return temp;
 }
 
 void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
@@ -726,6 +750,17 @@ void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 {
 	assert(out);
 	assert(program);
+
+	mCc_tac_node tac = mCc_ast_get_tac_program(program);
+	fprintf(out, "start tac\n");
+	mCc_tac_print_tac(tac, out);
+	fprintf(out, "end tac\n");
+	mCc_tac_delete_tac(tac);
+}
+
+mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *program)
+{
+	assert(program);
 	mCc_tac_identifier = 0;
 	mCc_tac_label = 0;
 
@@ -737,36 +772,10 @@ void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *program)
 
 	mCc_ast_visit_program(program, &visitor);
 
-	fprintf(out, "start tac\n");
-
 	mCc_tac_node tac = mCc_tac_create_node();
 	tac->type = TAC_LINE_TYPE_BEGIN;
 
 	mCc_tac_cgen_function_def_list(program->function_def_list, tac);
-	mCc_tac_print_tac(tac, out);
 	// mCc_tac_delete_tac(tac);
-
-	fprintf(out, "end tac\n\n");
+	return tac;
 }
-
-/*mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *program)
-{
-    assert(program);
-    mCc_tac_identifier = 0;
-    mCc_tac_label = 0;
-
-    struct mCc_ast_symbol_table_visitor_data visitor_data = { NULL, NULL, 0 };
-
-    struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-    struct mCc_ast_visitor visitor =
-            symbol_table_visitor(&visitor_data, error_manager);
-
-    mCc_ast_visit_program(program, &visitor);
-
-
-    mCc_tac_node tac = mCc_tac_create_node();
-
-    mCc_tac_cgen_function_def_list(program->function_def_list, tac);
-    return tac;
-
-}*/

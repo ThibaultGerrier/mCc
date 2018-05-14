@@ -120,6 +120,7 @@ struct mCc_tac {
 typedef struct mCc_tac *mCc_tac_node;
 
 void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *result);
+mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *);
 
 void mCc_tac_cgen_statement_list(struct mCc_ast_statement_list *, mCc_tac_node);
 
