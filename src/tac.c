@@ -4,12 +4,12 @@
 int mCc_tac_identifier = 0;
 int mCc_tac_label = 0;
 
-char* mCc_tac_new_identifier()
+char *mCc_tac_new_identifier()
 {
 	mCc_tac_identifier++;
-    char *str = malloc(sizeof(char) * 30);
-    sprintf(str, "t%d", mCc_tac_identifier);
-    return str;
+	char *str = malloc(sizeof(char) * 30);
+	sprintf(str, "t%d", mCc_tac_identifier);
+	return str;
 }
 
 int mCc_tac_new_label()
@@ -46,15 +46,13 @@ char mCc_tac_get_ret_type(enum mCc_ast_type t)
 char *mCc_tac_get_tac_var(struct mCc_tac_var t)
 {
 	char *str = malloc(10);
-    if (t.array) {
-        sprintf(str, "%s_%c_%d", t.val, mCc_tac_get_ret_type(t.type), t.array);
-        return str;
-    } else {
-        sprintf(str, "%s_%c", t.val, mCc_tac_get_ret_type(t.type));
-        return str;
-    }
-
-
+	if (t.array) {
+		sprintf(str, "%s_%c_%d", t.val, mCc_tac_get_ret_type(t.type), t.array);
+		return str;
+	} else {
+		sprintf(str, "%s_%c", t.val, mCc_tac_get_ret_type(t.type));
+		return str;
+	}
 }
 
 char *mCc_tac_get_binary_op(enum mCc_ast_binary_op op, enum mCc_ast_type t)
@@ -141,29 +139,29 @@ void mCc_tac_print_tac(mCc_tac_node head, FILE *out)
 	p = head;
 	while (p != NULL) {
 		switch (p->type) {
-            case TAC_LINE_TYPE_SIMPLE: {
-                char *var1 = mCc_tac_get_tac_var(p->type_simple.arg0);
-                char *var2 = mCc_tac_get_tac_var(p->type_simple.arg1);
-                fprintf(out, "%s = %s\n", var1, var2);
-                free(var1);
-                free(var2);
-                break;
-            }
-            case TAC_LINE_TYPE_DOUBLE: {
-                char *var1 = mCc_tac_get_tac_var(p->type_double.arg0);
-                char *var2 = mCc_tac_get_tac_var(p->type_double.arg1);
-                char *var3 = mCc_tac_get_tac_var(p->type_double.arg2);
+		case TAC_LINE_TYPE_SIMPLE: {
+			char *var1 = mCc_tac_get_tac_var(p->type_simple.arg0);
+			char *var2 = mCc_tac_get_tac_var(p->type_simple.arg1);
+			fprintf(out, "%s = %s\n", var1, var2);
+			free(var1);
+			free(var2);
+			break;
+		}
+		case TAC_LINE_TYPE_DOUBLE: {
+			char *var1 = mCc_tac_get_tac_var(p->type_double.arg0);
+			char *var2 = mCc_tac_get_tac_var(p->type_double.arg1);
+			char *var3 = mCc_tac_get_tac_var(p->type_double.arg2);
 
-                fprintf(out, "%s = %s %s %s\n",
-                        var1,var2,
-                        mCc_tac_get_binary_op(p->type_double.op.op, p->type_double.op.type),
-                        var3);
+			fprintf(out, "%s = %s %s %s\n", var1, var2,
+			        mCc_tac_get_binary_op(p->type_double.op.op,
+			                              p->type_double.op.type),
+			        var3);
 
-                free(var1);
-                free(var2);
-                free(var3);
-                break;
-            }
+			free(var1);
+			free(var2);
+			free(var3);
+			break;
+		}
 
 		case TAC_LINE_TYPE_CALL:
 			fprintf(out, "CALL(%s)\n", p->type_call.name);
@@ -241,57 +239,41 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 	node->type = TAC_LINE_TYPE_SIMPLE;
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_BOOL: {
-        ret.type = MCC_AST_TYPE_BOOL;
-        str = malloc(sizeof(char) * 30);
-        sprintf(str, "%d", literal->b_value);
-        node->type_simple.arg0 = ret;
-        struct mCc_tac_var arg1 = {
-                MCC_AST_TYPE_INT,
-                0,
-                str
-        };
-        node->type_simple.arg1 = arg1;
-        break;
-    }
+		ret.type = MCC_AST_TYPE_BOOL;
+		str = malloc(sizeof(char) * 30);
+		sprintf(str, "%d", literal->b_value);
+		node->type_simple.arg0 = ret;
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_INT, 0, str };
+		node->type_simple.arg1 = arg1;
+		break;
+	}
 	case MCC_AST_LITERAL_TYPE_INT: {
-        ret.type = MCC_AST_TYPE_INT;
-        str = malloc(sizeof(char) * 30);
-        sprintf(str, "%ld", literal->i_value);
-        node->type_simple.arg0 = ret;
-        struct mCc_tac_var arg1 = {
-                MCC_AST_TYPE_INT,
-                0,
-                str
-        };
-        node->type_simple.arg1 = arg1;
-        break;
-    }
+		ret.type = MCC_AST_TYPE_INT;
+		str = malloc(sizeof(char) * 30);
+		sprintf(str, "%ld", literal->i_value);
+		node->type_simple.arg0 = ret;
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_INT, 0, str };
+		node->type_simple.arg1 = arg1;
+		break;
+	}
 	case MCC_AST_LITERAL_TYPE_FLOAT: {
-        ret.type = MCC_AST_TYPE_FLOAT;
-        str = malloc(sizeof(char) * 30);
-        sprintf(str, "%f", literal->f_value);
-        node->type_simple.arg0 = ret;
-        struct mCc_tac_var arg1 = {
-                MCC_AST_TYPE_FLOAT,
-                0,
-                str
-        };
-        node->type_simple.arg1 = arg1;
-        break;
-    }
+		ret.type = MCC_AST_TYPE_FLOAT;
+		str = malloc(sizeof(char) * 30);
+		sprintf(str, "%f", literal->f_value);
+		node->type_simple.arg0 = ret;
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_FLOAT, 0, str };
+		node->type_simple.arg1 = arg1;
+		break;
+	}
 	case MCC_AST_LITERAL_TYPE_STRING: {
-        str = malloc(sizeof(char) * 30);
-        sprintf(str, "%s", literal->s_value);
-        ret.type = MCC_AST_TYPE_STRING;
-        node->type_simple.arg0 = ret;
-        struct mCc_tac_var arg1 = {
-                MCC_AST_TYPE_STRING,
-                0,
-                str
-        };
-        node->type_simple.arg1 = arg1;
-        break;
-    }
+		str = malloc(sizeof(char) * 30);
+		sprintf(str, "%s", literal->s_value);
+		ret.type = MCC_AST_TYPE_STRING;
+		node->type_simple.arg0 = ret;
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_STRING, 0, str };
+		node->type_simple.arg1 = arg1;
+		break;
+	}
 	}
 	mCc_tac_add_node(node, tac);
 	return ret;
@@ -308,13 +290,11 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 	mCc_tac_node node = mCc_tac_create_node();
 	node->type = TAC_LINE_TYPE_SIMPLE;
 	node->type_simple.arg0 = ret;
-    char * str = malloc(sizeof(char) * 30);
-    sprintf(str, "%s", identifier->name);
-    struct mCc_tac_var arg1 = {
-            identifier->symbol_table_entry->data_type,
-            identifier->symbol_table_entry->array_size,
-            str
-    };
+	char *str = malloc(sizeof(char) * 30);
+	sprintf(str, "%s", identifier->name);
+	struct mCc_tac_var arg1 = { identifier->symbol_table_entry->data_type,
+		                        identifier->symbol_table_entry->array_size,
+		                        str };
 
 	node->type_simple.arg1 = arg1;
 	mCc_tac_add_node(node, tac);
@@ -339,11 +319,11 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		mCc_tac_node node = mCc_tac_create_node();
 		node->type = TAC_LINE_TYPE_DOUBLE;
 
-        node->type_double.arg0 = ret;
+		node->type_double.arg0 = ret;
 		node->type_double.arg1 = t1;
 		node->type_double.arg2 = t2;
-        struct mCc_tac_op op = {expression->binary_op.op, t1.type};
-        node->type_double.op = op;
+		struct mCc_tac_op op = { expression->binary_op.op, t1.type };
+		node->type_double.op = op;
 		mCc_tac_add_node(node, tac);
 		break;
 	}
@@ -421,38 +401,30 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 			mCc_tac_node node = mCc_tac_create_node();
 			node->type = TAC_LINE_TYPE_DOUBLE;
 			node->type_double.arg0 = ret;
-            char *zeros = malloc(sizeof(char) * 3);
-            sprintf(zeros, "0");
-            struct mCc_tac_var zero={
-                    MCC_AST_TYPE_INT,
-                    0,
-                    zeros
-            };
-            struct mCc_tac_op op = {MCC_AST_BINARY_OP_EQUALS, t.type};
+			char *zeros = malloc(sizeof(char) * 3);
+			sprintf(zeros, "0");
+			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros };
+			struct mCc_tac_op op = { MCC_AST_BINARY_OP_EQUALS, t.type };
 
-            node->type_double.arg1 = zero;
+			node->type_double.arg1 = zero;
 			node->type_double.arg2 = t;
 			node->type_double.op = op;
 			mCc_tac_add_node(node, tac);
 			break;
 		}
 		case MCC_AST_UNARY_OP_MINUS: {
-            mCc_tac_node node = mCc_tac_create_node();
-            node->type = TAC_LINE_TYPE_DOUBLE;
-            node->type_double.arg0 = ret;
-            char *zeros = malloc(sizeof(char) * 3);
-            sprintf(zeros, "0");
-            struct mCc_tac_var zero={
-                    MCC_AST_TYPE_INT,
-                    0,
-                    zeros
-            };
-            struct mCc_tac_op op = {MCC_AST_BINARY_OP_SUB, t.type};
+			mCc_tac_node node = mCc_tac_create_node();
+			node->type = TAC_LINE_TYPE_DOUBLE;
+			node->type_double.arg0 = ret;
+			char *zeros = malloc(sizeof(char) * 3);
+			sprintf(zeros, "0");
+			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros };
+			struct mCc_tac_op op = { MCC_AST_BINARY_OP_SUB, t.type };
 
-            node->type_double.arg1 = zero;
-            node->type_double.arg2 = t;
-            node->type_double.op = op;
-            mCc_tac_add_node(node, tac);
+			node->type_double.arg1 = zero;
+			node->type_double.arg2 = t;
+			node->type_double.op = op;
+			mCc_tac_add_node(node, tac);
 			break;
 		}
 		}
@@ -571,19 +543,17 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 		mCc_tac_node node = mCc_tac_create_node();
 		node->type = TAC_LINE_TYPE_SIMPLE;
 
+		char *str = malloc(sizeof(char) * 30);
+		sprintf(str, "%s", identifier);
+		struct mCc_tac_var arg0 = {
+			statement->assignment->identifier->symbol_table_entry->data_type,
+			statement->assignment->identifier->symbol_table_entry->array_size,
+			str
+		};
 
-        char * str = malloc(sizeof(char) * 30);
-        sprintf(str, "%s", identifier);
-        struct mCc_tac_var arg0 = {
-                statement->assignment->identifier->symbol_table_entry->data_type,
-                statement->assignment->identifier->symbol_table_entry->array_size,
-                str
-        };
+		node->type_simple.arg0 = arg0;
 
-        node->type_simple.arg0 = arg0;
-
-
-        node->type_simple.arg1 = t;
+		node->type_simple.arg1 = t;
 		mCc_tac_add_node(node, tac);
 		break;
 	}
