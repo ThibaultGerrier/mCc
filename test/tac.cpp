@@ -147,12 +147,23 @@ TEST(ThreeAdressCode, Generate_Function_Array_Expr)
 
 TEST(ThreeAdressCode, Generate_PushPopOrder)
 {
-	const char input[] = "void foo(int a, int b){} void main(){foo(1,2);}";
+	const char input[] = "int foo(int a, int b){return 1;} void main(){foo(1,2);}";
 	auto result = mCc_parser_parse_string(input);
 
 	mCc_ast_print_tac_program(stderr, result.program);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
+}
+
+TEST(ThreeAdressCode, Generate_DOUBLE)
+{
+    const char input[] = "void main(){int a; int b; b = 2; a = b;}";
+    auto result = mCc_parser_parse_string(input);
+
+    mCc_ast_print_tac_program(stderr, result.program);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
 }
