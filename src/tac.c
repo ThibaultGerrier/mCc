@@ -378,7 +378,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 {
 	struct mCc_tac_var ret = {
 		.val = mCc_tac_new_identifier(),
-		.type =  MCC_AST_TYPE_VOID,
+		.type = MCC_AST_TYPE_VOID,
 	};
 
 	switch (expression->type) {
@@ -823,8 +823,8 @@ mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *program)
 
 	mCc_tac_cgen_function_def_list(program->function_def_list, tac);
 
-    mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
-    mCc_err_delete_error_manager(error_manager);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
 	return tac;
 }
 

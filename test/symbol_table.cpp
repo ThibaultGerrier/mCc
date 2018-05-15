@@ -507,8 +507,68 @@ TEST(SymbolTable, Visitor_Function_Table_No_Main)
 	// check the error message
 	ASSERT_EQ(1u, error_manager->used);
 
-	ASSERT_EQ(
-	    0, strcmp("No main function in program", error_manager->array[0]->msg));
+	ASSERT_EQ(0, strcmp("error: no main function in program",
+	                    error_manager->array[0]->msg));
+	ASSERT_EQ(0u, error_manager->array[0]->start_line);
+	ASSERT_EQ(0u, error_manager->array[0]->start_col);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Function_Table_Main_Int)
+{
+	const char input[] = "int main(){}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	// check the error message
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: main needs to be void as return type",
+	                    error_manager->array[0]->msg));
+	ASSERT_EQ(0u, error_manager->array[0]->start_line);
+	ASSERT_EQ(0u, error_manager->array[0]->start_col);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Function_Table_Main_With_Parameters)
+{
+	const char input[] = "void main(int a){}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	// check the error message
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error: main is not allowed to have parameters",
+	                    error_manager->array[0]->msg));
 	ASSERT_EQ(0u, error_manager->array[0]->start_line);
 	ASSERT_EQ(0u, error_manager->array[0]->start_col);
 

@@ -1,7 +1,7 @@
+#include <mCc/ast_function_return_check.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mCc/ast_function_return_check.h>
 
 #include "mCc/ast.h"
 #include "mCc/ast_symbol_table.h"
@@ -13,8 +13,7 @@
 void cleanup_and_exit(struct mCc_parser_result *parser_result,
                       struct mCc_sym_table_tree *symbol_table_tree,
                       struct mCc_err_error_manager *error_manager,
-                      struct mCc_tac *tac,
-                      int exit_status)
+                      struct mCc_tac *tac, int exit_status)
 {
 	mCc_parser_delete_result(parser_result);
 	mCc_sym_table_delete_tree(symbol_table_tree);
@@ -39,8 +38,7 @@ void print_all_errors(struct mCc_err_error_manager *error_manager)
 void print_errors_and_exit_if_errors(
     struct mCc_parser_result *parser_result,
     struct mCc_sym_table_tree *symbol_table_tree,
-    struct mCc_err_error_manager *error_manager,
-    struct mCc_tac *tac)
+    struct mCc_err_error_manager *error_manager, struct mCc_tac *tac)
 {
 	assert(error_manager);
 	if (error_manager->used != 0) {
@@ -102,7 +100,7 @@ int main(int argc, char *argv[])
 		mCc_ast_function_return_checks(program, error_manager);
 
 		print_errors_and_exit_if_errors(&result, symbol_table_tree,
-										error_manager, tac);
+		                                error_manager, tac);
 	}
 	/* type checking phase */
 	{
@@ -132,6 +130,7 @@ int main(int argc, char *argv[])
 
 	/* cleanup */
 	print_all_errors(error_manager);
-	cleanup_and_exit(&result, symbol_table_tree, error_manager, tac, EXIT_SUCCESS);
+	cleanup_and_exit(&result, symbol_table_tree, error_manager, tac,
+	                 EXIT_SUCCESS);
 	return EXIT_SUCCESS;
 }
