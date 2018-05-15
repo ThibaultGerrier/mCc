@@ -28,7 +28,7 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 	auto result = mCc_parser_parse_string(input);
 
 	auto tac = mCc_ast_get_tac_expression(result.expression);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 	mCc_tac_delete_tac(tac);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -53,7 +53,7 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 	ASSERT_EQ(line5->type_double.arg0.type, MCC_AST_TYPE_BOOL);
 	ASSERT_EQ(line5->type_double.op.op, MCC_AST_BINARY_OP_OR);
 
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 
 	mCc_parser_delete_result(&result);
 }
@@ -64,7 +64,7 @@ TEST(ThreeAdressCode, Generate_Expression_Parenth)
 	auto result = mCc_parser_parse_string(input);
 
 	auto tac = mCc_ast_get_tac_expression(result.expression);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 	mCc_tac_delete_tac(tac);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -113,7 +113,7 @@ TEST(ThreeAdressCode, Generate_Expression_Parenth)
 	ASSERT_EQ(line11->type_double.op.op, MCC_AST_BINARY_OP_MUL);
 	ASSERT_EQ(line12->type_double.op.op, MCC_AST_BINARY_OP_ADD);
 
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 
 	mCc_parser_delete_result(&result);
 }
@@ -131,7 +131,7 @@ TEST(ThreeAdressCode, Generate_IF)
 	auto tac = mCc_ast_get_tac_statement(
 	    result.program->function_def_list->function_def->compound_stmt
 	        ->statement_list->statement);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->type);
@@ -146,7 +146,7 @@ TEST(ThreeAdressCode, Generate_IF)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, Generate_IFELSE)
@@ -159,7 +159,7 @@ TEST(ThreeAdressCode, Generate_IFELSE)
 	auto tac = mCc_ast_get_tac_statement(
 	    result.program->function_def_list->function_def->compound_stmt
 	        ->statement_list->statement);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->type);
@@ -181,7 +181,7 @@ TEST(ThreeAdressCode, Generate_IFELSE)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, Generate_WHILE)
@@ -194,7 +194,7 @@ TEST(ThreeAdressCode, Generate_WHILE)
 	auto tac = mCc_ast_get_tac_statement(
 	    result.program->function_def_list->function_def->compound_stmt
 	        ->statement_list->statement);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->type);
@@ -217,7 +217,7 @@ TEST(ThreeAdressCode, Generate_WHILE)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, FUNCTION_DEF)
@@ -228,7 +228,7 @@ TEST(ThreeAdressCode, FUNCTION_DEF)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_LABELFUNC, tac->next->type);
@@ -241,7 +241,7 @@ TEST(ThreeAdressCode, FUNCTION_DEF)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, FUNCTION_DEF_WITH_PARAMS)
@@ -252,7 +252,7 @@ TEST(ThreeAdressCode, FUNCTION_DEF_WITH_PARAMS)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->type);
@@ -266,7 +266,7 @@ TEST(ThreeAdressCode, FUNCTION_DEF_WITH_PARAMS)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, FUNCTION_CALL)
@@ -277,7 +277,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_CALL, tac->next->next->next->next->type);
@@ -288,7 +288,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, FUNCTION_RETURN)
@@ -299,7 +299,7 @@ TEST(ThreeAdressCode, FUNCTION_RETURN)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	auto line1 = tac->next;
 	auto line2 = line1->next;
@@ -317,7 +317,7 @@ TEST(ThreeAdressCode, FUNCTION_RETURN)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
@@ -329,7 +329,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 
@@ -353,7 +353,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, Generate_ARRAY_DEF)
@@ -367,7 +367,7 @@ TEST(ThreeAdressCode, Generate_ARRAY_DEF)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	auto line1 = tac->next;
 	auto line2 = line1->next; // array_def
@@ -380,7 +380,7 @@ TEST(ThreeAdressCode, Generate_ARRAY_DEF)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, Generate_ARRAY_ASS)
@@ -394,7 +394,7 @@ TEST(ThreeAdressCode, Generate_ARRAY_ASS)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	auto line1 = tac->next;
 	auto line2 = line1->next;
@@ -410,7 +410,7 @@ TEST(ThreeAdressCode, Generate_ARRAY_ASS)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
 TEST(ThreeAdressCode, Generate_ARRAY_IDEN)
@@ -424,7 +424,7 @@ TEST(ThreeAdressCode, Generate_ARRAY_IDEN)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	auto line1 = tac->next;
 	auto line2 = line1->next;
@@ -441,48 +441,158 @@ TEST(ThreeAdressCode, Generate_ARRAY_IDEN)
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
-	fprintf(stderr, "\n");
+	// fprintf(stderr, "\n");
 }
 
-/*TEST(ThreeAdressCode, Generate_FibmC)
+TEST(ThreeAdressCode, Generate_FLOAT_OP)
 {
-    const char input[] =
-        "int fib(int n){if (n < 2) {return n;}return fib(n - 1) + fib(n - "
-        "2);}void main(){print(\"Please enter a number: \");int n;n = "
-        "read_int();print_nl();int result;result = "
-        "fib(n);print(\"fib(\");print_int(n);print(\") = "
-        "\");print_int(result);print_nl();}";
-    auto result = mCc_parser_parse_string(input);
+	const char input[] = "void main() {float a; a = 3.0; a = a * 2.0;}";
+	auto result = mCc_parser_parse_string(input);
+	if (result.parse_error.is_error) {
+		print_error(result.parse_error);
+	}
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    auto tac = mCc_ast_get_tac_program(result.program);
-    mCc_tac_print_tac(tac, stderr);
-    mCc_tac_delete_tac(tac);
+	auto tac = mCc_ast_get_tac_program(result.program);
+	// mCc_tac_print_tac(tac, stderr);
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto line1 = tac->next;
+	auto line2 = line1->next;
+	auto line3 = line2->next;
+	auto line4 = line3->next;
+	auto line5 = line4->next;
+	auto line6 = line5->next;
+	auto line7 = line6->next;
+	auto line8 = line7->next;
+	auto line9 = line8->next;
 
-    fprintf(stderr, "\nSUCCESS\n");
+	ASSERT_EQ(line2->type, TAC_LINE_TYPE_SIMPLE);
+	ASSERT_EQ(line2->type_simple.arg0.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line2->type_simple.arg1.type, MCC_AST_TYPE_FLOAT);
 
-    mCc_parser_delete_result(&result);
+	ASSERT_EQ(line3->type, TAC_LINE_TYPE_SIMPLE);
+	ASSERT_EQ(line3->type_simple.arg0.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line3->type_simple.arg1.type, MCC_AST_TYPE_FLOAT);
 
-    //ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
+	ASSERT_EQ(line4->type, TAC_LINE_TYPE_SIMPLE);
+	ASSERT_EQ(line4->type_simple.arg0.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line4->type_simple.arg1.type, MCC_AST_TYPE_FLOAT);
+
+	ASSERT_EQ(line9->type, TAC_LINE_TYPE_DOUBLE);
+	ASSERT_EQ(line9->type_double.arg0.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line9->type_double.arg1.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line9->type_double.arg2.type, MCC_AST_TYPE_FLOAT);
+
+	mCc_tac_delete_tac(tac);
+	mCc_parser_delete_result(&result);
 }
 
-
-TEST(ThreeAdressCode, Generate_hsdf)
+TEST(ThreeAdressCode, unit_cgen_literal_int)
 {
-    const char input[] =
-            "1+0";
-    auto result = mCc_parser_parse_string(input);
+	const char input[] = "3";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	ASSERT_EQ(lit.type, MCC_AST_TYPE_INT);
 
-    auto tac = mCc_ast_get_tac_expression(result.expression);
-    mCc_tac_print_tac(tac, stderr);
-    mCc_tac_delete_tac(tac);
+	mCc_parser_delete_result(&result);
+}
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+TEST(ThreeAdressCode, unit_cgen_literal_float)
+{
+	const char input[] = "3.2";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	ASSERT_EQ(lit.type, MCC_AST_TYPE_FLOAT);
 
-    fprintf(stderr, "\nSUCCESS\n");
+	mCc_parser_delete_result(&result);
+}
 
-    mCc_parser_delete_result(&result);
+TEST(ThreeAdressCode, unit_cgen_literal_string)
+{
+	const char input[] = "\"hello\"";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	ASSERT_EQ(lit.type, MCC_AST_TYPE_STRING);
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, 1);
-}*/
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_literal_bool)
+{
+	const char input[] = "true";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	ASSERT_EQ(lit.type, MCC_AST_TYPE_BOOL);
+
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_expression_int)
+{
+	const char input[] = "1 + 2";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	ASSERT_EQ(expr.type, MCC_AST_TYPE_INT);
+
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_expression_float)
+{
+	const char input[] = "1.1 + 2.2";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	ASSERT_EQ(expr.type, MCC_AST_TYPE_FLOAT);
+
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_expression_bool)
+{
+	const char input[] = "true && false";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	ASSERT_EQ(expr.type, MCC_AST_TYPE_BOOL);
+
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_expression_parenth)
+{
+	const char input[] = "(1)";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	ASSERT_EQ(expr.type, MCC_AST_TYPE_INT);
+
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_expression_negation)
+{
+	const char input[] = "-1";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	ASSERT_EQ(expr.type, MCC_AST_TYPE_INT);
+
+	mCc_parser_delete_result(&result);
+}
+
+TEST(ThreeAdressCode, unit_cgen_expression_not)
+{
+	const char input[] = "!true";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	ASSERT_EQ(expr.type, MCC_AST_TYPE_BOOL);
+
+	mCc_parser_delete_result(&result);
+}

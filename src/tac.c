@@ -353,7 +353,7 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 	struct mCc_tac_var ret = {
 		val : mCc_tac_new_identifier(),
 		type : identifier->symbol_table_entry->data_type,
-		array : identifier->symbol_table_entry->array_size,
+		array : (int)identifier->symbol_table_entry->array_size,
 	};
 	mCc_tac_node node = mCc_tac_create_node();
 	node->type = TAC_LINE_TYPE_SIMPLE;
@@ -361,7 +361,7 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 	char *str = malloc(sizeof(char) * strlen(identifier->name));
 	sprintf(str, "%s", identifier->name);
 	struct mCc_tac_var arg1 = { identifier->symbol_table_entry->data_type,
-		                        identifier->symbol_table_entry->array_size,
+		                        (int)identifier->symbol_table_entry->array_size,
 		                        str };
 
 	node->type_simple.arg1 = arg1;
@@ -455,7 +455,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		struct mCc_sym_table_entry *symbol_table_entry =
 		    expression->call_expr.identifier->symbol_table_entry;
 		ret.type = symbol_table_entry->data_type;
-		ret.array = symbol_table_entry->array_size;
+		ret.array = (int)symbol_table_entry->array_size;
 
 		mCc_tac_node node = mCc_tac_create_node();
 		node->type = TAC_LINE_TYPE_CALL;
@@ -635,7 +635,7 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 			        statement->declaration->array_decl.identifier->name);
 			struct mCc_tac_var var = {
 				statement->declaration->identifier_type,
-				statement->declaration->array_decl.literal->i_value, str
+				(int)statement->declaration->array_decl.literal->i_value, str
 			};
 			node->type_decl_array.var = var;
 			mCc_tac_add_node(node, tac);
@@ -660,7 +660,8 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 		sprintf(str, "%s", identifier);
 		struct mCc_tac_var arg0 = {
 			statement->assignment->identifier->symbol_table_entry->data_type,
-			statement->assignment->identifier->symbol_table_entry->array_size,
+			(int)statement->assignment->identifier->symbol_table_entry
+			    ->array_size,
 			str
 		};
 
@@ -684,7 +685,8 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 
 		struct mCc_tac_var arr = {
 			statement->assignment->identifier->symbol_table_entry->data_type,
-			statement->assignment->identifier->symbol_table_entry->array_size,
+			(int)statement->assignment->identifier->symbol_table_entry
+			    ->array_size,
 			str,
 		};
 		node->type_assign_array.arr = arr;
@@ -749,7 +751,7 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 			sprintf(str, "%s", next->declaration->array_decl.identifier->name);
 			struct mCc_tac_var var = {
 				next->declaration->identifier_type,
-				next->declaration->array_decl.literal->i_value, str
+				(int)next->declaration->array_decl.literal->i_value, str
 			};
 			nodeParameter->type_pop.var = var;
 

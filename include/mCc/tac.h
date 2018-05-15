@@ -131,11 +131,13 @@ void mCc_tac_delete_tac(mCc_tac_node head);
 mCc_tac_node mCc_tac_cgen_function_def_list(
     struct mCc_ast_function_def_list *function_def_list, mCc_tac_node tac);
 
-mCc_tac_node mCc_ast_get_tac_expression(
-        struct mCc_ast_expression *);
+mCc_tac_node mCc_ast_get_tac_expression(struct mCc_ast_expression *);
 
-mCc_tac_node mCc_ast_get_tac_statement(
-        struct mCc_ast_statement *);
+mCc_tac_node mCc_ast_get_tac_statement(struct mCc_ast_statement *);
+
+struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *, mCc_tac_node);
+struct mCc_tac_var mCc_tac_cgen_expression(struct mCc_ast_expression *,
+                                           mCc_tac_node);
 
 #ifdef __cplusplus
 }
