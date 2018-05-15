@@ -157,7 +157,7 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 		char msg[256];
 		sprintf(msg,
 		        "error: function '%s', naming conflict with a varaible in this "
-		        "scope or unknown function, line: %lu, col: %lu",
+		        "scope, line: %lu, col: %lu",
 		        expression->call_expr.identifier->name,
 		        expression->node.sloc.start_line,
 		        expression->node.sloc.start_col);
