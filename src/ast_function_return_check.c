@@ -34,13 +34,66 @@ void mCc_ast_check_function_void_compound(
 				        current_statement->node.sloc.end_col));
 			}
 		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_IF) {
-			mCc_ast_check_function_void_compound(current_statement->if_branch,
-			                                     error_manager);
+			// check for non void return
+			if (current_statement->if_branch->type ==
+			        MCC_AST_STATEMENT_TYPE_RETURN &&
+			    current_statement->if_branch->expression != NULL) {
+				if (error_manager != NULL) {
+					char msg[256];
+					sprintf(
+					    msg,
+					    "error in line %lu, col: %lu: return of a value in a "
+					    "void function",
+					    current_statement->node.sloc.start_line,
+					    current_statement->node.sloc.start_col);
+					mCc_err_error_manager_insert_error_entry(
+					    error_manager,
+					    mCc_err_new_error_entry(
+					        msg, current_statement->node.sloc.start_line,
+					        current_statement->node.sloc.start_col,
+					        current_statement->node.sloc.end_line,
+					        current_statement->node.sloc.end_col));
+				}
+			} else {
+				// check for presence of compound statement
+				if (current_statement->if_branch->type ==
+				    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+					mCc_ast_check_function_void_compound(
+					    current_statement->if_branch, error_manager);
+				}
+			}
+
 			// if there is no else branch there can be no return statement
 			if (current_statement->else_branch != NULL) {
-				mCc_ast_check_function_void_compound(
-				    current_statement->else_branch, error_manager);
+				// check for non void return
+				if (current_statement->else_branch->type ==
+				        MCC_AST_STATEMENT_TYPE_RETURN &&
+				    current_statement->else_branch->expression != NULL) {
+					if (error_manager != NULL) {
+						char msg[256];
+						sprintf(msg,
+						        "error in line %lu, col: %lu: return of a "
+						        "value in a "
+						        "void function",
+						        current_statement->node.sloc.start_line,
+						        current_statement->node.sloc.start_col);
+						mCc_err_error_manager_insert_error_entry(
+						    error_manager,
+						    mCc_err_new_error_entry(
+						        msg, current_statement->node.sloc.start_line,
+						        current_statement->node.sloc.start_col,
+						        current_statement->node.sloc.end_line,
+						        current_statement->node.sloc.end_col));
+					}
+				} else {
+					if (current_statement->else_branch->type ==
+					    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+						mCc_ast_check_function_void_compound(
+						    current_statement->else_branch, error_manager);
+					}
+				}
 			}
+
 		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_WHILE) {
 			mCc_ast_check_function_void_compound(current_statement->body,
 			                                     error_manager);
@@ -68,12 +121,43 @@ bool mCc_ast_check_function_return_compound(
 		    current_statement->expression != NULL) {
 			return true;
 		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_IF) {
-			out = out || mCc_ast_check_function_return_compound(
-			                 current_statement->if_branch, error_manager);
+			// check if there is a return statement or not
+			if (current_statement->if_branch->type ==
+			        MCC_AST_STATEMENT_TYPE_RETURN &&
+			    current_statement->if_branch->expression != NULL) {
+				out = true;
+			} else {
+				// check if there is a compound statement or not
+				if (current_statement->if_branch->type !=
+				    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+					return false;
+				} else {
+					out =
+					    out || mCc_ast_check_function_return_compound(
+					               current_statement->if_branch, error_manager);
+				}
+			}
+
 			// if there is no else branch there can be no return statement
 			if (current_statement->else_branch != NULL) {
-				out = out && mCc_ast_check_function_return_compound(
-				                 current_statement->else_branch, error_manager);
+				// check if there is a return statement or not
+				if (current_statement->else_branch->type ==
+				        MCC_AST_STATEMENT_TYPE_RETURN &&
+				    current_statement->else_branch->expression != NULL) {
+					out = out && true;
+				} else {
+					// check if there is a compound , while or if statement or
+					// not
+					enum mCc_ast_statement_type type =
+					    current_statement->else_branch->type;
+					if (type != MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+						return false;
+					} else {
+						out = out && mCc_ast_check_function_return_compound(
+						                 current_statement->else_branch,
+						                 error_manager);
+					}
+				}
 			}
 		}
 	} while ((current_statement_list = current_statement_list->next) != NULL);
