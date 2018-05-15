@@ -823,50 +823,8 @@ mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *program)
 
 	mCc_tac_cgen_function_def_list(program->function_def_list, tac);
 
-	return tac;
-}
-
-mCc_tac_node mCc_ast_get_tac_expression(struct mCc_ast_expression *expression)
-{
-	assert(expression);
-	mCc_tac_identifier = 0;
-	mCc_tac_label = 0;
-
-	struct mCc_ast_symbol_table_visitor_data visitor_data = { NULL, NULL, 0 };
-
-	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	struct mCc_ast_visitor visitor =
-	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
-
-	mCc_ast_visit_expression(expression, &visitor);
-
-	mCc_tac_node tac = mCc_tac_create_node();
-	tac->type = TAC_LINE_TYPE_BEGIN;
-
-	mCc_tac_cgen_expression(expression, tac);
-
-	return tac;
-}
-
-mCc_tac_node mCc_ast_get_tac_statement(struct mCc_ast_statement *statement)
-{
-	assert(statement);
-	mCc_tac_identifier = 0;
-	mCc_tac_label = 0;
-
-	struct mCc_ast_symbol_table_visitor_data visitor_data = { NULL, NULL, 0 };
-
-	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	struct mCc_ast_visitor visitor =
-	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
-
-	mCc_ast_visit_statement(statement, &visitor);
-
-	mCc_tac_node tac = mCc_tac_create_node();
-	tac->type = TAC_LINE_TYPE_BEGIN;
-
-	mCc_tac_cgen_statement(statement, tac);
-
+    mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+    mCc_err_delete_error_manager(error_manager);
 	return tac;
 }
 

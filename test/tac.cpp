@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "mCc/ast.h"
+#include "mCc/ast_symbol_table.h"
 #include "mCc/parser.h"
+#include "mCc/symbol_table.h"
 #include "mCc/tac.h"
+#include <cstdbool>
+#include <string>
 
 void print_error(struct mCc_parse_error parse_error)
 {
@@ -24,15 +28,16 @@ void print_error(struct mCc_parse_error parse_error)
 
 TEST(ThreeAdressCode, Generate_Expression_Bool)
 {
-	const char input[] = "true || false";
+	const char input[] = "void main(){true || false;}";
 	auto result = mCc_parser_parse_string(input);
 
-	auto tac = mCc_ast_get_tac_expression(result.expression);
-	mCc_tac_print_tac(tac, stderr);
+	auto tac = mCc_ast_get_tac_program(result.program);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto line1 = tac->next;
+	auto line0 = tac->next;
+	auto line1 = line0->next;
 	auto line2 = line1->next;
 	auto line3 = line2->next;
 	auto line4 = line3->next;
@@ -60,15 +65,16 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 
 TEST(ThreeAdressCode, Generate_Expression_Parenth)
 {
-	const char input[] = "1.2+2*(1-2)";
+	const char input[] = "void main(){1.2+2*(1-2);}";
 	auto result = mCc_parser_parse_string(input);
 
-	auto tac = mCc_ast_get_tac_expression(result.expression);
+	auto tac = mCc_ast_get_tac_program(result.program);
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto line1 = tac->next;
+	auto line0 = tac->next;
+	auto line1 = line0->next;
 	auto line2 = line1->next;
 	auto line3 = line2->next;
 	auto line4 = line3->next;
@@ -113,7 +119,7 @@ TEST(ThreeAdressCode, Generate_Expression_Parenth)
 	ASSERT_EQ(line12->type_double.op.op, MCC_AST_BINARY_OP_ADD);
 
 	// fprintf(stderr, "\n");
-    mCc_tac_delete_tac(tac);
+	mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
@@ -128,12 +134,11 @@ TEST(ThreeAdressCode, Generate_IF)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto tac = mCc_ast_get_tac_statement(
-	    result.program->function_def_list->function_def->compound_stmt
-	        ->statement_list->statement);
+	auto tac = mCc_ast_get_tac_program(result.program);
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
+	tac = tac->next;
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->type);
@@ -156,12 +161,11 @@ TEST(ThreeAdressCode, Generate_IFELSE)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto tac = mCc_ast_get_tac_statement(
-	    result.program->function_def_list->function_def->compound_stmt
-	        ->statement_list->statement);
+	auto tac = mCc_ast_get_tac_program(result.program);
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
+	tac = tac->next;
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->type);
@@ -186,17 +190,16 @@ TEST(ThreeAdressCode, Generate_IFELSE)
 
 TEST(ThreeAdressCode, Generate_WHILE)
 {
-	const char input[] = "void fun(){while(true){}}";
+	const char input[] = "void main(){while(true){}}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto tac = mCc_ast_get_tac_statement(
-	    result.program->function_def_list->function_def->compound_stmt
-	        ->statement_list->statement);
+	auto tac = mCc_ast_get_tac_program(result.program);
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
+	tac = tac->next;
 	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
@@ -246,7 +249,7 @@ TEST(ThreeAdressCode, FUNCTION_DEF)
 
 TEST(ThreeAdressCode, FUNCTION_DEF_WITH_PARAMS)
 {
-	const char input[] = "int fun(int a, string b){}";
+	const char input[] = "int fun(int a, string b){int c;}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -328,7 +331,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto tac = mCc_ast_get_tac_program(result.program);
+	mCc_tac_node tac = mCc_ast_get_tac_program(result.program);
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
@@ -492,8 +495,12 @@ TEST(ThreeAdressCode, unit_cgen_literal_int)
 	const char input[] = "3";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, tac);
 	ASSERT_EQ(lit.type, MCC_AST_TYPE_INT);
+	free(lit.val);
+	mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
@@ -503,8 +510,12 @@ TEST(ThreeAdressCode, unit_cgen_literal_float)
 	const char input[] = "3.2";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, tac);
 	ASSERT_EQ(lit.type, MCC_AST_TYPE_FLOAT);
+	free(lit.val);
+	mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
@@ -514,8 +525,12 @@ TEST(ThreeAdressCode, unit_cgen_literal_string)
 	const char input[] = "\"hello\"";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, tac);
 	ASSERT_EQ(lit.type, MCC_AST_TYPE_STRING);
+	free(lit.val);
+	mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
@@ -525,18 +540,27 @@ TEST(ThreeAdressCode, unit_cgen_literal_bool)
 	const char input[] = "true";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto lit = mCc_tac_cgen_literal(result.expression->literal, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto lit = mCc_tac_cgen_literal(result.expression->literal, tac);
 	ASSERT_EQ(lit.type, MCC_AST_TYPE_BOOL);
+	free(lit.val);
+	mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
 
 TEST(ThreeAdressCode, unit_cgen_expression_int)
 {
-	const char input[] = "1 + 2";
+	mCc_tac_delete_tac(NULL);
+	const char input[] = "1 + 1";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto expr = mCc_tac_cgen_expression(result.expression, tac);
+	free(expr.val);
+	mCc_tac_delete_tac(tac);
 	ASSERT_EQ(expr.type, MCC_AST_TYPE_INT);
 
 	mCc_parser_delete_result(&result);
@@ -544,10 +568,15 @@ TEST(ThreeAdressCode, unit_cgen_expression_int)
 
 TEST(ThreeAdressCode, unit_cgen_expression_float)
 {
+	mCc_tac_delete_tac(NULL);
 	const char input[] = "1.1 + 2.2";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto expr = mCc_tac_cgen_expression(result.expression, tac);
+	free(expr.val);
+	mCc_tac_delete_tac(tac);
 	ASSERT_EQ(expr.type, MCC_AST_TYPE_FLOAT);
 
 	mCc_parser_delete_result(&result);
@@ -555,10 +584,15 @@ TEST(ThreeAdressCode, unit_cgen_expression_float)
 
 TEST(ThreeAdressCode, unit_cgen_expression_bool)
 {
+	mCc_tac_delete_tac(NULL);
 	const char input[] = "true && false";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto expr = mCc_tac_cgen_expression(result.expression, tac);
+	free(expr.val);
+	mCc_tac_delete_tac(tac);
 	ASSERT_EQ(expr.type, MCC_AST_TYPE_BOOL);
 
 	mCc_parser_delete_result(&result);
@@ -566,10 +600,15 @@ TEST(ThreeAdressCode, unit_cgen_expression_bool)
 
 TEST(ThreeAdressCode, unit_cgen_expression_parenth)
 {
+	mCc_tac_delete_tac(NULL);
 	const char input[] = "(1)";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto expr = mCc_tac_cgen_expression(result.expression, tac);
+	free(expr.val);
+	mCc_tac_delete_tac(tac);
 	ASSERT_EQ(expr.type, MCC_AST_TYPE_INT);
 
 	mCc_parser_delete_result(&result);
@@ -580,18 +619,29 @@ TEST(ThreeAdressCode, unit_cgen_expression_negation)
 	const char input[] = "-1";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+
+	auto expr = mCc_tac_cgen_expression(result.expression, tac);
 	ASSERT_EQ(expr.type, MCC_AST_TYPE_INT);
+	mCc_tac_delete_tac(tac);
+
+	free(expr.val);
 
 	mCc_parser_delete_result(&result);
 }
 
 TEST(ThreeAdressCode, unit_cgen_expression_not)
 {
+	mCc_tac_delete_tac(NULL);
 	const char input[] = "!true";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	auto expr = mCc_tac_cgen_expression(result.expression, NULL);
+	auto tac = mCc_tac_create_node();
+	tac->type = TAC_LINE_TYPE_BEGIN;
+	auto expr = mCc_tac_cgen_expression(result.expression, tac);
+	free(expr.val);
+	mCc_tac_delete_tac(tac);
 	ASSERT_EQ(expr.type, MCC_AST_TYPE_BOOL);
 
 	mCc_parser_delete_result(&result);

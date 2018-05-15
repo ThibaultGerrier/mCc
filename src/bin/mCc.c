@@ -13,11 +13,13 @@
 void cleanup_and_exit(struct mCc_parser_result *parser_result,
                       struct mCc_sym_table_tree *symbol_table_tree,
                       struct mCc_err_error_manager *error_manager,
+                      struct mCc_tac *tac,
                       int exit_status)
 {
 	mCc_parser_delete_result(parser_result);
 	mCc_sym_table_delete_tree(symbol_table_tree);
 	mCc_err_delete_error_manager(error_manager);
+	mCc_tac_delete_tac(tac);
 	exit(exit_status);
 }
 
@@ -37,12 +39,13 @@ void print_all_errors(struct mCc_err_error_manager *error_manager)
 void print_errors_and_exit_if_errors(
     struct mCc_parser_result *parser_result,
     struct mCc_sym_table_tree *symbol_table_tree,
-    struct mCc_err_error_manager *error_manager)
+    struct mCc_err_error_manager *error_manager,
+    struct mCc_tac *tac)
 {
 	assert(error_manager);
 	if (error_manager->used != 0) {
 		print_all_errors(error_manager);
-		cleanup_and_exit(parser_result, symbol_table_tree, error_manager,
+		cleanup_and_exit(parser_result, symbol_table_tree, error_manager, tac,
 		                 EXIT_FAILURE);
 	}
 }
@@ -92,14 +95,14 @@ int main(int argc, char *argv[])
 		symbol_table_tree = visitor_data.symbol_table_tree;
 
 		print_errors_and_exit_if_errors(&result, symbol_table_tree,
-		                                error_manager);
+		                                error_manager, tac);
 	}
 	/* return check  phase */
 	{
 		mCc_ast_function_return_checks(program, error_manager);
 
 		print_errors_and_exit_if_errors(&result, symbol_table_tree,
-										error_manager);
+										error_manager, tac);
 	}
 	/* type checking phase */
 	{
@@ -111,14 +114,14 @@ int main(int argc, char *argv[])
 		mCc_ast_visit_program(program, &type_checking_visitor);
 
 		print_errors_and_exit_if_errors(&result, symbol_table_tree,
-		                                error_manager);
+		                                error_manager, tac);
 	}
 
 	/* Three address code generation phase */
 	{
 		tac = mCc_ast_get_tac(program);
 		mCc_tac_print_tac(tac, stdout);
-		mCc_tac_delete_tac(tac);
+		// mCc_tac_delete_tac(tac);
 	}
 
 	/*    TODO
@@ -129,6 +132,6 @@ int main(int argc, char *argv[])
 
 	/* cleanup */
 	print_all_errors(error_manager);
-	cleanup_and_exit(&result, symbol_table_tree, error_manager, EXIT_SUCCESS);
+	cleanup_and_exit(&result, symbol_table_tree, error_manager, tac, EXIT_SUCCESS);
 	return EXIT_SUCCESS;
 }
