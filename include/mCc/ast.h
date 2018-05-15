@@ -13,6 +13,7 @@ struct mCc_ast_expression;
 struct mCc_ast_statement;
 struct mCc_ast_literal;
 struct mCc_sym_table_entry;
+struct mCc_sym_table_tree;
 
 /* ---------------------------------------------------------------- AST Node */
 
@@ -89,6 +90,9 @@ enum mCc_ast_type {
 	MCC_AST_TYPE_STRING,
 	MCC_AST_TYPE_VOID,
 };
+
+enum mCc_ast_type
+mCc_ast_literal_type_convert(enum mCc_ast_literal_type literal_type);
 
 /* struct mCc_ast_type { */
 /*     struct mCc_ast_node node; */

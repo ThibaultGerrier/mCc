@@ -37,95 +37,171 @@ ast_symbol_table_new_stack_entry(struct mCc_ast_symbol_table_stack_entry *s,
 	return stack_entry;
 }
 
+void symbol_table_add_built_in_functions(const struct mCc_ast_symbol_table_visitor_data *visit_data) {
+
+    const char *a[6];
+    a[0] = "print";
+    a[1] = "print_nl";
+    a[2] = "print_int";
+    a[3] = "print_float";
+    a[4] = "read_int";
+    a[5] = "read_float";
+
+    // TODO make sure this gets cleaned up (the new function def ast
+    // elements) print
+    struct mCc_sym_table_entry *new_entry_print =
+		    mCc_sym_table_new_entry(a[0], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_VOID);
+
+    struct mCc_ast_identifier *identifier_print =
+		    mCc_ast_new_identifier(a[0]);
+    struct mCc_ast_declaration *declaration_print = mCc_ast_new_declaration(
+		    MCC_AST_TYPE_STRING, mCc_ast_new_identifier("msg"));
+    struct mCc_ast_parameter *parameter_print =
+		    mCc_ast_new_parameter(declaration_print);
+    new_entry_print->function_def = mCc_ast_new_function_def(
+		    MCC_AST_TYPE_VOID, identifier_print, parameter_print, NULL);
+    mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    new_entry_print);
+
+    // print_nl
+    struct mCc_sym_table_entry *new_entry_print_nl =
+		    mCc_sym_table_new_entry(a[1], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_VOID);
+
+    struct mCc_ast_identifier *identifier_nl = mCc_ast_new_identifier(a[1]);
+    new_entry_print_nl->function_def = mCc_ast_new_function_def(
+		    MCC_AST_TYPE_VOID, identifier_nl, NULL, NULL);
+    mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    new_entry_print_nl);
+
+    // print_int
+    struct mCc_sym_table_entry *new_entry_print_int =
+		    mCc_sym_table_new_entry(a[2], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_VOID);
+
+    struct mCc_ast_identifier *identifier_print_int =
+		    mCc_ast_new_identifier(a[2]);
+    struct mCc_ast_declaration *declaration_print_int =
+		    mCc_ast_new_declaration(MCC_AST_TYPE_INT,
+		                            mCc_ast_new_identifier("x"));
+    struct mCc_ast_parameter *parameter_print_int =
+		    mCc_ast_new_parameter(declaration_print_int);
+    new_entry_print_int->function_def = mCc_ast_new_function_def(
+		    MCC_AST_TYPE_VOID, identifier_print_int, parameter_print_int, NULL);
+    mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    new_entry_print_int);
+
+    // print_float
+    struct mCc_sym_table_entry *new_entry_print_float =
+		    mCc_sym_table_new_entry(a[3], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_VOID);
+
+    struct mCc_ast_identifier *identifier_print_float =
+		    mCc_ast_new_identifier(a[3]);
+    struct mCc_ast_declaration *declaration_print_float =
+		    mCc_ast_new_declaration(MCC_AST_TYPE_FLOAT,
+		                            mCc_ast_new_identifier("x"));
+    struct mCc_ast_parameter *parameter_print_float =
+		    mCc_ast_new_parameter(declaration_print_float);
+    new_entry_print_float->function_def =
+		    mCc_ast_new_function_def(MCC_AST_TYPE_VOID, identifier_print_float,
+		                             parameter_print_float, NULL);
+    mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    new_entry_print_float);
+
+    // read_int
+    struct mCc_sym_table_entry *new_entry_read_int =
+		    mCc_sym_table_new_entry(a[4], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_INT);
+    struct mCc_ast_identifier *identifier_read_int =
+		    mCc_ast_new_identifier(a[4]);
+    new_entry_read_int->function_def = mCc_ast_new_function_def(
+		    MCC_AST_TYPE_INT, identifier_read_int, NULL, NULL);
+    mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    new_entry_read_int);
+
+    // read_float
+    struct mCc_sym_table_entry *new_entry_read_float =
+		    mCc_sym_table_new_entry(a[5], visit_data->stack->cur_index,
+		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_FLOAT);
+    struct mCc_ast_identifier *identifier_read_float =
+		    mCc_ast_new_identifier(a[5]);
+    new_entry_read_float->function_def = mCc_ast_new_function_def(
+		    MCC_AST_TYPE_FLOAT, identifier_read_float, NULL, NULL);
+    mCc_sym_table_add_entry(
+		    &visit_data->stack->symbol_table_tree->symbol_table,
+		    new_entry_read_float);
+}
+
 static void symbol_table_program(struct mCc_ast_program *program,
                                  enum mCc_ast_visit_type visit_type,
                                  struct mCc_err_error_manager *error_manager,
                                  void *data)
 {
-	assert(program);
-	assert(data);
-	struct mCc_ast_symbol_table_visitor_data *visit_data = data;
+    assert(program);
+    assert(data);
+    struct mCc_ast_symbol_table_visitor_data *visit_data = data;
 
-	if (visit_type == MCC_AST_VISIT_BEFORE) {
-		visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
-		visit_data->stack = ast_symbol_table_new_stack_entry(
-		    NULL, visit_data->symbol_table_tree, 0);
+    if (visit_type == MCC_AST_VISIT_BEFORE) {
+        visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
+        visit_data->stack = ast_symbol_table_new_stack_entry(
+                NULL, visit_data->symbol_table_tree, 0);
+        symbol_table_add_built_in_functions(visit_data);
 
-		// add built in function to function table
+    } else if (visit_type == MCC_AST_VISIT_AFTER) {
+        free(ast_symbol_table_stack_pop(&visit_data->stack));
 
-		const char *a[6];
-		a[0] = "print";
-		a[1] = "print_nl";
-		a[2] = "print_int";
-		a[3] = "print_float";
-		a[4] = "read_int";
-		a[5] = "read_float";
-
-		for (int i = 0; i < 4; ++i) {
-			mCc_sym_table_add_entry(
-			    &visit_data->stack->symbol_table_tree->symbol_table,
-			    mCc_sym_table_new_entry(a[i], visit_data->stack->cur_index,
-			                            MCC_SYM_TABLE_FUNCTION,
-			                            MCC_AST_TYPE_VOID));
-		}
-
-		mCc_sym_table_add_entry(
-		    &visit_data->stack->symbol_table_tree->symbol_table,
-		    mCc_sym_table_new_entry(a[4], visit_data->stack->cur_index,
-		                            MCC_SYM_TABLE_FUNCTION, MCC_AST_TYPE_INT));
-		mCc_sym_table_add_entry(
-		    &visit_data->stack->symbol_table_tree->symbol_table,
-		    mCc_sym_table_new_entry(a[5], visit_data->stack->cur_index,
-		                            MCC_SYM_TABLE_FUNCTION,
-		                            MCC_AST_TYPE_FLOAT));
-
-	} else if (visit_type == MCC_AST_VISIT_AFTER) {
-		free(ast_symbol_table_stack_pop(&visit_data->stack));
-
-		// check if there is a main()
-		struct mCc_sym_table_entry *result = mCc_sym_table_lookup_entry(
-		    visit_data->symbol_table_tree->symbol_table, "main");
-		if (result == NULL) {
-			char msg[256];
-			sprintf(msg, "No main function in program");
-			mCc_err_error_manager_insert_error_entry(
-			    error_manager, mCc_err_new_error_entry(msg, 0, 0, 0, 0));
-		}
-	}
+        // check if there is a main()
+        struct mCc_sym_table_entry *result = mCc_sym_table_lookup_entry(
+                visit_data->symbol_table_tree->symbol_table, "main");
+        if (result == NULL) {
+            char msg[256];
+            sprintf(msg, "No main function in program");
+            mCc_err_error_manager_insert_error_entry(
+                    error_manager, mCc_err_new_error_entry(msg, 0, 0, 0, 0));
+        }
+    }
 }
 
 static void
-symbol_table_function_identifier(enum mCc_ast_type return_type,
-                                 struct mCc_ast_identifier *identifier,
+symbol_table_function_identifier(struct mCc_ast_function_def *function_def,
                                  struct mCc_err_error_manager *error_manager,
                                  struct mCc_ast_symbol_table_stack_entry *stack)
 {
-	assert(identifier);
+	assert(function_def);
 	assert(stack);
+
+	struct mCc_ast_identifier *iden = function_def->function_identifier;
 
 	struct mCc_sym_table_entry *result =
 	    mCc_sym_table_ascendant_tree_lookup_entry(stack->symbol_table_tree,
-	                                              identifier->name);
+	                                              iden->name);
 
 	if (result == NULL) {
-		mCc_sym_table_add_entry(
-		    &stack->symbol_table_tree->symbol_table,
-		    mCc_sym_table_new_entry(identifier->name, stack->cur_index,
-		                            MCC_SYM_TABLE_FUNCTION, return_type));
+		struct mCc_sym_table_entry *entry = mCc_sym_table_new_entry(
+		    iden->name, stack->cur_index, MCC_SYM_TABLE_FUNCTION,
+		    function_def->return_type);
+		entry->function_def = function_def;
+		mCc_sym_table_add_entry(&stack->symbol_table_tree->symbol_table, entry);
 	} else {
 		if (error_manager != NULL) {
 			char msg[256];
 			sprintf(msg,
 			        "error in line %lu, col: %lu: redefined function "
 			        "'%s'",
-			        identifier->node.sloc.start_line,
-			        identifier->node.sloc.start_col, identifier->name);
+			        iden->node.sloc.start_line, iden->node.sloc.start_col,
+			        iden->name);
 			mCc_err_error_manager_insert_error_entry(
 			    error_manager,
-			    mCc_err_new_error_entry(msg, identifier->node.sloc.start_line,
-			                            identifier->node.sloc.start_col,
-			                            identifier->node.sloc.end_line,
-			                            identifier->node.sloc.end_col));
+			    mCc_err_new_error_entry(
+			        msg, iden->node.sloc.start_line, iden->node.sloc.start_col,
+			        iden->node.sloc.end_line, iden->node.sloc.end_col));
 		}
 	}
 }
@@ -142,9 +218,8 @@ symbol_table_function_def(struct mCc_ast_function_def *function_def,
 	struct mCc_ast_symbol_table_visitor_data *visit_data = data;
 
 	if (visit_type == MCC_AST_VISIT_BEFORE) {
-		symbol_table_function_identifier(function_def->return_type,
-		                                 function_def->function_identifier,
-		                                 error_manager, visit_data->stack);
+		symbol_table_function_identifier(function_def, error_manager,
+		                                 visit_data->stack);
 		visit_data->max_index++;
 
 		struct mCc_ast_symbol_table_stack_entry *stack_entry =
@@ -305,9 +380,9 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	}
 }
 
-struct mCc_ast_visitor
-symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
-                     struct mCc_err_error_manager *error_manager)
+struct mCc_ast_visitor mCc_ast_symbol_table_visitor(
+    struct mCc_ast_symbol_table_visitor_data *visit_data,
+    struct mCc_err_error_manager *error_manager)
 {
 	assert(visit_data);
 
@@ -328,6 +403,7 @@ symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
 		.argument_list = NULL,
 		.declaration = symbol_table_declaration,
 
+		.expression = NULL,
 		.expression_identifier = NULL,
 		.expression_array_identifier = NULL,
 		.expression_call_expr = NULL,

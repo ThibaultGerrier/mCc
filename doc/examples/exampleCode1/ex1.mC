@@ -25,12 +25,12 @@ void main()
 
 	print("Please enter an exponent: ");
 
-    int exp;
-    exp = read_int();
+    int exp1;
+    exp1 = read_int();
     print_nl();
 
 	int result;
-	result = exp(n,exp);
+	result = exp(n,exp1);
 
     print_int(n);
     print("^");

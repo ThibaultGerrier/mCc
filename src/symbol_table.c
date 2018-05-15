@@ -1,8 +1,10 @@
 #include "mCc/symbol_table.h"
+#include "mCc/ast.h"
 #include "uthash.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 struct mCc_sym_table_entry *
@@ -17,6 +19,7 @@ mCc_sym_table_new_entry(const char *name, size_t scope_index,
 	entry->data_type = data_type;
 	entry->scope_index = scope_index;
 	entry->array_size = 0;
+	entry->function_def = NULL;
 	size_t len = strlen(name) + 1;
 	entry->name = malloc(len);
 	assert(entry->name);
@@ -66,19 +69,42 @@ void mCc_sym_table_delete_symbol_table(struct mCc_sym_table_entry **table)
 	table = NULL;
 }
 
-void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree)
+void mCc_sym_table_delete_tree_recursive(struct mCc_sym_table_tree *tree)
 {
 	assert(tree);
 	if (tree->symbol_table != NULL) {
 		mCc_sym_table_delete_symbol_table(&tree->symbol_table);
 	}
 	if (tree->first_child != NULL) {
-		mCc_sym_table_delete_tree(tree->first_child);
+		mCc_sym_table_delete_tree_recursive(tree->first_child);
 	}
 	if (tree->next_sibling != NULL) {
-		mCc_sym_table_delete_tree(tree->next_sibling);
+		mCc_sym_table_delete_tree_recursive(tree->next_sibling);
 	}
 	free(tree);
+}
+
+void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree)
+{
+	//clean up for built-in functions
+	const char *a[6];
+	a[0] = "print";
+	a[1] = "print_nl";
+	a[2] = "print_int";
+	a[3] = "print_float";
+	a[4] = "read_int";
+	a[5] = "read_float";
+
+	for (size_t i = 0; i < 6; i++) {
+		struct mCc_sym_table_entry *entry = NULL;
+		HASH_FIND_STR(tree->symbol_table, a[i], entry);
+		assert(entry);
+		mCc_ast_delete_function_def(entry->function_def);
+	}
+
+
+	assert(tree);
+	mCc_sym_table_delete_tree_recursive(tree);
 }
 
 bool mCc_sym_table_add_entry(struct mCc_sym_table_entry **table,

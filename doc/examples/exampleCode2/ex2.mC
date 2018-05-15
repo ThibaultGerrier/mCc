@@ -8,12 +8,12 @@ float calcArea(float r)
 	return result;
 }
 
-int calcCircumference(float r)
+float calcCircumference(float r)
 {
     float pi;
     pi=3.14;
     float result;
-    result=2*r*pi;
+    result=2.0*r*pi;
 
     return result;
 }
