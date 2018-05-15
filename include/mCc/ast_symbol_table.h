@@ -23,7 +23,7 @@ struct mCc_ast_symbol_table_visitor_data {
 };
 
 struct mCc_ast_visitor
-symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
+mCc_ast_symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
                      struct mCc_err_error_manager *error_manager);
 
 #ifdef __cplusplus

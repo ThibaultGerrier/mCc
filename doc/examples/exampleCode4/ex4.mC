@@ -40,9 +40,9 @@ void main()
 	n=read_int();
     print_nl();
 
-    string s;
-    s="Please enter a second number : ";
-    print(s);
+    string s2;
+    s2="Please enter a second number : ";
+    print(s2);
     int n2;
     n2=read_int();
     print_nl();

@@ -80,6 +80,21 @@ const char *mCc_ast_print_declaration(enum mCc_ast_declaration_type declaration)
 	return "unknown statment";
 }
 
+const char *mCc_ast_print_ordinal_suffix(size_t num)
+{
+	switch (num % 100) {
+	case 11:
+	case 12:
+	case 13: return "th";
+	}
+	switch (num % 10) {
+	case 1: return "st";
+	case 2: return "nd";
+	case 3: return "rd";
+	default: return "th";
+	}
+}
+
 /* ------------------------------------------------------------- DOT Printer */
 
 static void print_dot_begin(FILE *out)
@@ -631,6 +646,7 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 		.argument_list = print_dot_argument_list,
 		.declaration = print_dot_declaration,
 
+		.expression = NULL,
 		.expression_identifier = print_dot_expression_identifier,
 		.expression_array_identifier = print_dot_expression_array_identifier,
 		.expression_call_expr = print_dot_expression_call_expr,

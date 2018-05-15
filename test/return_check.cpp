@@ -30,7 +30,7 @@ TEST(ReturnCheck, voidFunctionCorrectSingle)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -39,7 +39,7 @@ TEST(ReturnCheck, voidFunctionCorrectSingle)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -59,7 +59,7 @@ TEST(ReturnCheck, voidFunctionCorrectSingleWithReturn)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -68,7 +68,7 @@ TEST(ReturnCheck, voidFunctionCorrectSingleWithReturn)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -89,7 +89,7 @@ TEST(ReturnCheck, voidFunctionCorrectMultiple)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -98,7 +98,7 @@ TEST(ReturnCheck, voidFunctionCorrectMultiple)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -118,7 +118,7 @@ TEST(ReturnCheck, voidFunctionIncorrectSingle)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -150,7 +150,7 @@ TEST(ReturnCheck, voidFunctionIncorrectSingleWhile)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -181,7 +181,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingle)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -190,7 +190,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingle)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -211,7 +211,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectMultiple)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -220,7 +220,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectMultiple)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -240,7 +240,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIf)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -249,7 +249,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIf)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -270,7 +270,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElse)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -279,7 +279,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElse)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -300,7 +300,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleI)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -309,7 +309,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleI)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -330,7 +330,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleII)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -339,7 +339,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleII)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -360,7 +360,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleWhile)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -369,7 +369,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleWhile)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -391,7 +391,7 @@ TEST(ReturnCheck, nonVoidFunctionMultipleCorrect)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -400,7 +400,7 @@ TEST(ReturnCheck, nonVoidFunctionMultipleCorrect)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0, error_manager->used);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -420,7 +420,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectSingleWithReturnVoid)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -452,7 +452,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectIf)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -485,7 +485,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectIfelse)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -518,7 +518,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectWhile)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -552,7 +552,7 @@ TEST(ReturnCheck, nonVoidFunctionMultipleIncorrect)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, nullptr);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
 
 	mCc_ast_visit_program(prog, &visitor);
 

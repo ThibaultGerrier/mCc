@@ -1,11 +1,3 @@
-void main() {
-    int test;
-    while_function (3.3, true);
-    test = dangling_else_function();
-    print_int(test);
-    array_functions();
-}
-
 int dangling_else_function() {
     if (true && true) (42 + 2) * 4;
         if (false || false) 42 * 1 + 14;
@@ -38,4 +30,12 @@ void array_functions() {
     if (6 != 6) arr[3] = 6;
     print_int(arr[3]);
     return;
+}
+
+void main() {
+    int test;
+    while_function (3.3, true);
+    test = dangling_else_function();
+    print_int(test);
+    array_functions();
 }

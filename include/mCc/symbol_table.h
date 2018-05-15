@@ -21,6 +21,9 @@ struct mCc_sym_table_entry {
 	size_t array_size;
 	size_t scope_index;
 
+	// back reference for function call expression, NULL if not a function
+	struct mCc_ast_function_def *function_def;
+
 	char *name;        /* key of the hashmap */
 	UT_hash_handle hh; /* makes this structure hashable */
 };
@@ -49,6 +52,9 @@ void mCc_sym_table_delete_entry(struct mCc_sym_table_entry *entry);
 
 void mCc_sym_table_delete_symbol_table(struct mCc_sym_table_entry **table);
 
+void mCc_sym_table_delete_tree_recursive(struct mCc_sym_table_tree *tree);
+
+//deletes a symbol table including the built-in functions
 void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree);
 
 /**

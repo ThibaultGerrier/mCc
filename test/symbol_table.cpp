@@ -89,7 +89,7 @@ TEST(SymbolTable, Lookup_Ascendant_Entry)
 	ASSERT_EQ(entry_grandparent,
 	          mCc_sym_table_ascendant_tree_lookup_entry(tree, "var4"));
 	ASSERT_EQ(nullptr, mCc_sym_table_ascendant_tree_lookup_entry(tree, "var3"));
-	mCc_sym_table_delete_tree(tree_grandparent);
+	mCc_sym_table_delete_tree_recursive(tree_grandparent);
 }
 
 TEST(SymbolTable, Visitor_Program_Declaration)
@@ -105,7 +105,7 @@ TEST(SymbolTable, Visitor_Program_Declaration)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -153,7 +153,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowing)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -203,7 +203,7 @@ TEST(SymbolTable, Visitor_Program_MultiScopeShadowingAssignment)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -252,7 +252,7 @@ TEST(SymbolTable, Visitor_Program_Redefinition)
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
 
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -295,7 +295,7 @@ TEST(SymbolTable, Visitor_Program_MultiScope)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -322,7 +322,7 @@ TEST(SymbolTable, Visitor_Function_Table)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -348,7 +348,7 @@ TEST(SymbolTable, Visitor_Function_Table)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
+TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionI)
 {
 	const char input[] = "void main(){int a; foo(a);}";
 	auto result = mCc_parser_parse_string(input);
@@ -361,7 +361,7 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -375,7 +375,42 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_Function)
 
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);
 	ASSERT_EQ(20u, error_manager->array[0]->start_col);
+	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
+	                    error_manager->array[0]->msg));
 
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionII)
+{
+	const char input[] =
+	    "void main(){int a; foo(a);} float foo(int a) {return 3.14;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	auto function_table = visitor_data.symbol_table_tree->symbol_table;
+
+	auto entry_foo = mCc_sym_table_lookup_entry(function_table, "foo");
+	ASSERT_NE(nullptr, entry_foo);
+
+	// check the error message
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(1u, error_manager->array[0]->start_line);
+	ASSERT_EQ(20u, error_manager->array[0]->start_col);
 	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
 	                    error_manager->array[0]->msg));
 
@@ -399,7 +434,7 @@ TEST(SymbolTable, Visitor_Program_NoFunctionParameterRedefinition)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -426,7 +461,7 @@ TEST(SymbolTable, Visitor_Function_Table_Redefined_Function)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 	auto function_table = visitor_data.symbol_table_tree->symbol_table;
@@ -460,7 +495,7 @@ TEST(SymbolTable, Visitor_Function_Table_No_Main)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -497,7 +532,7 @@ TEST(SymbolTable, Visitor_Function_Table_Built_In)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -550,7 +585,7 @@ TEST(SymbolTable, Visitor_Function_Table_Call)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -583,7 +618,7 @@ TEST(SymbolTable, Visitor_Function_Reuse_Id_Name)
 		                                                      0 };
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
-	auto visitor = symbol_table_visitor(&visitor_data, error_manager);
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(prog, &visitor);
 
@@ -606,6 +641,31 @@ TEST(SymbolTable, Visitor_Function_Reuse_Id_Name)
 	const ::testing::TestInfo *const test_info =
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
+	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(SymbolTable, Visitor_Function_And_Variable_Shadowing)
+{
+	const char input[] = "void foo(){} void main(){int foo; foo();}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	// check the error message
 	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
