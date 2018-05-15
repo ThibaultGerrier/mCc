@@ -350,7 +350,6 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionI)
 
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);
 	ASSERT_EQ(20u, error_manager->array[0]->start_col);
-	std::cerr << error_manager->array[0]->msg << std::endl;
 	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
 	                    error_manager->array[0]->msg));
 
@@ -387,7 +386,6 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionII)
 
 	ASSERT_EQ(1u, error_manager->array[0]->start_line);
 	ASSERT_EQ(20u, error_manager->array[0]->start_col);
-	std::cerr << error_manager->array[0]->msg << std::endl;
 	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
 	                    error_manager->array[0]->msg));
 
