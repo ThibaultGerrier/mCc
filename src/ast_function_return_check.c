@@ -4,11 +4,9 @@
 #include <stdio.h>
 
 bool mCc_ast_check_function_return_compound(
-    struct mCc_ast_statement *compound_stmt,
-    struct mCc_err_error_manager *error_manager);
+    struct mCc_ast_statement *compound_stmt);
 
-bool else_if_case(struct mCc_err_error_manager *error_manager, bool out,
-                  struct mCc_ast_statement *current_statement)
+bool else_if_case(bool out, struct mCc_ast_statement *current_statement)
 {
 	struct mCc_ast_statement *else_branch = current_statement->else_branch;
 	if (else_branch->if_branch->type == MCC_AST_STATEMENT_TYPE_RETURN &&
@@ -18,7 +16,7 @@ bool else_if_case(struct mCc_err_error_manager *error_manager, bool out,
 		if (else_branch->if_branch->type ==
 		    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
 			out = out && mCc_ast_check_function_return_compound(
-			                 else_branch->if_branch, error_manager);
+			                 else_branch->if_branch);
 		} else {
 			return false;
 		}
@@ -29,11 +27,11 @@ bool else_if_case(struct mCc_err_error_manager *error_manager, bool out,
 			out = out && true; // could be simplified to just out
 		} else if (else_branch->else_branch->type ==
 		           MCC_AST_STATEMENT_TYPE_IF) {
-			out = else_if_case(error_manager, out, else_branch);
+			out = else_if_case(out, else_branch);
 		} else if (else_branch->else_branch->type ==
 		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
 			out = out && mCc_ast_check_function_return_compound(
-			                 else_branch->else_branch, error_manager);
+			                 else_branch->else_branch);
 		} else {
 			return false;
 		}
@@ -43,8 +41,7 @@ bool else_if_case(struct mCc_err_error_manager *error_manager, bool out,
 
 // returns false if there is no return statement in a function body
 bool mCc_ast_check_function_return_compound(
-    struct mCc_ast_statement *compound_stmt,
-    struct mCc_err_error_manager *error_manager)
+    struct mCc_ast_statement *compound_stmt)
 {
 	bool out = false;
 	struct mCc_ast_statement_list *current_statement_list =
@@ -71,9 +68,8 @@ bool mCc_ast_check_function_return_compound(
 				    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
 					out = false;
 				} else {
-					out =
-					    out || mCc_ast_check_function_return_compound(
-					               current_statement->if_branch, error_manager);
+					out = out || mCc_ast_check_function_return_compound(
+					                 current_statement->if_branch);
 				}
 			}
 
@@ -90,15 +86,13 @@ bool mCc_ast_check_function_return_compound(
 					    current_statement->else_branch->type;
 					if (type != MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
 						if (type == MCC_AST_STATEMENT_TYPE_IF) { // else if case
-							out = else_if_case(error_manager, out,
-							                   current_statement);
+							out = else_if_case(out, current_statement);
 						} else {
 							out = false;
 						}
 					} else {
 						out = out && mCc_ast_check_function_return_compound(
-						                 current_statement->else_branch,
-						                 error_manager);
+						                 current_statement->else_branch);
 					}
 				}
 			}
@@ -113,8 +107,8 @@ void mCc_ast_check_function(struct mCc_ast_function_def *function_def,
 {
 	if (function_def->return_type !=
 	    MCC_AST_TYPE_VOID) { // check for presence  of return statement
-		if (!mCc_ast_check_function_return_compound(function_def->compound_stmt,
-		                                            error_manager)) {
+		if (!mCc_ast_check_function_return_compound(
+		        function_def->compound_stmt)) {
 			if (error_manager != NULL) {
 				char msg[256];
 				sprintf(msg,
