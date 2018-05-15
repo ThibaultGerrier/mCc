@@ -166,7 +166,7 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 		    expression->node.sloc.start_col, expression->node.sloc.end_line,
 		    expression->node.sloc.end_col);
 		mCc_err_error_manager_insert_error_entry(error_manager, entry);
-		return MCC_AST_TYPE_VOID; // TODO Maybe introduce error state in enum type?
+		return MCC_AST_TYPE_VOID; 
 	}
 
 	enum mCc_ast_type ret_type = called_function->return_type;
