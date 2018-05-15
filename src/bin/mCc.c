@@ -1,7 +1,7 @@
+#include <mCc/ast_function_return_check.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mCc/ast_function_return_check.h>
 
 #include "mCc/ast.h"
 #include "mCc/ast_symbol_table.h"
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 		mCc_ast_function_return_checks(program, error_manager);
 
 		print_errors_and_exit_if_errors(&result, symbol_table_tree,
-										error_manager);
+		                                error_manager);
 	}
 	/* type checking phase */
 	{
