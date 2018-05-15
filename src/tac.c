@@ -802,7 +802,7 @@ mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *program)
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
 	struct mCc_ast_visitor visitor =
-	    symbol_table_visitor(&visitor_data, error_manager);
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_program(program, &visitor);
 
@@ -824,7 +824,7 @@ mCc_tac_node mCc_ast_get_tac_expression(struct mCc_ast_expression *expression)
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
 	struct mCc_ast_visitor visitor =
-	    symbol_table_visitor(&visitor_data, error_manager);
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_expression(expression, &visitor);
 
@@ -846,7 +846,7 @@ mCc_tac_node mCc_ast_get_tac_statement(struct mCc_ast_statement *statement)
 
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
 	struct mCc_ast_visitor visitor =
-	    symbol_table_visitor(&visitor_data, error_manager);
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
 
 	mCc_ast_visit_statement(statement, &visitor);
 
