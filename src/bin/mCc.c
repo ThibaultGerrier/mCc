@@ -7,6 +7,7 @@
 #include "mCc/ast_type_checking.h"
 #include "mCc/error_manager.h"
 #include "mCc/parser.h"
+#include "mCc/tac.h"
 
 void cleanup_and_exit(struct mCc_parser_result *parser_result,
                       struct mCc_sym_table_tree *symbol_table_tree,
@@ -67,6 +68,7 @@ int main(int argc, char *argv[])
 	struct mCc_ast_program *program = NULL;
 	struct mCc_sym_table_tree *symbol_table_tree = NULL;
 	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_tac *tac = NULL;
 
 	/* parsing phase */
 	{
@@ -104,8 +106,14 @@ int main(int argc, char *argv[])
 		                                error_manager);
 	}
 
+	/* Three address code generation phase */
+	{
+		tac = mCc_ast_get_tac(program);
+		mCc_tac_print_tac(tac, stdout);
+		mCc_tac_delete_tac(tac);
+	}
+
 	/*    TODO
-	 * - create three-address code
 	 * - do some optimisations
 	 * - output assembly code
 	 * - invoke backend compiler

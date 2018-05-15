@@ -138,6 +138,7 @@ mCc_tac_node mCc_ast_get_tac_statement(struct mCc_ast_statement *);
 struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *, mCc_tac_node);
 struct mCc_tac_var mCc_tac_cgen_expression(struct mCc_ast_expression *,
                                            mCc_tac_node);
+mCc_tac_node mCc_ast_get_tac(struct mCc_ast_program *);
 
 #ifdef __cplusplus
 }
