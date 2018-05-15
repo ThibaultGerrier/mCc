@@ -1180,7 +1180,7 @@ TEST(SymbolTable, FunctionAndVariableNameConflictIncorrect)
 
 	ASSERT_EQ(0,
 	          strcmp("error: function 'foo', naming conflict with a varaible "
-	                 "in this scope or unknown function, line: 1, col: 35",
+	                 "in this scope, line: 1, col: 35",
 	                 error_manager->array[0]->msg));
 
 	mCc_parser_delete_result(&result);
