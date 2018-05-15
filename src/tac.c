@@ -295,8 +295,8 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 {
 	char *str;
 	struct mCc_tac_var ret = {
-		val : mCc_tac_new_identifier(),
-		type : MCC_AST_TYPE_VOID,
+		.val = mCc_tac_new_identifier(),
+		.type = MCC_AST_TYPE_VOID,
 	};
 	mCc_tac_node node = mCc_tac_create_node();
 	node->type = TAC_LINE_TYPE_SIMPLE;
@@ -351,9 +351,9 @@ struct mCc_tac_var
 mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 {
 	struct mCc_tac_var ret = {
-		val : mCc_tac_new_identifier(),
-		type : identifier->symbol_table_entry->data_type,
-		array : (int)identifier->symbol_table_entry->array_size,
+		.val = mCc_tac_new_identifier(),
+		.type = identifier->symbol_table_entry->data_type,
+		.array = (int)identifier->symbol_table_entry->array_size,
 	};
 	mCc_tac_node node = mCc_tac_create_node();
 	node->type = TAC_LINE_TYPE_SIMPLE;
@@ -377,8 +377,8 @@ struct mCc_tac_var
 mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 {
 	struct mCc_tac_var ret = {
-		val : mCc_tac_new_identifier(),
-		type : MCC_AST_TYPE_VOID,
+		.val = mCc_tac_new_identifier(),
+		.type =  MCC_AST_TYPE_VOID,
 	};
 
 	switch (expression->type) {

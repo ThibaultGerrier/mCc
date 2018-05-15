@@ -28,8 +28,7 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 	auto result = mCc_parser_parse_string(input);
 
 	auto tac = mCc_ast_get_tac_expression(result.expression);
-	// mCc_tac_print_tac(tac, stderr);
-	mCc_tac_delete_tac(tac);
+	mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
@@ -54,6 +53,7 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 	ASSERT_EQ(line5->type_double.op.op, MCC_AST_BINARY_OP_OR);
 
 	// fprintf(stderr, "\n");
+	mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
@@ -65,7 +65,6 @@ TEST(ThreeAdressCode, Generate_Expression_Parenth)
 
 	auto tac = mCc_ast_get_tac_expression(result.expression);
 	// mCc_tac_print_tac(tac, stderr);
-	mCc_tac_delete_tac(tac);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
@@ -114,6 +113,7 @@ TEST(ThreeAdressCode, Generate_Expression_Parenth)
 	ASSERT_EQ(line12->type_double.op.op, MCC_AST_BINARY_OP_ADD);
 
 	// fprintf(stderr, "\n");
+    mCc_tac_delete_tac(tac);
 
 	mCc_parser_delete_result(&result);
 }
