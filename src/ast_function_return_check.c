@@ -96,6 +96,8 @@ bool mCc_ast_check_function_return_compound(
 					}
 				}
 			}
+		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+		    out = mCc_ast_check_function_return_compound(current_statement);
 		}
 	} while ((current_statement_list = current_statement_list->next) != NULL);
 
