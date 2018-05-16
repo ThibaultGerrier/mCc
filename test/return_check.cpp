@@ -17,7 +17,7 @@ void print_all_errors(std::string prefix,
 	}
 }
 
-TEST(ReturnCheck, voidFunctionCorrectSingle)
+TEST(ReturnCheck, voidFunctionSingleCorrect)
 {
 	const char input[] = "void main(){int a;}";
 	auto result = mCc_parser_parse_string(input);
@@ -46,7 +46,7 @@ TEST(ReturnCheck, voidFunctionCorrectSingle)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, voidFunctionCorrectSingleWithReturn)
+TEST(ReturnCheck, voidFunctionSingleWithReturnCorrect)
 {
 	const char input[] = "void main(){int a; return;}";
 	auto result = mCc_parser_parse_string(input);
@@ -75,7 +75,7 @@ TEST(ReturnCheck, voidFunctionCorrectSingleWithReturn)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, voidFunctionCorrectMultiple)
+TEST(ReturnCheck, voidFunctionMultipleCorrect)
 {
 	const char input[] =
 	    "void foo(){} void bar(){float number;} void main(){int a;}";
@@ -105,7 +105,7 @@ TEST(ReturnCheck, voidFunctionCorrectMultiple)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectSingle)
+TEST(ReturnCheck, nonVoidFunctionSingleCorrect)
 {
 	const char input[] = "int foo() {return 1;} void main(){int a;}";
 	auto result = mCc_parser_parse_string(input);
@@ -134,7 +134,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingle)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectMultiple)
+TEST(ReturnCheck, nonVoidFunctionMultipleICorrect)
 {
 	const char input[] = "int foo() {return 1;} float bar() {float b; return "
 	                     "b;} void main(){int a;}";
@@ -164,9 +164,10 @@ TEST(ReturnCheck, nonVoidFunctionCorrectMultiple)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectSingleIf)
+TEST(ReturnCheck, nonVoidFunctionSingleIfCorrect)
 {
-	const char input[] = "int foo() {if(true){return 1;}} void main(){int a;}";
+	const char input[] =
+	    "int foo() {if(true){return 1;} return 1;} void main(){int a;}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -193,7 +194,39 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIf)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElse)
+TEST(ReturnCheck, nonVoidFunctionSingleIfInorrect)
+{
+	const char input[] = "int foo() {if(true){return 1;}} void main(){int a;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	mCc_ast_function_return_checks(prog, error_manager);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(
+	    0,
+	    strcmp(
+	        "error in line 1, col: 1: no return in a non void function: 'foo'",
+	        error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(ReturnCheck, nonVoidFunctionSingleIfElseCorrect)
 {
 	const char input[] =
 	    "int foo() {if(true){return 1;}else{return 2;}} void main(){int a;}";
@@ -223,7 +256,34 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElse)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleI)
+TEST(ReturnCheck, nonVoidFunctionSingleIfElseMultipleICorrect)
+{
+	const char input[] = "int foo() {if(true){return 1;}else{if(true){return "
+	                     "1;}}return 1;} void main(){int a;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	mCc_ast_function_return_checks(prog, error_manager);
+
+	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(ReturnCheck, nonVoidFunctionSingleIfElseMultipleIIncorrect)
 {
 	const char input[] = "int foo() {if(true){return 1;}else{if(true){return "
 	                     "1;}}} void main(){int a;}";
@@ -243,17 +303,20 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleI)
 
 	mCc_ast_function_return_checks(prog, error_manager);
 
-	const ::testing::TestInfo *const test_info =
-	    ::testing::UnitTest::GetInstance()->current_test_info();
-	print_all_errors(test_info->name(), error_manager);
-	ASSERT_EQ(0u, error_manager->used);
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(
+	    0,
+	    strcmp(
+	        "error in line 1, col: 1: no return in a non void function: 'foo'",
+	        error_manager->array[0]->msg));
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleII)
+TEST(ReturnCheck, nonVoidFunctionSingleIfElseMultipleIICorrect)
 {
 	const char input[] = "int foo() {if(true){return 1;}else{if(true){return "
 	                     "1;}else{return 3;}}} void main(){int a;}";
@@ -283,7 +346,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleIfElseMultipleII)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionCorrectSingleWhile)
+TEST(ReturnCheck, nonVoidFunctionSingleWhileCorrect)
 {
 	const char input[] = "int foo(){while(true){int a; return a;} return 1;} "
 	                     "void main(){int a;}";
@@ -313,7 +376,7 @@ TEST(ReturnCheck, nonVoidFunctionCorrectSingleWhile)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionMultipleCorrect)
+TEST(ReturnCheck, nonVoidFunctionMultipleIICorrect)
 {
 	const char input[] = "int foo(){while(true){return 1;} return 2;} float "
 	                     "bar(int b){if(b){return "
@@ -344,7 +407,7 @@ TEST(ReturnCheck, nonVoidFunctionMultipleCorrect)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionIncorrectSingleWithReturnVoid)
+TEST(ReturnCheck, nonVoidFunctionSingleWithReturnVoidIncorrect)
 {
 	const char input[] = "int foo(){return;} void main(){int a; return;}";
 	auto result = mCc_parser_parse_string(input);
@@ -376,7 +439,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectSingleWithReturnVoid)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionIncorrectIf)
+TEST(ReturnCheck, nonVoidFunctionIfIncorrect)
 {
 	const char input[] = "int foo(){if(true){}} void main(){int a; return;}";
 	auto result = mCc_parser_parse_string(input);
@@ -408,7 +471,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectIf)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionIncorrectIfelse)
+TEST(ReturnCheck, nonVoidFunctionIfelseIncorrect)
 {
 	const char input[] =
 	    "int foo(){if(true){return 1;}else{}} void main(){int a; return;}";
@@ -441,7 +504,7 @@ TEST(ReturnCheck, nonVoidFunctionIncorrectIfelse)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, nonVoidFunctionIncorrectWhile)
+TEST(ReturnCheck, nonVoidFunctionWhileIncorrect)
 {
 	const char input[] =
 	    "int foo(){while(true){return 1;}} void main(){int a; return;}";
@@ -514,7 +577,7 @@ TEST(ReturnCheck, nonVoidFunctionMultipleIncorrect)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, FunctionCorrectFunctionNonVoidReturnII)
+TEST(ReturnCheck, FunctionFunctionNonVoidReturnIICorrect)
 {
 	const char input[] =
 	    "int ackermann(int m, int n){if (m == 0) {return n + 1;}if (n == 0) "
@@ -548,8 +611,8 @@ TEST(ReturnCheck, FunctionCorrectFunctionNonVoidReturnII)
 
 TEST(ReturnCheck, IfReturnsWithoutCompoundNonVoidCorrect)
 {
-	const char input[] =
-	    "int ackermann(int m, int n){if(m < 2) return 1;}void main() {}";
+	const char input[] = "int ackermann(int m, int n){if(m < 2) return 1; "
+	                     "return 2;}void main() {}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -920,7 +983,8 @@ TEST(ReturnCheck, IfelseIfelseIfWithCompundNonVoidCorrect)
 {
 	const char input[] =
 	    "bool is_even(int n) {if (n == 1)return false; else if (n == "
-	    "0)return true; else {if (n==2) return true;}}void main() {}";
+	    "0)return true; else {if (n==2) return true;} return true;}void main() "
+	    "{}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -941,6 +1005,38 @@ TEST(ReturnCheck, IfelseIfelseIfWithCompundNonVoidCorrect)
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(ReturnCheck, IfelseIfelseIfWithCompundNonVoidInorrect)
+{
+	const char input[] =
+	    "bool is_even(int n) {if (n == 1)return false; else if (n == "
+	    "0)return true; else {if (n==2) return true;}}void main() {}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	mCc_ast_function_return_checks(prog, error_manager);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error in line 1, col: 1: no return in a non void "
+	                    "function: 'is_even'",
+	                    error_manager->array[0]->msg));
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
@@ -1033,6 +1129,7 @@ TEST(ReturnCheck, IfelseIfelseIfelseIfWithoutCompundNonVoidInorrect)
 	mCc_ast_function_return_checks(prog, error_manager);
 
 	ASSERT_EQ(1u, error_manager->used);
+
 	ASSERT_EQ(0, strcmp("error in line 1, col: 1: no return in a non void "
 	                    "function: 'is_even'",
 	                    error_manager->array[0]->msg));

@@ -1,6 +1,6 @@
 #include "mCc/ast_function_return_check.h"
-#include <mCc/ast.h>
-#include <mCc/error_manager.h>
+#include "mCc/ast.h"
+#include "mCc/error_manager.h"
 #include <stdio.h>
 
 bool mCc_ast_check_function_return_compound(
@@ -57,25 +57,26 @@ bool mCc_ast_check_function_return_compound(
 		    current_statement->expression != NULL) {
 			return true;
 		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_IF) {
-			// check if there is a return statement or not
-			if (current_statement->if_branch->type ==
-			        MCC_AST_STATEMENT_TYPE_RETURN &&
-			    current_statement->if_branch->expression != NULL) {
-				out = true;
-			} else {
-				// check if there is a compound statement or not
-				if (current_statement->if_branch->type !=
-				    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-					out = false;
-				} else {
-					out = out || mCc_ast_check_function_return_compound(
-					                 current_statement->if_branch);
-				}
-			}
-
-			// if there is no else branch there can be no return statement
+			// check if this is a if else
 			if (current_statement->else_branch != NULL) {
 				// check if there is a return statement or not
+				if (current_statement->if_branch->type ==
+				        MCC_AST_STATEMENT_TYPE_RETURN &&
+				    current_statement->if_branch->expression != NULL) {
+					out = true;
+				} else {
+					// check if there is a compound statement or not
+					if (current_statement->if_branch->type !=
+					    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+						out = false;
+					} else {
+						out = out || mCc_ast_check_function_return_compound(
+						                 current_statement->if_branch);
+					}
+				}
+
+				// check if there is a return statement or not in the else
+				// branch
 				if (current_statement->else_branch->type ==
 				        MCC_AST_STATEMENT_TYPE_RETURN &&
 				    current_statement->else_branch->expression != NULL) {
@@ -96,8 +97,9 @@ bool mCc_ast_check_function_return_compound(
 					}
 				}
 			}
-		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-		    out = mCc_ast_check_function_return_compound(current_statement);
+		} else if (current_statement->type ==
+		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+			out = mCc_ast_check_function_return_compound(current_statement);
 		}
 	} while ((current_statement_list = current_statement_list->next) != NULL);
 
