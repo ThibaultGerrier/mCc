@@ -648,3 +648,19 @@ TEST(ThreeAdressCode, unit_cgen_expression_not)
 
 	mCc_parser_delete_result(&result);
 }
+
+TEST(ThreeAdressCode, Generate_Expression_Scope)
+{
+	const char input[] = "void main(int a){ int b; a = 1; b = 2; { int b; a = "
+	                     "3; b = 4; { a = 2; int a; a = 1; } } }";
+	auto result = mCc_parser_parse_string(input);
+
+	auto tac = mCc_ast_get_tac_program(result.program);
+	//mCc_tac_print_tac(tac, stderr);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	mCc_tac_delete_tac(tac);
+
+	mCc_parser_delete_result(&result);
+}

@@ -19,6 +19,7 @@ struct mCc_tac_var {
 	enum mCc_ast_type type;
 	int array;
 	char *val;
+	int depth;
 };
 
 struct mCc_tac_op {
