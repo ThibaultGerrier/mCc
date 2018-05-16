@@ -651,14 +651,39 @@ TEST(ThreeAdressCode, unit_cgen_expression_not)
 
 TEST(ThreeAdressCode, Generate_Expression_Scope)
 {
-	const char input[] = "void main(int a){ int b; a = 1; b = 2; { int b; a = "
-	                     "3; b = 4; { a = 2; int a; a = 1; } } }";
+	const char input[] =
+			"void main(){ int a; int b; a = 1; b = 2; { int b; a = "
+					"3; b = 4; { a = 2; int a; a = 1; } } }";
 	auto result = mCc_parser_parse_string(input);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	//mCc_tac_print_tac(tac, stderr);
 
-	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	auto level1a_1 = tac->next->next->next->next->type_simple.arg0;
+	auto level1a_2 = tac->next->next->next->next->next->next->next->next->next
+			->next->type_simple.arg0;
+	auto level1a_3 =
+			tac->next->next->next->next->next->next->next->next->next->next->next
+					->next->next->next->next->next->type_simple.arg0;
+	auto level2a =
+			tac->next->next->next->next->next->next->next->next->next->next->next
+					->next->next->next->next->next->next->next->next->type_simple.arg0;
+
+	auto level1b =
+			tac->next->next->next->next->next->next->next->type_simple.arg0;
+	auto level2b = tac->next->next->next->next->next->next->next->next->next
+			->next->next->next->next->type_simple.arg0;
+
+	ASSERT_STREQ(level1a_1.val, level1a_2.val);
+	ASSERT_STREQ(level1a_3.val, level1a_2.val);
+	ASSERT_STREQ(level2a.val, level1a_2.val);
+
+	ASSERT_EQ(level1a_1.depth, level1a_2.depth);
+	ASSERT_EQ(level1a_3.depth, level1a_2.depth);
+	ASSERT_NE(level2a.depth, level1a_2.depth);
+
+	ASSERT_STREQ(level1b.val, level2b.val);
+
+	ASSERT_NE(level1b.depth, level2b.depth);
 
 	mCc_tac_delete_tac(tac);
 
