@@ -138,14 +138,13 @@ TEST(ThreeAdressCode, Generate_IF)
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
-	tac = tac->next;
-	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->next->next->next->type);
 
-	auto gotoLabel = tac->next->next->next->type_ifz.jump_label_name;
-	auto label = tac->next->next->next->next->type_label.label_name;
+	auto gotoLabel = tac->next->next->next->next->type_ifz.jump_label_name;
+	auto label = tac->next->next->next->next->next->type_label.label_name;
 
 	ASSERT_EQ(gotoLabel, label);
 
@@ -165,20 +164,21 @@ TEST(ThreeAdressCode, Generate_IFELSE)
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
-	tac = tac->next;
-	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_JUMP, tac->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_JUMP, tac->next->next->next->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
 	          tac->next->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
+	          tac->next->next->next->next->next->next->next->type);
 
-	auto gotoIF = tac->next->next->next->type_ifz.jump_label_name;
-	auto labelIF = tac->next->next->next->next->next->type_label.label_name;
-	auto gotoELSE = tac->next->next->next->next->type_jump.jump_name;
-	auto labelELSE =
+	auto gotoIF = tac->next->next->next->next->type_ifz.jump_label_name;
+	auto labelIF =
 	    tac->next->next->next->next->next->next->type_label.label_name;
+	auto gotoELSE = tac->next->next->next->next->next->type_jump.jump_name;
+	auto labelELSE =
+	    tac->next->next->next->next->next->next->next->type_label.label_name;
 
 	ASSERT_EQ(gotoIF, labelIF);
 	ASSERT_EQ(gotoELSE, labelELSE);
@@ -199,21 +199,23 @@ TEST(ThreeAdressCode, Generate_WHILE)
 	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
-	tac = tac->next;
-	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_JUMP, tac->next->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
+	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_JUMP,
 	          tac->next->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
+	          tac->next->next->next->next->next->next->next->type);
 
-	auto beginLabel = tac->next->type_label.label_name;
+	auto beginLabel = tac->next->next->type_label.label_name;
 	auto endLabel =
-	    tac->next->next->next->next->next->next->type_label.label_name;
+	    tac->next->next->next->next->next->next->next->type_label.label_name;
 
-	auto gotoBeginning = tac->next->next->next->next->next->type_jump.jump_name;
-	auto ifZGotoEnd = tac->next->next->next->next->type_ifz.jump_label_name;
+	auto gotoBeginning =
+	    tac->next->next->next->next->next->next->type_jump.jump_name;
+	auto ifZGotoEnd =
+	    tac->next->next->next->next->next->type_ifz.jump_label_name;
 
 	ASSERT_EQ(beginLabel, gotoBeginning);
 	ASSERT_EQ(endLabel, ifZGotoEnd);

@@ -20,17 +20,26 @@ int mCc_tac_new_label()
 	return mCc_tac_label;
 }
 
-struct mCc_ast_parameter *
-mCc_tac_reverse_parameter(struct mCc_ast_parameter *root)
+int mCc_tac_get_count(struct mCc_ast_parameter *head)
 {
-	struct mCc_ast_parameter *new_root = 0;
-	while (root) {
-		struct mCc_ast_parameter *next = root->next;
-		root->next = new_root;
-		new_root = root;
-		root = next;
-	}
-	return new_root;
+    int count = 0;  // Initialize count
+    struct mCc_ast_parameter* current = head;  // Initialize current
+    while (current != NULL)
+    {
+        count++;
+        current = current->next;
+    }
+    return count;
+}
+
+/* Takes head pointer of the linked list and index
+    as arguments and return data at index*/
+struct mCc_ast_parameter* mCc_tac_get_nth(struct mCc_ast_parameter *head, int n)
+{
+    struct mCc_ast_parameter* curr = head;
+    for (int i=0; i<n-1 && curr != NULL; i++)
+        curr = curr->next;
+    return curr;
 }
 
 char mCc_tac_get_ret_type(enum mCc_ast_type t)
@@ -729,50 +738,52 @@ void mCc_tac_cgen_statement_list(struct mCc_ast_statement_list *statement_list,
 }
 
 void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
-                               mCc_tac_node tac)
-{
-	mCc_tac_node nodeLabel = mCc_tac_create_node();
-	nodeLabel->type = TAC_LINE_TYPE_LABELFUNC;
-	nodeLabel->type_label_func.func_name =
-	    function_def->function_identifier->name;
-	mCc_tac_add_node(nodeLabel, tac);
+                               mCc_tac_node tac) {
+    mCc_tac_node nodeLabel = mCc_tac_create_node();
+    nodeLabel->type = TAC_LINE_TYPE_LABELFUNC;
+    nodeLabel->type_label_func.func_name =
+            function_def->function_identifier->name;
+    mCc_tac_add_node(nodeLabel, tac);
 
-	// reverse the order
-	struct mCc_ast_parameter *next =
-	    mCc_tac_reverse_parameter(function_def->parameters);
-	while (next != NULL) {
-		mCc_tac_node nodeParameter = mCc_tac_create_node();
-		switch (next->declaration->declaration_type) {
-		case MCC_AST_DECLARATION_TYPE_DECLARATION: {
-			nodeParameter->type = TAC_LINE_TYPE_POP;
-			char *str = malloc(
-			    sizeof(char) *
-			    (strlen(next->declaration->normal_decl.identifier->name) + 1));
-			sprintf(str, "%s", next->declaration->normal_decl.identifier->name);
-			struct mCc_tac_var var = { next->declaration->identifier_type, 0,
-				                       str };
-			nodeParameter->type_pop.var = var;
-			mCc_tac_add_node(nodeParameter, tac);
-			break;
-		}
-		case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
-			nodeParameter->type = TAC_LINE_TYPE_POP;
-			char *str = malloc(
-			    sizeof(char) *
-			    (strlen(next->declaration->array_decl.identifier->name) + 1));
-			sprintf(str, "%s", next->declaration->array_decl.identifier->name);
-			struct mCc_tac_var var = {
-				next->declaration->identifier_type,
-				(int)next->declaration->array_decl.literal->i_value, str
-			};
-			nodeParameter->type_pop.var = var;
+    struct mCc_ast_parameter *head = function_def->parameters;
 
-			mCc_tac_add_node(nodeParameter, tac);
-			break;
-		}
-		}
-		next = next->next;
-	}
+    int n = mCc_tac_get_count(head);
+    for (int i = n; i >= 1; i--) {
+        struct mCc_ast_parameter *next = mCc_tac_get_nth(head, i);
+        mCc_tac_node nodeParameter = mCc_tac_create_node();
+        switch (next->declaration->declaration_type) {
+            case MCC_AST_DECLARATION_TYPE_DECLARATION: {
+                nodeParameter->type = TAC_LINE_TYPE_POP;
+                char *str = malloc(
+                        sizeof(char) *
+                        (strlen(next->declaration->normal_decl.identifier->name) + 1));
+                sprintf(str, "%s", next->declaration->normal_decl.identifier->name);
+                struct mCc_tac_var var = {next->declaration->identifier_type, 0,
+                                          str};
+                nodeParameter->type_pop.var = var;
+                mCc_tac_add_node(nodeParameter, tac);
+                break;
+            }
+            case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
+                nodeParameter->type = TAC_LINE_TYPE_POP;
+                char *str = malloc(
+                        sizeof(char) *
+                        (strlen(next->declaration->array_decl.identifier->name) + 1));
+                sprintf(str, "%s", next->declaration->array_decl.identifier->name);
+                struct mCc_tac_var var = {
+                        next->declaration->identifier_type,
+                        (int) next->declaration->array_decl.literal->i_value, str
+                };
+                nodeParameter->type_pop.var = var;
+
+                mCc_tac_add_node(nodeParameter, tac);
+                break;
+            }
+        }
+        //next = next->next;
+    }
+
+
 	mCc_tac_cgen_statement(function_def->compound_stmt, tac);
 	mCc_tac_node nodeEnd = mCc_tac_create_node();
 	nodeEnd->type = TAC_LINE_TYPE_LABELFUNC_END;

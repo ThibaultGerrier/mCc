@@ -119,7 +119,6 @@ int main(int argc, char *argv[])
 	{
 		tac = mCc_ast_get_tac(program);
 		mCc_tac_print_tac(tac, stdout);
-		// mCc_tac_delete_tac(tac);
 	}
 
 	/*    TODO
