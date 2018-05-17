@@ -9,19 +9,20 @@ bool mCc_ast_check_function_return_compound(
 bool else_if_case(bool out, struct mCc_ast_statement *current_statement)
 {
 	struct mCc_ast_statement *else_branch = current_statement->else_branch;
-	if (else_branch->if_branch->type == MCC_AST_STATEMENT_TYPE_RETURN &&
-	    else_branch->if_branch->expression != NULL) {
-		out = out && true; // could be simplified to just out
-	} else {
-		if (else_branch->if_branch->type ==
-		    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-			out = out && mCc_ast_check_function_return_compound(
-			                 else_branch->if_branch);
-		} else {
-			return false;
-		}
-	}
 	if (else_branch->else_branch != NULL) {
+		if (else_branch->if_branch->type == MCC_AST_STATEMENT_TYPE_RETURN &&
+		    else_branch->if_branch->expression != NULL) {
+			out = out && true; // could be simplified to just out
+		} else {
+			if (else_branch->if_branch->type ==
+			    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
+				out = out && mCc_ast_check_function_return_compound(
+				                 else_branch->if_branch);
+			} else {
+				return false;
+			}
+		}
+
 		if (else_branch->else_branch->type == MCC_AST_STATEMENT_TYPE_RETURN &&
 		    else_branch->else_branch->expression != NULL) {
 			out = out && true; // could be simplified to just out
@@ -35,6 +36,8 @@ bool else_if_case(bool out, struct mCc_ast_statement *current_statement)
 		} else {
 			return false;
 		}
+	} else {
+	    return false;
 	}
 	return out;
 }
@@ -87,7 +90,7 @@ bool mCc_ast_check_function_return_compound(
 					    current_statement->else_branch->type;
 					if (type != MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
 						if (type == MCC_AST_STATEMENT_TYPE_IF) { // else if case
-							out = else_if_case(out, current_statement);
+							out = out && else_if_case(out, current_statement);
 						} else {
 							out = false;
 						}
@@ -99,7 +102,8 @@ bool mCc_ast_check_function_return_compound(
 			}
 		} else if (current_statement->type ==
 		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-			out = mCc_ast_check_function_return_compound(current_statement);
+			out = out ||
+			      mCc_ast_check_function_return_compound(current_statement);
 		}
 	} while ((current_statement_list = current_statement_list->next) != NULL);
 

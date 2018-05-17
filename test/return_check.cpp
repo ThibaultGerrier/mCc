@@ -1043,11 +1043,12 @@ TEST(ReturnCheck, IfelseIfelseIfWithCompundNonVoidInorrect)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(ReturnCheck, IfelseIfelseIfWithoutCompundNonVoidCorrect)
+TEST(ReturnCheck, IfelseIfelseIfelseWithoutCompundNonVoidCorrect)
 {
 	const char input[] =
 	    "bool is_even(int n) {if (n == 1)return false; else if (n == "
-	    "0)return true; else if (n==2) return true;}void main() {}";
+	    "0)return true; else if (n==2) return true; else return false;}void "
+	    "main() {}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -1079,7 +1080,7 @@ TEST(ReturnCheck, IfelseIfelseIfelseIfWithoutCompundNonVoidCorrect)
 	const char input[] =
 	    "bool is_even(int n) {if (n == 1)return false; else if (n == "
 	    "0)return true; else if (n==2) return true; else if (n == 3) return "
-	    "false;}void main() {}";
+	    "false; else return true;}void main() {}";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -1222,6 +1223,98 @@ TEST(ReturnCheck, ReturnInCompoundNonVoidCorrect)
 	    ::testing::UnitTest::GetInstance()->current_test_info();
 	print_all_errors(test_info->name(), error_manager);
 	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(ReturnCheck, IfelseWithCompoundAfterNonVoidCorrect)
+{
+	const char input[] = "bool foo(int n) {if(n < 1) return true; else return "
+	                     "false;{int a;}} void main() {}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	mCc_ast_function_return_checks(prog, error_manager);
+
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
+	ASSERT_EQ(0u, error_manager->used);
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(ReturnCheck, IfelseIfNonVoidIIncorrect)
+{
+	const char input[] = "bool foo(int n) {if(n < 10) return true; else if (n "
+	                     "> 10) return false;} void main() {}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	mCc_ast_function_return_checks(prog, error_manager);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error in line 1, col: 1: no return in a non void "
+	                    "function: 'foo'",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(ReturnCheck, IfelseIfNonVoidIIIncorrect)
+{
+	const char input[] = "bool foo(int n) {if(n < 10) return true; else if (n "
+	                     "> 10) {return false;}} void main() {}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	auto visitor = mCc_ast_symbol_table_visitor(&visitor_data, nullptr);
+
+	mCc_ast_visit_program(prog, &visitor);
+
+	mCc_ast_function_return_checks(prog, error_manager);
+
+	ASSERT_EQ(1u, error_manager->used);
+
+	ASSERT_EQ(0, strcmp("error in line 1, col: 1: no return in a non void "
+	                    "function: 'foo'",
+	                    error_manager->array[0]->msg));
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
