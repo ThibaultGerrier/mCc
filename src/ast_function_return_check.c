@@ -8,36 +8,42 @@ bool mCc_ast_check_function_return_compound(
 
 bool else_if_case(bool out, struct mCc_ast_statement *current_statement)
 {
-	struct mCc_ast_statement *else_branch = current_statement->else_branch;
-	if (else_branch->else_branch != NULL) {
-		if (else_branch->if_branch->type == MCC_AST_STATEMENT_TYPE_RETURN &&
-		    else_branch->if_branch->expression != NULL) {
-			out = out && true; // could be simplified to just out
+	// check if this is a if else
+	if (current_statement->else_branch != NULL) {
+		// check if there is a return statement or not
+		if (current_statement->if_branch->type ==
+		        MCC_AST_STATEMENT_TYPE_RETURN &&
+		    current_statement->if_branch->expression != NULL) {
+			out = true;
 		} else {
-			if (else_branch->if_branch->type ==
+			if (current_statement->if_branch->type ==
 			    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-				out = out && mCc_ast_check_function_return_compound(
-				                 else_branch->if_branch);
+				out = mCc_ast_check_function_return_compound(
+				    current_statement->if_branch);
 			} else {
 				return false;
 			}
 		}
-
-		if (else_branch->else_branch->type == MCC_AST_STATEMENT_TYPE_RETURN &&
-		    else_branch->else_branch->expression != NULL) {
+		// check if there is a return statement or not in the else branch
+		if (current_statement->else_branch->type ==
+		        MCC_AST_STATEMENT_TYPE_RETURN &&
+		    current_statement->else_branch->expression != NULL) {
 			out = out && true; // could be simplified to just out
-		} else if (else_branch->else_branch->type ==
+
+			// check if there is a compound statement
+		} else if (current_statement->else_branch->type ==
 		           MCC_AST_STATEMENT_TYPE_IF) {
-			out = else_if_case(out, else_branch);
-		} else if (else_branch->else_branch->type ==
+			out = out && else_if_case(out, current_statement->else_branch);
+			// check if there is a if statement
+		} else if (current_statement->else_branch->type ==
 		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
 			out = out && mCc_ast_check_function_return_compound(
-			                 else_branch->else_branch);
+			                 current_statement->else_branch);
 		} else {
 			return false;
 		}
 	} else {
-	    return false;
+		return false;
 	}
 	return out;
 }
@@ -60,45 +66,8 @@ bool mCc_ast_check_function_return_compound(
 		    current_statement->expression != NULL) {
 			return true;
 		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_IF) {
-			// check if this is a if else
 			if (current_statement->else_branch != NULL) {
-				// check if there is a return statement or not
-				if (current_statement->if_branch->type ==
-				        MCC_AST_STATEMENT_TYPE_RETURN &&
-				    current_statement->if_branch->expression != NULL) {
-					out = true;
-				} else {
-					// check if there is a compound statement or not
-					if (current_statement->if_branch->type !=
-					    MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-						out = false;
-					} else {
-						out = out || mCc_ast_check_function_return_compound(
-						                 current_statement->if_branch);
-					}
-				}
-
-				// check if there is a return statement or not in the else
-				// branch
-				if (current_statement->else_branch->type ==
-				        MCC_AST_STATEMENT_TYPE_RETURN &&
-				    current_statement->else_branch->expression != NULL) {
-					out = out && true; // could be simplified to just out
-				} else {
-					// check if there is a compound or if statement
-					enum mCc_ast_statement_type type =
-					    current_statement->else_branch->type;
-					if (type != MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
-						if (type == MCC_AST_STATEMENT_TYPE_IF) { // else if case
-							out = out && else_if_case(out, current_statement);
-						} else {
-							out = false;
-						}
-					} else {
-						out = out && mCc_ast_check_function_return_compound(
-						                 current_statement->else_branch);
-					}
-				}
+				out = out || else_if_case(out, current_statement);
 			}
 		} else if (current_statement->type ==
 		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
