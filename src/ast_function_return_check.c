@@ -6,7 +6,7 @@
 bool mCc_ast_check_function_return_compound(
     struct mCc_ast_statement *compound_stmt);
 
-bool else_if_case(bool out, struct mCc_ast_statement *current_statement)
+bool if_else_case(bool out, struct mCc_ast_statement *current_statement)
 {
 	// check if this is a if else
 	if (current_statement->else_branch != NULL) {
@@ -33,7 +33,7 @@ bool else_if_case(bool out, struct mCc_ast_statement *current_statement)
 			// check if there is a compound statement
 		} else if (current_statement->else_branch->type ==
 		           MCC_AST_STATEMENT_TYPE_IF) {
-			out = out && else_if_case(out, current_statement->else_branch);
+			out = out && if_else_case(out, current_statement->else_branch);
 			// check if there is a if statement
 		} else if (current_statement->else_branch->type ==
 		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
@@ -67,7 +67,7 @@ bool mCc_ast_check_function_return_compound(
 			return true;
 		} else if (current_statement->type == MCC_AST_STATEMENT_TYPE_IF) {
 			if (current_statement->else_branch != NULL) {
-				out = out || else_if_case(out, current_statement);
+				out = out || if_else_case(out, current_statement);
 			}
 		} else if (current_statement->type ==
 		           MCC_AST_STATEMENT_TYPE_COMPOUND_STMT) {
