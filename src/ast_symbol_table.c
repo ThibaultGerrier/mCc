@@ -131,28 +131,33 @@ void symbol_table_add_built_in_functions(
 	                        new_entry_read_float);
 }
 
-static void
-symbol_table_function_identifier(struct mCc_ast_function_def *function_def,
-                                 struct mCc_err_error_manager *error_manager,
-                                 struct mCc_ast_symbol_table_stack_entry *stack);
+static void symbol_table_function_identifier(
+    struct mCc_ast_function_def *function_def,
+    struct mCc_err_error_manager *error_manager,
+    struct mCc_ast_symbol_table_stack_entry *stack);
 
-void symbol_table_add_all_function_def(struct mCc_ast_function_def_list *function_def_list, struct mCc_err_error_manager *error_manager, struct mCc_ast_symbol_table_stack_entry *stack) {
+void symbol_table_add_all_function_def(
+    struct mCc_ast_function_def_list *function_def_list,
+    struct mCc_err_error_manager *error_manager,
+    struct mCc_ast_symbol_table_stack_entry *stack)
+{
 
-	struct mCc_ast_function_def_list *current_function_def_list = function_def_list;
+	struct mCc_ast_function_def_list *current_function_def_list =
+	    function_def_list;
 
 	while (current_function_def_list != NULL) {
-		struct mCc_ast_function_def *current_function_def = current_function_def_list->function_def;
+		struct mCc_ast_function_def *current_function_def =
+		    current_function_def_list->function_def;
 		symbol_table_function_identifier(current_function_def, error_manager,
-										stack);
+		                                 stack);
 		current_function_def_list = current_function_def_list->next;
 	}
-
 }
 
 static void symbol_table_program(struct mCc_ast_program *program,
-								 enum mCc_ast_visit_type visit_type,
-								 struct mCc_err_error_manager *error_manager,
-								 void *data)
+                                 enum mCc_ast_visit_type visit_type,
+                                 struct mCc_err_error_manager *error_manager,
+                                 void *data)
 {
 	assert(program);
 	assert(data);
@@ -162,10 +167,11 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		visit_data->symbol_table_tree = mCc_sym_table_new_tree(NULL);
 		visit_data->stack = ast_symbol_table_new_stack_entry(
 		    NULL, visit_data->symbol_table_tree, 0);
-		//Add built-in functions
+		// Add built-in functions
 		symbol_table_add_built_in_functions(visit_data);
-		//Add all function def in file
-		symbol_table_add_all_function_def(program->function_def_list, error_manager, visit_data->stack);
+		// Add all function def in file
+		symbol_table_add_all_function_def(program->function_def_list,
+		                                  error_manager, visit_data->stack);
 
 	} else if (visit_type == MCC_AST_VISIT_AFTER) {
 		free(ast_symbol_table_stack_pop(&visit_data->stack));

@@ -3,8 +3,8 @@
 #include "uthash.h"
 #include <assert.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 struct mCc_sym_table_entry *
@@ -86,7 +86,7 @@ void mCc_sym_table_delete_tree_recursive(struct mCc_sym_table_tree *tree)
 
 void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree)
 {
-	//clean up for built-in functions
+	// clean up for built-in functions
 	const char *a[6];
 	a[0] = "print";
 	a[1] = "print_nl";
@@ -101,7 +101,6 @@ void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree)
 		assert(entry);
 		mCc_ast_delete_function_def(entry->function_def);
 	}
-
 
 	assert(tree);
 	mCc_sym_table_delete_tree_recursive(tree);

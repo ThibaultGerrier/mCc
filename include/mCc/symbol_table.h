@@ -1,9 +1,9 @@
 #ifndef MCC_SYMBOL_TABLE_H
 #define MCC_SYMBOL_TABLE_H
 
+#include "../../src/uthash.h"
 #include "ast.h"
 #include "stddef.h"
-#include "../../src/uthash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +54,7 @@ void mCc_sym_table_delete_symbol_table(struct mCc_sym_table_entry **table);
 
 void mCc_sym_table_delete_tree_recursive(struct mCc_sym_table_tree *tree);
 
-//deletes a symbol table including the built-in functions
+// deletes a symbol table including the built-in functions
 void mCc_sym_table_delete_tree(struct mCc_sym_table_tree *tree);
 
 /**

@@ -22,9 +22,9 @@ struct mCc_ast_symbol_table_visitor_data {
 	size_t max_index;
 };
 
-struct mCc_ast_visitor
-mCc_ast_symbol_table_visitor(struct mCc_ast_symbol_table_visitor_data *visit_data,
-                     struct mCc_err_error_manager *error_manager);
+struct mCc_ast_visitor mCc_ast_symbol_table_visitor(
+    struct mCc_ast_symbol_table_visitor_data *visit_data,
+    struct mCc_err_error_manager *error_manager);
 
 #ifdef __cplusplus
 }

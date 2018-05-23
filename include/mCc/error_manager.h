@@ -10,7 +10,6 @@
 extern "C" {
 #endif
 
-
 struct mCc_err_error_entry {
 	char *msg;
 	size_t start_line;
@@ -41,6 +40,5 @@ void mCc_err_delete_error_manager(struct mCc_err_error_manager *err_man);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif
