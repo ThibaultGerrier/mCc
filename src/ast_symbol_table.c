@@ -155,7 +155,7 @@ static void symbol_table_program(struct mCc_ast_program *program,
 		if (result == NULL) {
 			if (error_manager != NULL) {
 				char msg[256];
-				sprintf(msg, "error: no main function in program");
+				snprintf(msg, 256, "error: no main function in program");
 				mCc_err_error_manager_insert_error_entry(
 				    error_manager, mCc_err_new_error_entry(msg, 0, 0, 0, 0));
 			}
@@ -164,8 +164,8 @@ static void symbol_table_program(struct mCc_ast_program *program,
 			if (result->function_def->parameters != NULL) {
 				if (error_manager != NULL) {
 					char msg[256];
-					sprintf(msg,
-					        "error: main is not allowed to have parameters");
+					snprintf(msg, 256,
+					         "error: main is not allowed to have parameters");
 					mCc_err_error_manager_insert_error_entry(
 					    error_manager,
 					    mCc_err_new_error_entry(msg, 0, 0, 0, 0));
@@ -176,7 +176,8 @@ static void symbol_table_program(struct mCc_ast_program *program,
 			if (result->function_def->return_type != MCC_AST_TYPE_VOID) {
 				if (error_manager != NULL) {
 					char msg[256];
-					sprintf(msg, "error: main needs to be void as return type");
+					snprintf(msg, 256,
+					         "error: main needs to be void as return type");
 					mCc_err_error_manager_insert_error_entry(
 					    error_manager,
 					    mCc_err_new_error_entry(msg, 0, 0, 0, 0));
@@ -209,11 +210,11 @@ symbol_table_function_identifier(struct mCc_ast_function_def *function_def,
 	} else {
 		if (error_manager != NULL) {
 			char msg[256];
-			sprintf(msg,
-			        "error in line %lu, col: %lu: redefined function "
-			        "'%s'",
-			        iden->node.sloc.start_line, iden->node.sloc.start_col,
-			        iden->name);
+			snprintf(msg, 256,
+			         "error in line %lu, col: %lu: redefined function "
+			         "'%s'",
+			         iden->node.sloc.start_line, iden->node.sloc.start_col,
+			         iden->name);
 			mCc_err_error_manager_insert_error_entry(
 			    error_manager,
 			    mCc_err_new_error_entry(
@@ -315,12 +316,12 @@ static void symbol_table_declaration(
 			} else {
 				if (error_manager != NULL) {
 					char msg[256];
-					sprintf(msg,
-					        "error in line %lu, col: %lu: redefinition of "
-					        "variable '%s'",
-					        declaration->node.sloc.start_line,
-					        declaration->node.sloc.start_col,
-					        declaration->normal_decl.identifier->name);
+					snprintf(msg, 256,
+					         "error in line %lu, col: %lu: redefinition of "
+					         "variable '%s'",
+					         declaration->node.sloc.start_line,
+					         declaration->node.sloc.start_col,
+					         declaration->normal_decl.identifier->name);
 					mCc_err_error_manager_insert_error_entry(
 					    error_manager,
 					    mCc_err_new_error_entry(
@@ -348,12 +349,12 @@ static void symbol_table_declaration(
 			} else {
 				if (error_manager != NULL) {
 					char msg[256];
-					sprintf(msg,
-					        "error in line %lu, col: %lu: redefinition of "
-					        "variable '%s'",
-					        declaration->node.sloc.start_line,
-					        declaration->node.sloc.start_col,
-					        declaration->normal_decl.identifier->name);
+					snprintf(msg, 256,
+					         "error in line %lu, col: %lu: redefinition of "
+					         "variable '%s'",
+					         declaration->node.sloc.start_line,
+					         declaration->node.sloc.start_col,
+					         declaration->normal_decl.identifier->name);
 					mCc_err_error_manager_insert_error_entry(
 					    error_manager,
 					    mCc_err_new_error_entry(
@@ -383,10 +384,10 @@ static void symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	} else {
 		if (error_manager != NULL) {
 			char msg[256];
-			sprintf(msg,
-			        "error in line %lu, col: %lu: undefined identifier: '%s'",
-			        identifier->node.sloc.start_line,
-			        identifier->node.sloc.start_col, identifier->name);
+			snprintf(msg, 256,
+			         "error in line %lu, col: %lu: undefined identifier: '%s'",
+			         identifier->node.sloc.start_line,
+			         identifier->node.sloc.start_col, identifier->name);
 			mCc_err_error_manager_insert_error_entry(
 			    error_manager,
 			    mCc_err_new_error_entry(msg, identifier->node.sloc.start_line,

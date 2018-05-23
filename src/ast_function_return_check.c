@@ -88,12 +88,12 @@ void mCc_ast_check_function(struct mCc_ast_function_def *function_def,
 		        function_def->compound_stmt)) {
 			if (error_manager != NULL) {
 				char msg[256];
-				sprintf(msg,
-				        "error in line %lu, col: %lu: no return in a non void "
-				        "function: '%s'",
-				        function_def->node.sloc.start_line,
-				        function_def->node.sloc.start_col,
-				        function_def->function_identifier->name);
+				snprintf(msg, 256,
+				         "error in line %lu, col: %lu: no return in a non void "
+				         "function: '%s'",
+				         function_def->node.sloc.start_line,
+				         function_def->node.sloc.start_col,
+				         function_def->function_identifier->name);
 				mCc_err_error_manager_insert_error_entry(
 				    error_manager, mCc_err_new_error_entry(
 				                       msg, function_def->node.sloc.start_line,

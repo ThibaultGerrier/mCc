@@ -13,8 +13,8 @@ void binary_operation_error(enum mCc_ast_type lhs, enum mCc_ast_type rhs,
                             struct mCc_err_error_manager *error_manager)
 {
 	char msg[256];
-	sprintf(
-	    msg,
+	snprintf(
+	    msg, 256,
 	    "error: the type of the binary expression '%s' '%s' '%s' in line %lu, "
 	    "col: %lu is not allowed",
 	    mCc_ast_print_type(lhs), mCc_ast_print_binary_op(op),
@@ -31,11 +31,11 @@ void unary_operation_error(enum mCc_ast_type rhs, enum mCc_ast_unary_op op,
                            struct mCc_err_error_manager *error_manager)
 {
 	char msg[256];
-	sprintf(msg,
-	        "error: the type of the unary expression '%s' '%s' in line %lu, "
-	        "col: %lu is not allowed",
-	        mCc_ast_print_unary_op(op), mCc_ast_print_type(rhs), line_nm,
-	        col_nm);
+	snprintf(msg, 256,
+	         "error: the type of the unary expression '%s' '%s' in line %lu, "
+	         "col: %lu is not allowed",
+	         mCc_ast_print_unary_op(op), mCc_ast_print_type(rhs), line_nm,
+	         col_nm);
 
 	struct mCc_err_error_entry *entry =
 	    mCc_err_new_error_entry(msg, line_nm, col_nm, line_nm_end, col_nm_end);
@@ -155,12 +155,12 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 	    expression->call_expr.identifier->symbol_table_entry->function_def;
 	if (called_function == NULL) {
 		char msg[256];
-		sprintf(msg,
-		        "error: function '%s', naming conflict with a varaible in this "
-		        "scope, line: %lu, col: %lu",
-		        expression->call_expr.identifier->name,
-		        expression->node.sloc.start_line,
-		        expression->node.sloc.start_col);
+		snprintf(
+		    msg, 256,
+		    "error: function '%s', naming conflict with a varaible in this "
+		    "scope, line: %lu, col: %lu",
+		    expression->call_expr.identifier->name,
+		    expression->node.sloc.start_line, expression->node.sloc.start_col);
 		struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
 		    msg, expression->node.sloc.start_line,
 		    expression->node.sloc.start_col, expression->node.sloc.end_line,
@@ -197,13 +197,13 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 		cur_parameter = cur_parameter->next;
 	}
 	if (count_arguments != count_params) {
-		sprintf(msg,
-		        "error: in function '%s' the call argument count is not equal "
-		        "to the function "
-		        "definition parameter count: %lu != %lu in line %lu, "
-		        "col: %lu",
-		        called_function_name, count_arguments, count_params, line_nm,
-		        col_nm);
+		snprintf(msg, 256,
+		         "error: in function '%s' the call argument count is not equal "
+		         "to the function "
+		         "definition parameter count: %lu != %lu in line %lu, "
+		         "col: %lu",
+		         called_function_name, count_arguments, count_params, line_nm,
+		         col_nm);
 		entry = mCc_err_new_error_entry(msg, line_nm, col_nm, line_nm_end,
 		                                col_nm_end);
 		mCc_err_error_manager_insert_error_entry(error_manager, entry);
@@ -229,15 +229,15 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 				if (!(isIdent &&
 				      cur_argument->expression->identifier->symbol_table_entry
 				              ->array_size == paramArraySize)) {
-					sprintf(msg,
-					        "error: in function '%s' the %lu%s argument expr "
-					        "should be an array of type '%s' with size %lu in "
-					        "line %lu, col: %lu",
-					        called_function_name, cur_arg_num,
-					        mCc_ast_print_ordinal_suffix(cur_arg_num),
-					        mCc_ast_print_type(
-					            cur_parameter->declaration->identifier_type),
-					        paramArraySize, line_nm, col_nm);
+					snprintf(msg, 256,
+					         "error: in function '%s' the %lu%s argument expr "
+					         "should be an array of type '%s' with size %lu in "
+					         "line %lu, col: %lu",
+					         called_function_name, cur_arg_num,
+					         mCc_ast_print_ordinal_suffix(cur_arg_num),
+					         mCc_ast_print_type(
+					             cur_parameter->declaration->identifier_type),
+					         paramArraySize, line_nm, col_nm);
 					entry = mCc_err_new_error_entry(msg, line_nm, col_nm,
 					                                line_nm_end, col_nm_end);
 					mCc_err_error_manager_insert_error_entry(error_manager,
@@ -249,15 +249,15 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 				enum mCc_ast_type arg_type = resolve_expression(
 				    cur_argument->expression, cur_function, error_manager);
 				if (param_type != arg_type) {
-					sprintf(msg,
-					        "error: in function '%s' the %lu%s argument expr "
-					        "should be of type '%s' but is of type '%s' in "
-					        "line %lu, col: %lu",
-					        called_function_name, cur_arg_num,
-					        mCc_ast_print_ordinal_suffix(cur_arg_num),
-					        mCc_ast_print_type(
-					            cur_parameter->declaration->identifier_type),
-					        mCc_ast_print_type(arg_type), line_nm, col_nm);
+					snprintf(msg, 256,
+					         "error: in function '%s' the %lu%s argument expr "
+					         "should be of type '%s' but is of type '%s' in "
+					         "line %lu, col: %lu",
+					         called_function_name, cur_arg_num,
+					         mCc_ast_print_ordinal_suffix(cur_arg_num),
+					         mCc_ast_print_type(
+					             cur_parameter->declaration->identifier_type),
+					         mCc_ast_print_type(arg_type), line_nm, col_nm);
 					entry = mCc_err_new_error_entry(msg, line_nm, col_nm,
 					                                line_nm_end, col_nm_end);
 					mCc_err_error_manager_insert_error_entry(error_manager,
@@ -286,12 +286,12 @@ static void check_statement_expression_type(
 		size_t col_nm = expression->node.sloc.start_col;
 		size_t line_nm_end = expression->node.sloc.end_line;
 		size_t col_nm_end = expression->node.sloc.end_col;
-		sprintf(msg,
-		        "error: the type of the %s statement in line %lu, "
-		        "col: %lu is not %s but %s",
-		        statement_str, line_nm, col_nm,
-		        mCc_ast_print_type(expected_type),
-		        mCc_ast_print_type(cond_type));
+		snprintf(msg, 256,
+		         "error: the type of the %s statement in line %lu, "
+		         "col: %lu is not %s but %s",
+		         statement_str, line_nm, col_nm,
+		         mCc_ast_print_type(expected_type),
+		         mCc_ast_print_type(cond_type));
 
 		struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
 		    msg, line_nm, col_nm, line_nm_end, col_nm_end);
@@ -358,12 +358,12 @@ static void type_checking_statement_return(
 			size_t col_nm = statement->node.sloc.start_col;
 			size_t line_nm_end = statement->node.sloc.end_line;
 			size_t col_nm_end = statement->node.sloc.end_col;
-			sprintf(msg,
-			        "error: the type of the %s statement in line %lu, "
-			        "col: %lu is not %s but %s",
-			        mCc_ast_print_statement(statement->type), line_nm, col_nm,
-			        mCc_ast_print_type(function_def->return_type),
-			        mCc_ast_print_type(cond_type));
+			snprintf(msg, 256,
+			         "error: the type of the %s statement in line %lu, "
+			         "col: %lu is not %s but %s",
+			         mCc_ast_print_statement(statement->type), line_nm, col_nm,
+			         mCc_ast_print_type(function_def->return_type),
+			         mCc_ast_print_type(cond_type));
 
 			struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
 			    msg, line_nm, col_nm, line_nm_end, col_nm_end);
