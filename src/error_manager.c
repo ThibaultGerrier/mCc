@@ -21,9 +21,9 @@ mCc_err_new_error_entry(const char *msg, size_t start_line, size_t start_col,
 	memcpy(err_entry->msg, msg, msg_len);
 
 	err_entry->start_line = start_line;
-	err_entry->start_col  = start_col;
+	err_entry->start_col = start_col;
 	err_entry->end_line = end_line;
-	err_entry->end_col  = end_col;
+	err_entry->end_col = end_col;
 
 	return err_entry;
 }
@@ -54,6 +54,7 @@ void mCc_err_error_manager_insert_error_entry(
 		err_man->array = (struct mCc_err_error_entry **)realloc(
 		    err_man->array,
 		    err_man->size * sizeof(struct mCc_err_error_entry *));
+		assert(err_man->array);
 	}
 	err_man->array[err_man->used++] = entry;
 }

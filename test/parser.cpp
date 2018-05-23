@@ -4,24 +4,6 @@
 #include "mCc/parser.h"
 #include "mCc/tac.h"
 
-void print_error(struct mCc_parse_error parse_error)
-{
-	struct mCc_error_location location = parse_error.location;
-	char line[10], column[10];
-	if (location.first_line != location.last_line) {
-		sprintf(line, "%d-%d", location.first_line, location.last_line);
-	} else {
-		sprintf(line, "%d", location.first_line);
-	}
-	if (location.first_column != location.last_column) {
-		sprintf(column, "%d-%d", location.first_column, location.last_column);
-	} else {
-		sprintf(column, "%d", location.first_column);
-	}
-	fprintf(stderr, "Error (line %s, column %s): %s\n", line, column,
-	        parse_error.msg);
-}
-
 TEST(Parser, BinaryOp_1)
 {
 	const char input[] = "192 + 3.14";
@@ -162,10 +144,14 @@ TEST(Parser, MissingClosingParenthesis_1)
 
 TEST(Parser, WrongOperatorTest)
 {
-	const char input[] = "8 . 8";
+	const char input[] = "8 $ 8";
 	auto result = mCc_parser_parse_string(input);
 
 	ASSERT_NE(MCC_PARSER_STATUS_OK, result.status);
+	ASSERT_EQ(MCC_PARSER_STATUS_SYNTAX_ERROR, result.status);
+
+	mCc_parser_print_error(result.parse_error);
+
 	mCc_parser_delete_result(&result);
 }
 
@@ -328,11 +314,13 @@ TEST(Parser, SourceLocation_SingleLineColumn)
 
 	EXPECT_EQ(MCC_AST_LITERAL_TYPE_INT,
 	          expr->expression->binary_op.lhs->literal->type);
-	ASSERT_EQ(2u, expr->expression->binary_op.lhs->literal->node.sloc.start_col);
+	ASSERT_EQ(2u,
+	          expr->expression->binary_op.lhs->literal->node.sloc.start_col);
 
 	EXPECT_EQ(MCC_AST_LITERAL_TYPE_INT,
 	          expr->expression->binary_op.rhs->literal->type);
-	ASSERT_EQ(7u, expr->expression->binary_op.rhs->literal->node.sloc.start_col);
+	ASSERT_EQ(7u,
+	          expr->expression->binary_op.rhs->literal->node.sloc.start_col);
 
 	mCc_parser_delete_result(&result);
 }
@@ -733,7 +721,7 @@ TEST(Parser, SyntaxErrorTest)
 	auto result = mCc_parser_parse_string(input);
 
 	if (result.parse_error.is_error) {
-		print_error(result.parse_error);
+		mCc_parser_print_error(result.parse_error);
 	}
 
 	ASSERT_EQ(MCC_PARSER_STATUS_SYNTAX_ERROR, result.status);
@@ -752,7 +740,7 @@ TEST(Parser, SyntaxErrorTestWithComment)
 	auto result = mCc_parser_parse_string(input);
 
 	if (result.parse_error.is_error) {
-		print_error(result.parse_error);
+		mCc_parser_print_error(result.parse_error);
 	}
 
 	ASSERT_EQ(MCC_PARSER_STATUS_SYNTAX_ERROR, result.status);

@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
 		result = mCc_parser_parse_file(in);
 		fclose(in);
 		if (result.status != MCC_PARSER_STATUS_OK) {
+			mCc_parser_print_error(result.parse_error);
 			return EXIT_FAILURE;
 		}
 		program = result.program;

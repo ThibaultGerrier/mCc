@@ -1,9 +1,9 @@
 #ifndef MCC_PARSER_H
 #define MCC_PARSER_H
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 #include "mCc/ast.h"
 
@@ -46,7 +46,9 @@ struct mCc_parser_result mCc_parser_parse_string(const char *input);
 
 struct mCc_parser_result mCc_parser_parse_file(FILE *input);
 
-void mCc_parser_delete_result(struct mCc_parser_result* result);
+void mCc_parser_delete_result(struct mCc_parser_result *result);
+
+void mCc_parser_print_error(struct mCc_parse_error parse_error);
 
 #ifdef __cplusplus
 }

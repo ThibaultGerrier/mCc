@@ -17,11 +17,6 @@
 #define YYLTYPE MCC_PARSER_LTYPE
 int start_token = TK_START_PROGRAM;
 
-/* TODO:
- * - track lines
- * - take line breaks into account
- */
-
 int my_yycolumn = 1;
 
 #define YY_USER_ACTION \
@@ -92,7 +87,7 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 "="               { return TK_ASSIGNMENT; }
 
 [/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }
-[/][*]                                    { /*TODO handle this case (unterminated comments)*/  }
+[/][*]                                    { /* DO NOTHING */ }
 
 \n              { my_yycolumn = 1; }
 
@@ -121,4 +116,4 @@ identifier   [a-zA-Z_][a-zA-Z0-9_]*
 
 <<EOF>>           { my_yycolumn = 1; return TK_END; }
 
-.                 { fprintf(stderr, "invalid character '%c'\n", yytext[0]); }
+.                 { return *yytext;}

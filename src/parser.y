@@ -292,6 +292,24 @@ void mCc_parser_error(
 	result_error->msg = strdup(msg);
 }
 
+void mCc_parser_print_error(struct mCc_parse_error parse_error)
+{
+	struct mCc_error_location location = parse_error.location;
+	char line[10], column[10];
+	if (location.first_line != location.last_line) {
+		sprintf(line, "%d-%d", location.first_line, location.last_line);
+	} else {
+		sprintf(line, "%d", location.first_line);
+	}
+	if (location.first_column != location.last_column) {
+		sprintf(column, "%d-%d", location.first_column, location.last_column);
+	} else {
+		sprintf(column, "%d", location.first_column);
+	}
+	fprintf(stderr, "Error (line %s, column %s): %s\n", line, column,
+	        parse_error.msg);
+}
+
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {
 	assert(input);
