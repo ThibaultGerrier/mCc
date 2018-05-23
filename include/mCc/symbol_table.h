@@ -3,7 +3,7 @@
 
 #include "ast.h"
 #include "stddef.h"
-#include "uthash.h"
+#include "../../src/uthash.h"
 
 #ifdef __cplusplus
 extern "C" {

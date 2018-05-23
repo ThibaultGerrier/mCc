@@ -50,3 +50,11 @@ This is automated by a Bash script.
 Furthermore, a few micro-benchmarks are provided.
 
     $ ninja benchmark
+
+## Known Issues
+
+- `1 + 2;` as input is rejected. mCc exists with exitcode 1, yet does not print an error.
+- Type checking for array needs to be revisited
+- Use of undeclared function, that exist in file, is regarded as an error
+- error_manager uses unsafe sprintf
+- correct use of `realloc` in `error_manager.c` line 54
