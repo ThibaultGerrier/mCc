@@ -383,7 +383,7 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionI)
 	mCc_err_delete_error_manager(error_manager);
 }
 
-TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionII)
+TEST(SymbolTable, Visitor_Function_Table_Function_Defined_After_First_Call)
 {
 	const char input[] =
 	    "void main(){int a; foo(a);} float foo(int a) {return 3.14;}";
@@ -407,12 +407,10 @@ TEST(SymbolTable, Visitor_Function_Table_Undefined_FunctionII)
 	ASSERT_NE(nullptr, entry_foo);
 
 	// check the error message
-	ASSERT_EQ(1u, error_manager->used);
-
-	ASSERT_EQ(1u, error_manager->array[0]->start_line);
-	ASSERT_EQ(20u, error_manager->array[0]->start_col);
-	ASSERT_EQ(0, strcmp("error in line 1, col: 20: undefined identifier: 'foo'",
-	                    error_manager->array[0]->msg));
+	const ::testing::TestInfo *const test_info =
+	    ::testing::UnitTest::GetInstance()->current_test_info();
+	print_all_errors(test_info->name(), error_manager);
+	ASSERT_EQ(0u, error_manager->used);
 
 	mCc_parser_delete_result(&result);
 	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);

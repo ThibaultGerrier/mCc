@@ -47,11 +47,6 @@ This is automated by a Bash script.
 
     $ ../test/integration
 
-Furthermore, a few micro-benchmarks are provided.
-
-    $ ninja benchmark
-
 ## Known Issues
 
 - Type checking for array needs to be revisited
-- Use of undeclared function, that exist in file, is regarded as an error
