@@ -575,8 +575,68 @@ TEST(TypeChecking, ArrayAssignmentInorrectII)
 	mCc_ast_visit_program(prog, &type_checking_visitor);
 
 	ASSERT_EQ(1u, error_manager->used);
-	ASSERT_EQ(0, strcmp("error: the type of the ass statement in line 1, "
-	                    "col: 50 is not string but float",
+	ASSERT_EQ(0, strcmp("error: can't reassign array a‚ in line 1, col: 46",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, ArrayAssignmentInorrectIII)
+{
+	const char input[] = "void main(){string[3] a; string[3] b; a = b;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: can't reassign array a‚ in line 1, col: 39",
+	                    error_manager->array[0]->msg));
+
+	mCc_parser_delete_result(&result);
+	mCc_sym_table_delete_tree(visitor_data.symbol_table_tree);
+	mCc_err_delete_error_manager(error_manager);
+}
+
+TEST(TypeChecking, ArrayOnPrimitiveTypeAssignmentInorrect)
+{
+	const char input[] = "void main(){int[3] a; int b; \nb = a;}";
+	auto result = mCc_parser_parse_string(input);
+
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto prog = result.program;
+
+	struct mCc_ast_symbol_table_visitor_data visitor_data = { nullptr, nullptr,
+		                                                      0 };
+
+	struct mCc_err_error_manager *error_manager = mCc_err_new_error_manager();
+	struct mCc_ast_function_def *cur_function;
+	auto symbol_table_visitor =
+	    mCc_ast_symbol_table_visitor(&visitor_data, error_manager);
+	mCc_ast_visit_program(prog, &symbol_table_visitor);
+	auto type_checking_visitor =
+	    mCc_ast_type_checking_visitor(&cur_function, error_manager);
+	mCc_ast_visit_program(prog, &type_checking_visitor);
+
+	ASSERT_EQ(1u, error_manager->used);
+	ASSERT_EQ(0, strcmp("error: can't assign an array to a primitive type, var "
+	                    "b‚ in line 2, col: 1",
 	                    error_manager->array[0]->msg));
 
 	mCc_parser_delete_result(&result);

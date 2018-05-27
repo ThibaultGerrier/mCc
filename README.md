@@ -49,4 +49,4 @@ This is automated by a Bash script.
 
 ## Known Issues
 
-- Type checking for array needs to be revisited
+- None

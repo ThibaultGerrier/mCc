@@ -65,7 +65,6 @@ resolve_expression(struct mCc_ast_expression *expression,
 	size_t col_nm = expression->node.sloc.start_col;
 	size_t line_nm_end = expression->node.sloc.end_line;
 	size_t col_nm_end = expression->node.sloc.end_col;
-	enum mCc_ast_type lhs_type;
 	enum mCc_ast_type rhs_type;
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
@@ -391,7 +390,63 @@ static void type_checking_statement_assignment(
 			    "array ass index", function_def, error_manager);
 			rhs_expr = statement->assignment->array_ass.rhs;
 		} else {
+
+			// can't assign an array
+			if (statement->assignment->identifier->symbol_table_entry
+			        ->var_type == MCC_SYM_TABLE_ARRAY) {
+				if (error_manager != NULL) {
+					char msg[256];
+					size_t line_nm =
+					    statement->assignment->identifier->node.sloc.start_line;
+					size_t col_nm =
+					    statement->assignment->identifier->node.sloc.start_col;
+					size_t line_nm_end =
+					    statement->assignment->identifier->node.sloc.end_line;
+					size_t col_nm_end =
+					    statement->assignment->identifier->node.sloc.end_col;
+					snprintf(msg, 256,
+					         "error: can't reassign array %s‚ in line %lu, "
+					         "col: %lu",
+					         statement->assignment->identifier->name, line_nm,
+					         col_nm);
+
+					struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
+					    msg, line_nm, col_nm, line_nm_end, col_nm_end);
+					mCc_err_error_manager_insert_error_entry(error_manager,
+					                                         entry);
+				}
+				return;
+			}
 			rhs_expr = statement->assignment->normal_ass.rhs;
+			// not allowed to assign arrays to primitive types
+			if (rhs_expr->type == MCC_AST_EXPRESSION_TYPE_IDENTIFIER &&
+			    rhs_expr->identifier->symbol_table_entry->var_type ==
+			        MCC_SYM_TABLE_ARRAY) {
+				if (error_manager != NULL) {
+					char msg[256];
+					size_t line_nm =
+					    statement->assignment->identifier->node.sloc.start_line;
+					size_t col_nm =
+					    statement->assignment->identifier->node.sloc.start_col;
+					size_t line_nm_end =
+					    statement->assignment->identifier->node.sloc.end_line;
+					size_t col_nm_end =
+					    statement->assignment->identifier->node.sloc.end_col;
+					snprintf(msg, 256,
+					         "error: can't assign an array to a primitive "
+					         "type, var %s‚ "
+					         "in line %lu, "
+					         "col: %lu",
+					         statement->assignment->identifier->name, line_nm,
+					         col_nm);
+
+					struct mCc_err_error_entry *entry = mCc_err_new_error_entry(
+					    msg, line_nm, col_nm, line_nm_end, col_nm_end);
+					mCc_err_error_manager_insert_error_entry(error_manager,
+					                                         entry);
+				}
+				return;
+			}
 		}
 		check_statement_expression_type(
 		    rhs_expr, lhs_type, mCc_ast_print_statement(statement->type),

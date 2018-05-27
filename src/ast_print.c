@@ -41,6 +41,20 @@ const char *mCc_ast_print_unary_op(enum mCc_ast_unary_op op)
 	return "unknown unary op";
 }
 
+const char *mCc_ast_print_expression_type(enum mCc_ast_expression_type type)
+{
+	switch (type) {
+	case MCC_AST_EXPRESSION_TYPE_LITERAL: return "literal";
+	case MCC_AST_EXPRESSION_TYPE_IDENTIFIER: return "id";
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER: return "array id";
+	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: return "call epxr";
+	case MCC_AST_EXPRESSION_TYPE_UNARY_OP: return "unary op";
+	case MCC_AST_EXPRESSION_TYPE_BINARY_OP: return "binary op";
+	case MCC_AST_EXPRESSION_TYPE_PARENTH: return "parenth";
+	}
+	return "unknown expression type;";
+}
+
 const char *mCc_ast_print_statement(enum mCc_ast_statement_type stmt)
 {
 	switch (stmt) {
