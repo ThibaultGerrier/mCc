@@ -10,6 +10,7 @@
 #include "mCc/parser.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include "../../src/uthash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +21,8 @@ struct mCc_tac_var {
 	int array;
 	char *val;
 	int depth;
+	bool literal;	// if variable is literal value e.g. "a", 1, false
+	//bool reference; // if variable was passed by reference e.g
 };
 
 struct mCc_tac_op {

@@ -34,6 +34,7 @@ mCc_src = [ 'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
             'src/tac.c',
+            'src/assembler.c',
             'src/ast_symbol_table.c',
             'src/ast_type_checking.c',
             'src/error_manager.c',
@@ -73,7 +74,7 @@ endforeach
 
 gtest = dependency('gtest', fallback: ['gtest', 'gtest_main_dep'])
 
-mCc_uts = [ 'parser', 'symbol_table', 'return_check', 'type_checking', 'tac' ]
+mCc_uts = [ 'parser', 'symbol_table', 'return_check', 'type_checking', 'tac', 'assembler' ]
 
 foreach ut : mCc_uts
     t = executable('ut_' + ut.underscorify(), 'test/' + ut + '.cpp',

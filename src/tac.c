@@ -318,6 +318,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 		.val = mCc_tac_new_identifier(),
 		.type = MCC_AST_TYPE_VOID,
 		.depth = -1,
+		.literal = false,
 	};
 	mCc_tac_node node = mCc_tac_create_node();
 	node->type = TAC_LINE_TYPE_SIMPLE;
@@ -327,7 +328,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 		str = malloc(sizeof(char) * 10);
 		sprintf(str, "%d", literal->b_value);
 		node->type_simple.arg0 = ret;
-		struct mCc_tac_var arg1 = { MCC_AST_TYPE_BOOL, 0, str, -1 };
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_BOOL, 0, str, -1, true };
 		node->type_simple.arg1 = arg1;
 		break;
 	}
@@ -336,7 +337,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 		str = malloc(sizeof(char) * 30);
 		sprintf(str, "%ld", literal->i_value);
 		node->type_simple.arg0 = ret;
-		struct mCc_tac_var arg1 = { MCC_AST_TYPE_INT, 0, str, -1 };
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_INT, 0, str, -1, true };
 		node->type_simple.arg1 = arg1;
 		break;
 	}
@@ -345,7 +346,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 		str = malloc(sizeof(char) * 30);
 		sprintf(str, "%f", literal->f_value);
 		node->type_simple.arg0 = ret;
-		struct mCc_tac_var arg1 = { MCC_AST_TYPE_FLOAT, 0, str, -1 };
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_FLOAT, 0, str, -1, true };
 		node->type_simple.arg1 = arg1;
 		break;
 	}
@@ -355,7 +356,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 		sprintf(str, "%s", literal->s_value);
 		ret.type = MCC_AST_TYPE_STRING;
 		node->type_simple.arg0 = ret;
-		struct mCc_tac_var arg1 = { MCC_AST_TYPE_STRING, 0, str, -1 };
+		struct mCc_tac_var arg1 = { MCC_AST_TYPE_STRING, 0, str, -1, true };
 		node->type_simple.arg1 = arg1;
 		break;
 	}
@@ -364,7 +365,7 @@ struct mCc_tac_var mCc_tac_cgen_literal(struct mCc_ast_literal *literal,
 
 	char *val = malloc(sizeof(char) * (strlen(ret.val) + 1));
 	sprintf(val, "%s", ret.val);
-	struct mCc_tac_var temp = { ret.type, ret.array, val, -1 };
+	struct mCc_tac_var temp = { ret.type, ret.array, val, -1, false };
 	return temp;
 }
 
@@ -376,6 +377,7 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 		.type = identifier->symbol_table_entry->data_type,
 		.array = (int)identifier->symbol_table_entry->array_size,
 		.depth = -1,
+		.literal = false,
 	};
 	mCc_tac_node node = mCc_tac_create_node();
 	node->type = TAC_LINE_TYPE_SIMPLE;
@@ -387,6 +389,7 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 		(int)identifier->symbol_table_entry->array_size,
 		str,
 		(int)identifier->symbol_table_entry->scope_index,
+		false,
 	};
 
 	node->type_simple.arg1 = arg1;
@@ -394,7 +397,7 @@ mCc_tac_cgen_identifier(struct mCc_ast_identifier *identifier, mCc_tac_node tac)
 
 	char *val = malloc(sizeof(char) * (strlen(ret.val) + 1));
 	sprintf(val, "%s", ret.val);
-	struct mCc_tac_var temp = { ret.type, ret.array, val, ret.depth };
+	struct mCc_tac_var temp = { ret.type, ret.array, val, ret.depth, false };
 	return temp;
 }
 
@@ -405,6 +408,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		.val = mCc_tac_new_identifier(),
 		.type = MCC_AST_TYPE_VOID,
 		.depth = -1,
+		.literal = false,
 	};
 
 	switch (expression->type) {
@@ -506,7 +510,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 			node->type_double.arg0 = ret;
 			char *zeros = malloc(sizeof(char) * (strlen("0") + 1));
 			sprintf(zeros, "0");
-			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros, -1 };
+			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros, -1, true };
 			struct mCc_tac_op op = { MCC_AST_BINARY_OP_EQUALS, t.type };
 
 			node->type_double.arg1 = zero;
@@ -521,7 +525,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 			node->type_double.arg0 = ret;
 			char *zeros = malloc(sizeof(char) * (strlen("0") + 1));
 			sprintf(zeros, "0");
-			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros, -1 };
+			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros, -1, true };
 			struct mCc_tac_op op = { MCC_AST_BINARY_OP_SUB, t.type };
 
 			node->type_double.arg1 = zero;
@@ -549,7 +553,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 
 	char *val = malloc(sizeof(char) * (strlen(ret.val) + 1));
 	sprintf(val, "%s", ret.val);
-	struct mCc_tac_var temp = { ret.type, ret.array, val, -1 };
+	struct mCc_tac_var temp = { ret.type, ret.array, val, -1, false };
 	return temp;
 }
 
@@ -643,7 +647,7 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 		if (!statement->expression) {
 			mCc_tac_node node = mCc_tac_create_node();
 			node->type = TAC_LINE_TYPE_RETURN;
-			struct mCc_tac_var var = { MCC_AST_TYPE_VOID, 0, NULL, -1 };
+			struct mCc_tac_var var = { MCC_AST_TYPE_VOID, 0, NULL, -1, false };
 			node->type_return.var = var;
 			mCc_tac_add_node(node, tac);
 		} else {
@@ -672,7 +676,8 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 				statement->declaration->identifier_type,
 				(int)statement->declaration->array_decl.literal->i_value, str,
 				(int)statement->declaration->array_decl.identifier
-				    ->symbol_table_entry->scope_index
+				    ->symbol_table_entry->scope_index,
+				false
 			};
 			node->type_decl_array.var = var;
 			mCc_tac_add_node(node, tac);
@@ -701,7 +706,8 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 			    ->array_size,
 			str,
 			(int)statement->assignment->identifier->symbol_table_entry
-			    ->scope_index
+			    ->scope_index,
+			false
 		};
 
 		node->type_simple.arg0 = arg0;
@@ -730,6 +736,7 @@ void mCc_tac_cgen_statement(struct mCc_ast_statement *statement,
 			str,
 			(int)statement->assignment->identifier->symbol_table_entry
 			    ->scope_index,
+			false,
 		};
 		node->type_assign_array.arr = arr;
 		node->type_assign_array.loc = index;
@@ -785,7 +792,8 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 			struct mCc_tac_var var = {
 				next->declaration->identifier_type, 0, str,
 				(int)next->declaration->normal_decl.identifier
-				    ->symbol_table_entry->scope_index
+				    ->symbol_table_entry->scope_index,
+				false
 			};
 			nodeParameter->type_pop.var = var;
 			mCc_tac_add_node(nodeParameter, tac);
@@ -801,7 +809,8 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 				next->declaration->identifier_type,
 				(int)next->declaration->array_decl.literal->i_value, str,
 				(int)next->declaration->array_decl.identifier
-				    ->symbol_table_entry->scope_index
+				    ->symbol_table_entry->scope_index,
+				false
 			};
 			nodeParameter->type_pop.var = var;
 
