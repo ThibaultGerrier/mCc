@@ -215,6 +215,12 @@ void mCc_tac_print_tac(mCc_tac_node head, FILE *out)
 			free(var1);
 			break;
 		}
+		case TAC_LINE_TYPE_POP_RETURN: {
+			char *var1 = mCc_tac_get_tac_var(p->type_pop.var);
+			fprintf(out, "\t%s = POP\n", var1);
+			free(var1);
+			break;
+		}
 		case TAC_LINE_TYPE_PUSH: {
 			char *var1 = mCc_tac_get_tac_var(p->type_push.var);
 			fprintf(out, "\tPUSH %s\n", var1);
@@ -553,7 +559,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		mCc_tac_add_node(node, tac);
 
 		mCc_tac_node nodePop = mCc_tac_create_node();
-		nodePop->type = TAC_LINE_TYPE_POP;
+		nodePop->type = TAC_LINE_TYPE_POP_RETURN;
 		nodePop->type_pop.var = ret;
 		mCc_tac_add_node(nodePop, tac);
 		break;

@@ -35,6 +35,7 @@ enum mCc_tac_line_type {
 	TAC_LINE_TYPE_DOUBLE,
 	TAC_LINE_TYPE_CALL,
 	TAC_LINE_TYPE_POP,
+	TAC_LINE_TYPE_POP_RETURN,
 	TAC_LINE_TYPE_PUSH,
 	TAC_LINE_TYPE_RETURN,
 	TAC_LINE_TYPE_IFZ,
@@ -81,6 +82,7 @@ struct mCc_tac {
 			char *func_name;
 		} type_label_func_end;
 
+		// POP and POP_RETURN
 		struct {
 			struct mCc_tac_var var;
 		} type_pop;

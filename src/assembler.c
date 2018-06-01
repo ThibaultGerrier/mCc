@@ -222,6 +222,7 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 		case TAC_LINE_TYPE_CALL: break;
+		case TAC_LINE_TYPE_POP_RETURN: // for both
 		case TAC_LINE_TYPE_POP: {
 			// TODO pop in function vs return value
 			if (p->type_simple.arg0.depth != -1) {
@@ -291,7 +292,7 @@ void analyze(mCc_tac_node head, FILE *out)
 
 	print(ass->function_data, print_func_data, out);
 	// print(ass->strings, print_static_data_table, out);
-	fprintf(out, "----\n");
+	fprintf(stderr, "----\n");
 
 	// start printing assembler code
 	fprintf(out, "\t.file\t\"generated.c\"\n");
@@ -302,6 +303,7 @@ void analyze(mCc_tac_node head, FILE *out)
 	fprintf(out, "\t.text\n");
 
 	int funcRetLabel = 0;
+	int pushSize = 0;
 	// mCc_tac_node p;
 	p = head;
 	List *func_data_temp = ass->function_data;
@@ -315,7 +317,6 @@ void analyze(mCc_tac_node head, FILE *out)
 			        p->type_label_func.func_name, p->type_label_func.func_name,
 			        p->type_label_func.func_name);
 			fprintf(out, "\tpushl\t%%ebp\n\tmovl\t%%esp, %%ebp\n");
-
 			fprintf(out, "\tsubl\t$%d, %%esp\n", function_data->stack_size);
 			funcRetLabel = mCc_ass_new_label();
 			break;
@@ -449,10 +450,6 @@ void analyze(mCc_tac_node head, FILE *out)
 				        p->type_double.arg2.val);
 			}
 
-			// fprintf(out, "\tmovl -%d(%%ebp), %%edx\n", arg1_var->location);
-			// fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg2_var->location);
-
-			// TODO missing floats
 			switch (p->type_double.arg1.type) {
 			case MCC_AST_TYPE_BOOL:
 			case MCC_AST_TYPE_INT:
@@ -658,9 +655,54 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 
-		case TAC_LINE_TYPE_CALL: break;
+		case TAC_LINE_TYPE_CALL:
+			fprintf(out, "\tcall\t%s\n", p->type_call.name);
+			fprintf(out, "\taddl\t$%d, %%esp\n", pushSize);
+			pushSize = 0;
+			break;
 		case TAC_LINE_TYPE_POP: break;
-		case TAC_LINE_TYPE_PUSH: break;
+		case TAC_LINE_TYPE_POP_RETURN: {
+			struct mCc_ass_function_var *arg_var;
+			if (p->type_pop.var.depth != -1) {
+				char buff[20];
+				sprintf(buff, "%s_%d", p->type_pop.var.val,
+						p->type_pop.var.depth);
+				HASH_FIND_STR(function_data->data, buff, arg_var);
+			} else {
+				HASH_FIND_STR(function_data->data, p->type_pop.var.val,
+							  arg_var);
+			}
+			if (arg_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG popret %s\n",
+						p->type_simple.arg0.val);
+			}
+			switch (p->type_pop.var.type){
+				case MCC_AST_TYPE_STRING:
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", arg_var->location);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg_var->location);
+					break;
+				case MCC_AST_TYPE_VOID:
+					// Don't pop?
+					break;
+			}
+			break;
+		}
+		case TAC_LINE_TYPE_PUSH: {
+			struct mCc_ass_function_var *arg_var;
+			HASH_FIND_STR(function_data->data, p->type_push.var.val,
+						  arg_var);
+			if (arg_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG push\n");
+			}
+			fprintf(out, "\tpushl\t-%d(%%ebp)\n", arg_var->location);
+			pushSize += 4;
+			break;
+		}
+
 		case TAC_LINE_TYPE_RETURN: break;
 		case TAC_LINE_TYPE_IFZ: {
 			struct mCc_ass_function_var *arg_var;
@@ -815,7 +857,7 @@ void mCc_ast_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 	assert(program);
 
 	mCc_tac_node tac = mCc_ast_get_tac_program(program);
-	mCc_tac_print_tac(tac, out);
+	mCc_tac_print_tac(tac, stderr);
 
 	analyze(tac, out);
 }

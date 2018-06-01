@@ -11,11 +11,24 @@
 
 TEST(ThreeAdressCode, TestAssembler)
 {
-	const char input[] = "void main(){int[3] arr; arr[0] = 3; arr[2] = 4;float[3] f; f[2] = 4.1; float f1; f1= f[1];}";
+	const char input[] = "void main(){"
+	                     "int a;"
+	                     "int b;"
+	                     "a = 2 + 3;" // 5
+	                     "print_int(a);"
+	                     "print_nl();"
+	                     "b = 4 * a;" // 20
+	                     "print_int(b);"
+	                     "print_nl();"
+	                     "a = b/5 - 2;" // 2
+	                     "print_int(a);"
+	                     "print_nl();"
+	                     "}";
 	auto result = mCc_parser_parse_string(input);
 
-	mCc_ast_print_assembler_program(result.program, stderr);
-
+	auto fp = fopen("generated.s", "w");
+	mCc_ast_print_assembler_program(result.program, fp);
+	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 	ASSERT_EQ(1, 0);
 }
