@@ -417,8 +417,27 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		    mCc_tac_cgen_expression(expression->binary_op.lhs, tac);
 		struct mCc_tac_var t2 =
 		    mCc_tac_cgen_expression(expression->binary_op.rhs, tac);
-		ret.type = t1.type;   // any of the two
-		ret.array = t1.array; // any of the two
+
+		switch (expression->binary_op.op){
+			case MCC_AST_BINARY_OP_ADD:
+			case MCC_AST_BINARY_OP_SUB:
+			case MCC_AST_BINARY_OP_MUL:
+			case MCC_AST_BINARY_OP_DIV:
+				ret.type = t1.type; // any of the two
+				break;
+			case MCC_AST_BINARY_OP_LESS:
+			case MCC_AST_BINARY_OP_GREATER:
+			case MCC_AST_BINARY_OP_LESS_EQUALS:
+			case MCC_AST_BINARY_OP_GREATER_EQUALS:
+			case MCC_AST_BINARY_OP_AND:
+			case MCC_AST_BINARY_OP_OR:
+			case MCC_AST_BINARY_OP_EQUALS:
+			case MCC_AST_BINARY_OP_NOT_EQUALS:
+				ret.type = MCC_AST_TYPE_BOOL;
+				break;
+		}
+		//ret.type = t1.type;   // any of the two
+		ret.array = t1.array; // any of the two, should always be -1 actually
 		mCc_tac_node node = mCc_tac_create_node();
 		node->type = TAC_LINE_TYPE_DOUBLE;
 

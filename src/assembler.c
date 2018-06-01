@@ -375,6 +375,7 @@ void analyze(mCc_tac_node head, FILE *out)
 					        arg1_var->location);
 					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
 					        arg0_var->location);
+					break;
 				case MCC_AST_TYPE_FLOAT:
 					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
 					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
@@ -396,7 +397,7 @@ void analyze(mCc_tac_node head, FILE *out)
 				        p->type_double.arg0.depth);
 				HASH_FIND_STR(function_data->data, buff, arg0_var);
 			} else {
-				HASH_FIND_STR(function_data->data, p->type_double.arg1.val,
+				HASH_FIND_STR(function_data->data, p->type_double.arg0.val,
 				              arg0_var);
 			}
 			if (p->type_double.arg1.depth != -1) {
@@ -414,7 +415,7 @@ void analyze(mCc_tac_node head, FILE *out)
 				        p->type_double.arg2.depth);
 				HASH_FIND_STR(function_data->data, buff, arg2_var);
 			} else {
-				HASH_FIND_STR(function_data->data, p->type_double.arg1.val,
+				HASH_FIND_STR(function_data->data, p->type_double.arg2.val,
 				              arg2_var);
 			}
 			if (arg0_var == NULL) {
@@ -434,71 +435,208 @@ void analyze(mCc_tac_node head, FILE *out)
 			// fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg2_var->location);
 
 			// TODO missing floats
-			switch (p->type_double.op.op) {
-			case MCC_AST_BINARY_OP_ADD:
-				fprintf(out, "\tmovl -%d(%%ebp), %%edx\n", arg1_var->location);
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\taddl %%edx, %%eax\n");
+			switch (p->type_double.arg1.type) {
+			case MCC_AST_TYPE_BOOL:
+			case MCC_AST_TYPE_INT:
+				switch (p->type_double.op.op) {
+				case MCC_AST_BINARY_OP_ADD:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n",
+					        arg1_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\taddl\t%%edx, %%eax\n");
+					break;
+				case MCC_AST_BINARY_OP_SUB:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tsubl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					break;
+				case MCC_AST_BINARY_OP_MUL:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\timull\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					break;
+				case MCC_AST_BINARY_OP_DIV:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcltd\n");
+					fprintf(out, "\tidivl\t-%d(%%ebp)\n", arg2_var->location);
+					break;
+				case MCC_AST_BINARY_OP_LESS:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\tsetl\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					break;
+				case MCC_AST_BINARY_OP_GREATER:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\tsetg\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					break;
+				case MCC_AST_BINARY_OP_LESS_EQUALS:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\tsetle\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					break;
+				case MCC_AST_BINARY_OP_GREATER_EQUALS:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\tsetge\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					break;
+				case MCC_AST_BINARY_OP_AND:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tandl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					break;
+				case MCC_AST_BINARY_OP_OR:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\torl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					break;
+				case MCC_AST_BINARY_OP_EQUALS:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\tsete\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					break;
+				case MCC_AST_BINARY_OP_NOT_EQUALS:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
+					        arg1_var->location);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
+					        arg2_var->location);
+					fprintf(out, "\tsetne\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					break;
+				}
+				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", arg0_var->location);
 				break;
-			case MCC_AST_BINARY_OP_SUB:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tsubl -%d(%%ebp), %%eax\n", arg2_var->location);
-				break;
-			case MCC_AST_BINARY_OP_MUL:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\timull -%d(%%ebp), %%eax\n", arg2_var->location);
-				break;
-			case MCC_AST_BINARY_OP_DIV:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcltd\n");
-				fprintf(out, "\tidivl -%d(%%ebp)\n", arg2_var->location);
-				break;
-			case MCC_AST_BINARY_OP_LESS:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcmpl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\tsetl\t%%al\n");
-				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-				break;
-			case MCC_AST_BINARY_OP_GREATER:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcmpl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\tsetg\t%%al\n");
-				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-				break;
-			case MCC_AST_BINARY_OP_LESS_EQUALS:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcmpl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\tsetle\t%%al\n");
-				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-				break;
-			case MCC_AST_BINARY_OP_GREATER_EQUALS:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcmpl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\tsetge\t%%al\n");
-				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-				break;
-			case MCC_AST_BINARY_OP_AND:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tandl -%d(%%ebp), %%eax\n", arg2_var->location);
-				break;
-			case MCC_AST_BINARY_OP_OR:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\torl -%d(%%ebp), %%eax\n", arg2_var->location);
-				break;
-			case MCC_AST_BINARY_OP_EQUALS:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcmpl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\tsete\t%%al\n");
-				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-				break;
-			case MCC_AST_BINARY_OP_NOT_EQUALS:
-				fprintf(out, "\tmovl -%d(%%ebp), %%eax\n", arg1_var->location);
-				fprintf(out, "\tcmpl -%d(%%ebp), %%eax\n", arg2_var->location);
-				fprintf(out, "\tsetne\t%%al\n");
-				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+			case MCC_AST_TYPE_FLOAT: {
+				switch (p->type_double.op.op) {
+				case MCC_AST_BINARY_OP_ADD:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tfadds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_SUB:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tfsubs\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_MUL:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tfmuls\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_DIV:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tfdivs\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_LESS:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tfxch\t%%st(1)\n");
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tseta\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
+					        arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_GREATER:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfxch\t%%st(1)\n");
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tseta\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
+					        arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_LESS_EQUALS:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tfxch\t%%st(1)\n");
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tsetnb\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
+					        arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_GREATER_EQUALS:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfxch\t%%st(1)\n");
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tsetnb\t%%al\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
+					        arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_AND:
+				case MCC_AST_BINARY_OP_OR:
+					fprintf(stderr, "NO AND/OR on floats\n");
+					break;
+				case MCC_AST_BINARY_OP_EQUALS:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tsetnp\t%%al\n");
+					fprintf(out, "\tmovl\t$0, %%edx\n");
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tcmovne\t%%edx, %%eax\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
+					        arg0_var->location);
+					break;
+				case MCC_AST_BINARY_OP_NOT_EQUALS:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tsetp\t%%al\n");
+					fprintf(out, "\tmovl\t$1, %%edx\n");
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
+					fprintf(out, "\tfstp\t%%st(0)\n");
+					fprintf(out, "\tcmovne\t%%edx, %%eax\n");
+					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
+					        arg0_var->location);
+					break;
+				}
 				break;
 			}
-			fprintf(out, "\tmovl %%eax, -%d(%%ebp)\n", arg0_var->location);
+			case MCC_AST_TYPE_STRING:
+				fprintf(stderr, "NO OP on strings\n");
+				break;
+			case MCC_AST_TYPE_VOID: fprintf(stderr, "NO OP on voids\n"); break;
+			}
 			break;
 		}
 
