@@ -475,8 +475,18 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_IDENTIFIER: {
 		struct mCc_tac_var expr = mCc_tac_cgen_expression(
 		    expression->array_identifier.expression, tac);
-		struct mCc_tac_var id = mCc_tac_cgen_identifier(
-		    expression->array_identifier.identifier, tac);
+		//struct mCc_tac_var id = mCc_tac_cgen_identifier(expression->array_identifier.identifier, tac);
+
+		char *str = malloc(sizeof(char) * (strlen(expression->array_identifier.identifier->name) + 1));
+		sprintf(str, "%s", expression->array_identifier.identifier->name);
+		struct mCc_tac_var id = {
+				expression->array_identifier.identifier->symbol_table_entry->data_type,
+				(int)expression->array_identifier.identifier->symbol_table_entry->array_size,
+				str,
+				(int)expression->array_identifier.identifier->symbol_table_entry->scope_index,
+				false,
+		};
+
 		ret.type = id.type;
 		ret.array = 0;
 

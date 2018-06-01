@@ -11,8 +11,7 @@
 
 TEST(ThreeAdressCode, TestAssembler)
 {
-	const char input[] = "void main(){float a; float b; bool bo; a = 0.1; b = "
-	                     "1.1; bo = a == b;}";
+	const char input[] = "void main(){int[3] arr; arr[0] = 3; arr[2] = 4;float[3] f; f[2] = 4.1; float f1; f1= f[1];}";
 	auto result = mCc_parser_parse_string(input);
 
 	mCc_ast_print_assembler_program(result.program, stderr);

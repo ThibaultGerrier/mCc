@@ -436,13 +436,13 @@ TEST(ThreeAdressCode, Generate_ARRAY_IDEN)
 	auto line3 = line2->next;
 	auto line4 = line3->next;
 	auto line5 = line4->next;
-	auto line6 = line5->next;
+	// auto line6 = line5->next;
 
-	ASSERT_EQ(line6->type, TAC_LINE_TYPE_IDEN_ARRAY);
-	ASSERT_EQ(line6->type_array_iden.arr.array, 5);
-	ASSERT_EQ(line6->type_assign_array.loc.type, MCC_AST_TYPE_INT);
-	ASSERT_EQ(line6->type_assign_array.arr.type,
-	          line6->type_assign_array.var.type);
+	ASSERT_EQ(line5->type, TAC_LINE_TYPE_IDEN_ARRAY);
+	ASSERT_EQ(line5->type_array_iden.arr.array, 5);
+	ASSERT_EQ(line5->type_assign_array.loc.type, MCC_AST_TYPE_INT);
+	ASSERT_EQ(line5->type_assign_array.arr.type,
+		line5->type_assign_array.var.type);
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);

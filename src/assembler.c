@@ -243,8 +243,26 @@ void analyze(mCc_tac_node head, FILE *out)
 		case TAC_LINE_TYPE_RETURN: break;
 		case TAC_LINE_TYPE_IFZ: break;
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
-		case TAC_LINE_TYPE_IDEN_ARRAY: break;
-		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: break;
+		case TAC_LINE_TYPE_IDEN_ARRAY:
+			add_variable(&cur_function_data, stackSize + 4,
+						 p->type_array_iden.var.val, false,
+						 false);
+			stackSize += 4;
+			break;
+		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: {
+			char *buf = malloc(sizeof(char) *
+							   (strlen(p->type_assign_array.arr.val) + 5));
+			sprintf(buf, "%s_%d", p->type_assign_array.arr.val,
+					p->type_assign_array.arr.depth);
+			bool added = add_variable(&cur_function_data, stackSize + 4, buf,
+									  false, true);
+
+			if (added) {
+				stackSize += p->type_assign_array.arr.array * 4;
+			}
+			break;
+		}
+
 		case TAC_LINE_TYPE_LABEL: break;
 		case TAC_LINE_TYPE_JUMP: break;
 		case TAC_LINE_TYPE_LABELFUNC: {
@@ -660,13 +678,109 @@ void analyze(mCc_tac_node head, FILE *out)
 				        p->type_ifz.var.val);
 			}
 			fprintf(out, "\tcmpl\t$0, -%d(%%ebp)\n", arg_var->location);
-			fprintf(out, "\tje .L%d\n", p->type_label.label_name);
+			fprintf(out, "\tje\t.L%d\n", p->type_label.label_name);
 			break;
 		}
 
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
-		case TAC_LINE_TYPE_IDEN_ARRAY: break;
-		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: break;
+		case TAC_LINE_TYPE_IDEN_ARRAY: {
+			struct mCc_ass_function_var *arr_var;
+			struct mCc_ass_function_var *index_var;
+			struct mCc_ass_function_var *var_var;
+			char buff[20];
+			sprintf(buff, "%s_%d", p->type_array_iden.arr.val,
+					p->type_array_iden.arr.depth);
+			HASH_FIND_STR(function_data->data, buff, arr_var);
+
+			HASH_FIND_STR(function_data->data, p->type_array_iden.var.val,
+						  var_var);
+
+			HASH_FIND_STR(function_data->data, p->type_array_iden.loc.val,
+						  index_var);
+
+			if (arr_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG arr %s\n",
+						p->type_array_iden.arr.val);
+			}
+			if (var_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG var %s\n",
+						p->type_array_iden.var.val);
+			}
+			if (index_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG loc %s\n",
+						p->type_array_iden.loc.val);
+			}
+
+
+			switch (p->type_array_iden.var.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+				case MCC_AST_TYPE_STRING:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp,%%eax,4), %%eax\n", arr_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", var_var->location);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp,%%eax,4)\n", arr_var->location);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n",var_var->location);
+					break;
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "VOID ARRAY? \n");
+					break;
+			}
+			break;
+		}
+
+		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY:{
+			struct mCc_ass_function_var *arr_var;
+			struct mCc_ass_function_var *index_var;
+			struct mCc_ass_function_var *var_var;
+			char buff[20];
+			sprintf(buff, "%s_%d", p->type_assign_array.arr.val,
+					p->type_assign_array.arr.depth);
+			HASH_FIND_STR(function_data->data, buff, arr_var);
+
+			HASH_FIND_STR(function_data->data, p->type_assign_array.var.val,
+						  var_var);
+
+			HASH_FIND_STR(function_data->data, p->type_assign_array.loc.val,
+						  index_var);
+
+			if (arr_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG arr %s\n",
+						p->type_assign_array.arr.val);
+			}
+			if (var_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG var %s\n",
+						p->type_assign_array.var.val);
+			}
+			if (index_var == NULL) {
+				fprintf(stderr, "SOMETHING WENT WRONG loc %s\n",
+						p->type_assign_array.loc.val);
+			}
+
+			switch (
+					p->type_assign_array.arr.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+				case MCC_AST_TYPE_STRING:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n", var_var->location);
+					fprintf(out, "\tmovl\t%%edx, -%d(%%ebp,%%eax,4)\n",arr_var->location);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", var_var->location);
+					fprintf(out, "\tfstps\t-%d(%%ebp,%%eax,4)\n",arr_var->location);
+					break;
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "VOID ARRAY? \n");
+					break;
+			}
+			break;
+		}
+
 		case TAC_LINE_TYPE_LABEL:
 			fprintf(out, ".L%d:\n", p->type_label.label_name);
 			break;
