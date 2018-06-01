@@ -156,7 +156,7 @@ resolve_call_expression(struct mCc_ast_expression *expression,
 		char msg[256];
 		snprintf(
 		    msg, 256,
-		    "error: function '%s', naming conflict with a varaible in this "
+		    "error: function '%s', naming conflict with a variable in this "
 		    "scope, line: %lu, col: %lu",
 		    expression->call_expr.identifier->name,
 		    expression->node.sloc.start_line, expression->node.sloc.start_col);

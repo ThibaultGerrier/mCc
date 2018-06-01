@@ -1239,7 +1239,7 @@ TEST(SymbolTable, FunctionAndVariableNameConflictIncorrect)
 	ASSERT_EQ(1u, error_manager->used);
 
 	ASSERT_EQ(0,
-	          strcmp("error: function 'foo', naming conflict with a varaible "
+	          strcmp("error: function 'foo', naming conflict with a variable "
 	                 "in this scope, line: 1, col: 35",
 	                 error_manager->array[0]->msg));
 
