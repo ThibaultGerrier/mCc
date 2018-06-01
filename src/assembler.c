@@ -159,6 +159,22 @@ void print(List *p, void (*f)(void *, FILE *), FILE *out)
 	}
 }
 
+int get_location(mCc_ass_function_var_node table, struct mCc_tac_var var)
+{
+	struct mCc_ass_function_var *arg_var;
+	if (var.depth != -1) {
+		char buff[20];
+		sprintf(buff, "%s_%d", var.val, var.depth);
+		HASH_FIND_STR(table, buff, arg_var);
+	} else {
+		HASH_FIND_STR(table, var.val, arg_var);
+	}
+	if (arg_var == NULL) {
+		fprintf(stderr, "Location not found\n");
+	}
+	return arg_var->location;
+}
+
 void analyze(mCc_tac_node head, FILE *out)
 {
 	struct ass *ass;
@@ -246,17 +262,16 @@ void analyze(mCc_tac_node head, FILE *out)
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
 		case TAC_LINE_TYPE_IDEN_ARRAY:
 			add_variable(&cur_function_data, stackSize + 4,
-						 p->type_array_iden.var.val, false,
-						 false);
+			             p->type_array_iden.var.val, false, false);
 			stackSize += 4;
 			break;
 		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: {
 			char *buf = malloc(sizeof(char) *
-							   (strlen(p->type_assign_array.arr.val) + 5));
+			                   (strlen(p->type_assign_array.arr.val) + 5));
 			sprintf(buf, "%s_%d", p->type_assign_array.arr.val,
-					p->type_assign_array.arr.depth);
+			        p->type_assign_array.arr.depth);
 			bool added = add_variable(&cur_function_data, stackSize + 4, buf,
-									  false, true);
+			                          false, true);
 
 			if (added) {
 				stackSize += p->type_assign_array.arr.array * 4;
@@ -321,26 +336,14 @@ void analyze(mCc_tac_node head, FILE *out)
 			funcRetLabel = mCc_ass_new_label();
 			break;
 		case TAC_LINE_TYPE_SIMPLE: {
-			struct mCc_ass_function_var *arg0_var;
-			if (p->type_simple.arg0.depth != -1) {
-				char buff[20];
-				sprintf(buff, "%s_%d", p->type_simple.arg0.val,
-				        p->type_simple.arg0.depth);
-				HASH_FIND_STR(function_data->data, buff, arg0_var);
-			} else {
-				HASH_FIND_STR(function_data->data, p->type_simple.arg0.val,
-				              arg0_var);
-			}
-			if (arg0_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG 0 %s\n",
-				        p->type_simple.arg0.val);
-			}
+			int location_arg0 =
+			    get_location(function_data->data, p->type_simple.arg0);
 			if (p->type_simple.arg1.literal == true) {
 				switch (p->type_simple.arg1.type) {
 				case MCC_AST_TYPE_BOOL:
 				case MCC_AST_TYPE_INT:
 					fprintf(out, "\tmovl\t$%s, -%d(%%ebp)\n",
-					        p->type_simple.arg1.val, arg0_var->location);
+					        p->type_simple.arg1.val, location_arg0);
 					break;
 				case MCC_AST_TYPE_FLOAT: {
 					struct mCc_ass_static_data *arg1_var;
@@ -350,7 +353,7 @@ void analyze(mCc_tac_node head, FILE *out)
 						fprintf(stderr, "SOMETHING WENT WRONG 1F\n");
 					}
 					fprintf(out, "\tflds\t.LC%d\n\tfstps\t-%d(%%ebp)\n",
-					        arg1_var->label, arg0_var->location);
+					        arg1_var->label, location_arg0);
 					break;
 				}
 
@@ -362,7 +365,7 @@ void analyze(mCc_tac_node head, FILE *out)
 						fprintf(stderr, "SOMETHING WENT WRONG 1S\n");
 					}
 					fprintf(out, "\tmovvl\t$.LC%d, -%d(%%ebp)\n",
-					        arg1_var->label, arg0_var->location);
+					        arg1_var->label, location_arg0);
 					break;
 				}
 				case MCC_AST_TYPE_VOID:
@@ -370,34 +373,20 @@ void analyze(mCc_tac_node head, FILE *out)
 					break;
 				}
 			} else {
-				struct mCc_ass_function_var *arg1_var;
-				if (p->type_simple.arg1.depth != -1) {
-					char buff[20];
-					sprintf(buff, "%s_%d", p->type_simple.arg1.val,
-					        p->type_simple.arg1.depth);
-					HASH_FIND_STR(function_data->data, buff, arg1_var);
-				} else {
-					HASH_FIND_STR(function_data->data, p->type_simple.arg1.val,
-					              arg1_var);
-				}
-				if (arg0_var == NULL) {
-					fprintf(stderr, "SOMETHING WENT WRONG 1 %s\n",
-					        p->type_simple.arg0.val);
-				}
+				int location_arg1 =
+				    get_location(function_data->data, p->type_simple.arg1);
 				switch (
 				    p->type_simple.arg0
 				        .type) { // arg0 or 1, shouldn't matter (should be same)
 				case MCC_AST_TYPE_BOOL:
 				case MCC_AST_TYPE_INT:
 				case MCC_AST_TYPE_STRING:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_TYPE_FLOAT:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_TYPE_VOID:
 					// shouldn't happen ?
@@ -407,242 +396,177 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 		case TAC_LINE_TYPE_DOUBLE: {
-			struct mCc_ass_function_var *arg0_var;
-			struct mCc_ass_function_var *arg1_var;
-			struct mCc_ass_function_var *arg2_var;
-			if (p->type_double.arg0.depth != -1) {
-				char buff[20];
-				sprintf(buff, "%s_%d", p->type_double.arg0.val,
-				        p->type_double.arg0.depth);
-				HASH_FIND_STR(function_data->data, buff, arg0_var);
-			} else {
-				HASH_FIND_STR(function_data->data, p->type_double.arg0.val,
-				              arg0_var);
-			}
-			if (p->type_double.arg1.depth != -1) {
-				char buff[20];
-				sprintf(buff, "%s_%d", p->type_double.arg1.val,
-				        p->type_double.arg1.depth);
-				HASH_FIND_STR(function_data->data, buff, arg1_var);
-			} else {
-				HASH_FIND_STR(function_data->data, p->type_double.arg1.val,
-				              arg1_var);
-			}
-			if (p->type_double.arg2.depth != -1) {
-				char buff[20];
-				sprintf(buff, "%s_%d", p->type_double.arg2.val,
-				        p->type_double.arg2.depth);
-				HASH_FIND_STR(function_data->data, buff, arg2_var);
-			} else {
-				HASH_FIND_STR(function_data->data, p->type_double.arg2.val,
-				              arg2_var);
-			}
-			if (arg0_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG 0 %s\n",
-				        p->type_double.arg0.val);
-			}
-			if (arg1_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG 1 %s\n",
-				        p->type_double.arg1.val);
-			}
-			if (arg2_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG 2 %s\n",
-				        p->type_double.arg2.val);
-			}
+			int location_arg0 =
+			    get_location(function_data->data, p->type_double.arg0);
+			int location_arg1 =
+			    get_location(function_data->data, p->type_double.arg1);
+			int location_arg2 =
+			    get_location(function_data->data, p->type_double.arg2);
 
 			switch (p->type_double.arg1.type) {
 			case MCC_AST_TYPE_BOOL:
 			case MCC_AST_TYPE_INT:
 				switch (p->type_double.op.op) {
 				case MCC_AST_BINARY_OP_ADD:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n",
-					        arg1_var->location);
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n", location_arg1);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\taddl\t%%edx, %%eax\n");
 					break;
 				case MCC_AST_BINARY_OP_SUB:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tsubl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tsubl\t-%d(%%ebp), %%eax\n", location_arg2);
 					break;
 				case MCC_AST_BINARY_OP_MUL:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\timull\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\timull\t-%d(%%ebp), %%eax\n", location_arg2);
 					break;
 				case MCC_AST_BINARY_OP_DIV:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
 					fprintf(out, "\tcltd\n");
-					fprintf(out, "\tidivl\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tidivl\t-%d(%%ebp)\n", location_arg2);
 					break;
 				case MCC_AST_BINARY_OP_LESS:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\tsetl\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
 					break;
 				case MCC_AST_BINARY_OP_GREATER:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\tsetg\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
 					break;
 				case MCC_AST_BINARY_OP_LESS_EQUALS:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\tsetle\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
 					break;
 				case MCC_AST_BINARY_OP_GREATER_EQUALS:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\tsetge\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
 					break;
 				case MCC_AST_BINARY_OP_AND:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tandl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tandl\t-%d(%%ebp), %%eax\n", location_arg2);
 					break;
 				case MCC_AST_BINARY_OP_OR:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\torl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\torl\t-%d(%%ebp), %%eax\n", location_arg2);
 					break;
 				case MCC_AST_BINARY_OP_EQUALS:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\tsete\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
 					break;
 				case MCC_AST_BINARY_OP_NOT_EQUALS:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n",
-					        arg1_var->location);
-					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n",
-					        arg2_var->location);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tcmpl\t-%d(%%ebp), %%eax\n", location_arg2);
 					fprintf(out, "\tsetne\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
 					break;
 				}
-				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", arg0_var->location);
+				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 				break;
 			case MCC_AST_TYPE_FLOAT: {
 				switch (p->type_double.op.op) {
 				case MCC_AST_BINARY_OP_ADD:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tfadds\t-%d(%%ebp)\n", arg2_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tfadds\t-%d(%%ebp)\n", location_arg2);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_SUB:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tfsubs\t-%d(%%ebp)\n", arg2_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tfsubs\t-%d(%%ebp)\n", location_arg2);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_MUL:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tfmuls\t-%d(%%ebp)\n", arg2_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tfmuls\t-%d(%%ebp)\n", location_arg2);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_DIV:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tfdivs\t-%d(%%ebp)\n", arg2_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg0_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tfdivs\t-%d(%%ebp)\n", location_arg2);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_LESS:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
 					fprintf(out, "\tfxch\t%%st(1)\n");
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tseta\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_GREATER:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
 					fprintf(out, "\tfxch\t%%st(1)\n");
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tseta\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_LESS_EQUALS:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
 					fprintf(out, "\tfxch\t%%st(1)\n");
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tsetnb\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_GREATER_EQUALS:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
 					fprintf(out, "\tfxch\t%%st(1)\n");
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tsetnb\t%%al\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_AND:
 				case MCC_AST_BINARY_OP_OR:
 					fprintf(stderr, "NO AND/OR on floats\n");
 					break;
 				case MCC_AST_BINARY_OP_EQUALS:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tsetnp\t%%al\n");
 					fprintf(out, "\tmovl\t$0, %%edx\n");
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tcmovne\t%%edx, %%eax\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				case MCC_AST_BINARY_OP_NOT_EQUALS:
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tsetp\t%%al\n");
 					fprintf(out, "\tmovl\t$1, %%edx\n");
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg1_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", arg2_var->location);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg2);
 					fprintf(out, "\tfucomip\t%%st(1), %%st\n");
 					fprintf(out, "\tfstp\t%%st(0)\n");
 					fprintf(out, "\tcmovne\t%%edx, %%eax\n");
 					fprintf(out, "\tmovzbl\t%%al, %%eax\n");
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n",
-					        arg0_var->location);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
 					break;
 				}
 				break;
@@ -662,163 +586,89 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		case TAC_LINE_TYPE_POP: break;
 		case TAC_LINE_TYPE_POP_RETURN: {
-			struct mCc_ass_function_var *arg_var;
-			if (p->type_pop.var.depth != -1) {
-				char buff[20];
-				sprintf(buff, "%s_%d", p->type_pop.var.val,
-						p->type_pop.var.depth);
-				HASH_FIND_STR(function_data->data, buff, arg_var);
-			} else {
-				HASH_FIND_STR(function_data->data, p->type_pop.var.val,
-							  arg_var);
-			}
-			if (arg_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG popret %s\n",
-						p->type_simple.arg0.val);
-			}
-			switch (p->type_pop.var.type){
-				case MCC_AST_TYPE_STRING:
-				case MCC_AST_TYPE_BOOL:
-				case MCC_AST_TYPE_INT:
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", arg_var->location);
-					break;
-				case MCC_AST_TYPE_FLOAT:
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n", arg_var->location);
-					break;
-				case MCC_AST_TYPE_VOID:
-					// Don't pop?
-					break;
+			int location = get_location(function_data->data, p->type_pop.var);
+
+			switch (p->type_pop.var.type) {
+			case MCC_AST_TYPE_STRING:
+			case MCC_AST_TYPE_BOOL:
+			case MCC_AST_TYPE_INT:
+				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location);
+				break;
+			case MCC_AST_TYPE_FLOAT:
+				fprintf(out, "\tfstps\t-%d(%%ebp)\n", location);
+				break;
+			case MCC_AST_TYPE_VOID:
+				// Don't pop?
+				break;
 			}
 			break;
 		}
 		case TAC_LINE_TYPE_PUSH: {
-			struct mCc_ass_function_var *arg_var;
-			HASH_FIND_STR(function_data->data, p->type_push.var.val,
-						  arg_var);
-			if (arg_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG push\n");
-			}
-			fprintf(out, "\tpushl\t-%d(%%ebp)\n", arg_var->location);
+			int location = get_location(function_data->data, p->type_push.var);
+			fprintf(out, "\tpushl\t-%d(%%ebp)\n", location);
 			pushSize += 4;
 			break;
 		}
 
 		case TAC_LINE_TYPE_RETURN: break;
 		case TAC_LINE_TYPE_IFZ: {
-			struct mCc_ass_function_var *arg_var;
-			if (p->type_ifz.var.depth != -1) {
-				char buff[20];
-				sprintf(buff, "%s_%d", p->type_ifz.var.val,
-				        p->type_ifz.var.depth);
-				HASH_FIND_STR(function_data->data, buff, arg_var);
-			} else {
-				HASH_FIND_STR(function_data->data, p->type_ifz.var.val,
-				              arg_var);
-			}
-			if (arg_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG 1 %s\n",
-				        p->type_ifz.var.val);
-			}
-			fprintf(out, "\tcmpl\t$0, -%d(%%ebp)\n", arg_var->location);
+			int location = get_location(function_data->data, p->type_ifz.var);
+			fprintf(out, "\tcmpl\t$0, -%d(%%ebp)\n", location);
 			fprintf(out, "\tje\t.L%d\n", p->type_label.label_name);
 			break;
 		}
 
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
 		case TAC_LINE_TYPE_IDEN_ARRAY: {
-			struct mCc_ass_function_var *arr_var;
-			struct mCc_ass_function_var *index_var;
-			struct mCc_ass_function_var *var_var;
-			char buff[20];
-			sprintf(buff, "%s_%d", p->type_array_iden.arr.val,
-					p->type_array_iden.arr.depth);
-			HASH_FIND_STR(function_data->data, buff, arr_var);
-
-			HASH_FIND_STR(function_data->data, p->type_array_iden.var.val,
-						  var_var);
-
-			HASH_FIND_STR(function_data->data, p->type_array_iden.loc.val,
-						  index_var);
-
-			if (arr_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG arr %s\n",
-						p->type_array_iden.arr.val);
-			}
-			if (var_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG var %s\n",
-						p->type_array_iden.var.val);
-			}
-			if (index_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG loc %s\n",
-						p->type_array_iden.loc.val);
-			}
-
+			int location_arr =
+			    get_location(function_data->data, p->type_array_iden.arr);
+			int location_index =
+			    get_location(function_data->data, p->type_array_iden.loc);
+			int location_var =
+			    get_location(function_data->data, p->type_array_iden.var);
 
 			switch (p->type_array_iden.var.type) {
-				case MCC_AST_TYPE_BOOL:
-				case MCC_AST_TYPE_INT:
-				case MCC_AST_TYPE_STRING:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
-					fprintf(out, "\tmovl\t-%d(%%ebp,%%eax,4), %%eax\n", arr_var->location);
-					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", var_var->location);
-					break;
-				case MCC_AST_TYPE_FLOAT:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp,%%eax,4)\n", arr_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp)\n",var_var->location);
-					break;
-				case MCC_AST_TYPE_VOID:
-					fprintf(stderr, "VOID ARRAY? \n");
-					break;
+			case MCC_AST_TYPE_BOOL:
+			case MCC_AST_TYPE_INT:
+			case MCC_AST_TYPE_STRING:
+				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+				fprintf(out, "\tmovl\t-%d(%%ebp,%%eax,4), %%eax\n",
+				        location_arr);
+				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_var);
+				break;
+			case MCC_AST_TYPE_FLOAT:
+				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+				fprintf(out, "\tflds\t-%d(%%ebp,%%eax,4)\n", location_arr);
+				fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_var);
+				break;
+			case MCC_AST_TYPE_VOID: fprintf(stderr, "VOID ARRAY? \n"); break;
 			}
 			break;
 		}
 
-		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY:{
-			struct mCc_ass_function_var *arr_var;
-			struct mCc_ass_function_var *index_var;
-			struct mCc_ass_function_var *var_var;
-			char buff[20];
-			sprintf(buff, "%s_%d", p->type_assign_array.arr.val,
-					p->type_assign_array.arr.depth);
-			HASH_FIND_STR(function_data->data, buff, arr_var);
+		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: {
+			int location_arr =
+			    get_location(function_data->data, p->type_assign_array.arr);
+			int location_index =
+			    get_location(function_data->data, p->type_assign_array.loc);
+			int location_var =
+			    get_location(function_data->data, p->type_assign_array.var);
 
-			HASH_FIND_STR(function_data->data, p->type_assign_array.var.val,
-						  var_var);
-
-			HASH_FIND_STR(function_data->data, p->type_assign_array.loc.val,
-						  index_var);
-
-			if (arr_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG arr %s\n",
-						p->type_assign_array.arr.val);
-			}
-			if (var_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG var %s\n",
-						p->type_assign_array.var.val);
-			}
-			if (index_var == NULL) {
-				fprintf(stderr, "SOMETHING WENT WRONG loc %s\n",
-						p->type_assign_array.loc.val);
-			}
-
-			switch (
-					p->type_assign_array.arr.type) {
-				case MCC_AST_TYPE_BOOL:
-				case MCC_AST_TYPE_INT:
-				case MCC_AST_TYPE_STRING:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n", var_var->location);
-					fprintf(out, "\tmovl\t%%edx, -%d(%%ebp,%%eax,4)\n",arr_var->location);
-					break;
-				case MCC_AST_TYPE_FLOAT:
-					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", index_var->location);
-					fprintf(out, "\tflds\t-%d(%%ebp)\n", var_var->location);
-					fprintf(out, "\tfstps\t-%d(%%ebp,%%eax,4)\n",arr_var->location);
-					break;
-				case MCC_AST_TYPE_VOID:
-					fprintf(stderr, "VOID ARRAY? \n");
-					break;
+			switch (p->type_assign_array.arr.type) {
+			case MCC_AST_TYPE_BOOL:
+			case MCC_AST_TYPE_INT:
+			case MCC_AST_TYPE_STRING:
+				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+				fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n", location_var);
+				fprintf(out, "\tmovl\t%%edx, -%d(%%ebp,%%eax,4)\n",
+				        location_arr);
+				break;
+			case MCC_AST_TYPE_FLOAT:
+				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+				fprintf(out, "\tflds\t-%d(%%ebp)\n", location_var);
+				fprintf(out, "\tfstps\t-%d(%%ebp,%%eax,4)\n", location_arr);
+				break;
+			case MCC_AST_TYPE_VOID: fprintf(stderr, "VOID ARRAY? \n"); break;
 			}
 			break;
 		}

@@ -23,6 +23,9 @@ TEST(ThreeAdressCode, TestAssembler)
 	                     "a = b/5 - 2;" // 2
 	                     "print_int(a);"
 	                     "print_nl();"
+						 "a = a * 4 + 3;" // 11
+						 "print_int(a);"
+						 "print_nl();"
 	                     "}";
 	auto result = mCc_parser_parse_string(input);
 
