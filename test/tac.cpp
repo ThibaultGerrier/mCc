@@ -263,8 +263,8 @@ TEST(ThreeAdressCode, FUNCTION_DEF_WITH_PARAMS)
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->next->type);
 
-	auto popStr = tac->next->next->type_pop;
-	auto popInt = tac->next->next->next->type_pop;
+	auto popInt= tac->next->next->type_pop;
+	auto popStr = tac->next->next->next->type_pop;
 
 	ASSERT_EQ(popInt.var.type, MCC_AST_TYPE_INT);
 	ASSERT_EQ(popStr.var.type, MCC_AST_TYPE_STRING);
@@ -334,7 +334,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	mCc_tac_node tac = mCc_ast_get_tac_program(result.program);
-	// mCc_tac_print_tac(tac, stderr);
+	//mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 
@@ -346,12 +346,12 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 	ASSERT_EQ(TAC_LINE_TYPE_PUSH, tac->next->next->next->next->next->next->next
 	                                  ->next->next->next->next->type);
 
-	auto pushI =
+	auto pushS =
 	    tac->next->next->next->next->next->next->next->next->type_push.var;
-	auto pushS = tac->next->next->next->next->next->next->next->next->next->next
+	auto pushI = tac->next->next->next->next->next->next->next->next->next->next
 	                 ->next->type_push.var;
-	auto popI = tac->next->next->next->type_pop.var;
-	auto popS = tac->next->next->type_pop.var;
+	auto popS = tac->next->next->next->type_pop.var;
+	auto popI = tac->next->next->type_pop.var;
 
 	ASSERT_EQ(pushI.type, popI.type);
 	ASSERT_EQ(pushS.type, popS.type);

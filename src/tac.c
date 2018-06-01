@@ -21,10 +21,21 @@ int mCc_tac_new_label()
 	return mCc_tac_label;
 }
 
-int mCc_tac_get_count(struct mCc_ast_parameter *head)
+int mCc_tac_get_ast_par_count(struct mCc_ast_parameter *head)
 {
-	int count = 0;                            // Initialize count
-	struct mCc_ast_parameter *current = head; // Initialize current
+	int count = 0;
+	struct mCc_ast_parameter *current = head;
+	while (current != NULL) {
+		count++;
+		current = current->next;
+	}
+	return count;
+}
+
+int mCc_tac_get_arg_count(struct mCc_ast_argument_list *head)
+{
+	int count = 0;
+	struct mCc_ast_argument_list *current = head;
 	while (current != NULL) {
 		count++;
 		current = current->next;
@@ -34,9 +45,17 @@ int mCc_tac_get_count(struct mCc_ast_parameter *head)
 
 /* Takes head pointer of the linked list and index
     as arguments and return data at index*/
-struct mCc_ast_parameter *mCc_tac_get_nth(struct mCc_ast_parameter *head, int n)
+struct mCc_ast_parameter *mCc_tac_get_ast_par_nth(struct mCc_ast_parameter *head, int n)
 {
 	struct mCc_ast_parameter *curr = head;
+	for (int i = 0; i < n - 1 && curr != NULL; i++)
+		curr = curr->next;
+	return curr;
+}
+
+struct mCc_ast_argument_list *mCc_tac_get_arg_nth(struct mCc_ast_argument_list *head, int n)
+{
+	struct mCc_ast_argument_list *curr = head;
 	for (int i = 0; i < n - 1 && curr != NULL; i++)
 		curr = curr->next;
 	return curr;
@@ -501,15 +520,27 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_CALL_EXPR: {
-		struct mCc_ast_argument_list *next = expression->call_expr.arguments;
+		/*struct mCc_ast_argument_list *next = expression->call_expr.arguments;
 		while (next != NULL) {
 			struct mCc_tac_var t =
-			    mCc_tac_cgen_expression(next->expression, tac);
+				mCc_tac_cgen_expression(next->expression, tac);
 			mCc_tac_node node = mCc_tac_create_node();
 			node->type = TAC_LINE_TYPE_PUSH;
 			node->type_push.var = t;
 			mCc_tac_add_node(node, tac);
 			next = next->next;
+		}*/
+
+		struct mCc_ast_argument_list *head = expression->call_expr.arguments;
+		int n = mCc_tac_get_arg_count(head);
+		for (int i = n; i >= 1; i--) {
+			struct mCc_ast_argument_list *next = mCc_tac_get_arg_nth(head, i);
+			struct mCc_tac_var t =
+					mCc_tac_cgen_expression(next->expression, tac);
+			mCc_tac_node node = mCc_tac_create_node();
+			node->type = TAC_LINE_TYPE_PUSH;
+			node->type_push.var = t;
+			mCc_tac_add_node(node, tac);
 		}
 		struct mCc_sym_table_entry *symbol_table_entry =
 		    expression->call_expr.identifier->symbol_table_entry;
@@ -805,11 +836,52 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 	    function_def->function_identifier->name;
 	mCc_tac_add_node(nodeLabel, tac);
 
-	struct mCc_ast_parameter *head = function_def->parameters;
+	struct mCc_ast_parameter *next = function_def->parameters;
+	while (next != NULL) {
+		mCc_tac_node nodeParameter = mCc_tac_create_node();
+		switch (next->declaration->declaration_type) {
+			case MCC_AST_DECLARATION_TYPE_DECLARATION: {
+				nodeParameter->type = TAC_LINE_TYPE_POP;
+				char *str = malloc(
+						sizeof(char) *
+						(strlen(next->declaration->normal_decl.identifier->name) + 1));
+				sprintf(str, "%s", next->declaration->normal_decl.identifier->name);
+				struct mCc_tac_var var = {
+						next->declaration->identifier_type, 0, str,
+						(int)next->declaration->normal_decl.identifier
+								->symbol_table_entry->scope_index,
+						false
+				};
+				nodeParameter->type_pop.var = var;
+				mCc_tac_add_node(nodeParameter, tac);
+				break;
+			}
+			case MCC_AST_DECLARATION_TYPE_ARRAY_DECLARATION: {
+				nodeParameter->type = TAC_LINE_TYPE_POP;
+				char *str = malloc(
+						sizeof(char) *
+						(strlen(next->declaration->array_decl.identifier->name) + 1));
+				sprintf(str, "%s", next->declaration->array_decl.identifier->name);
+				struct mCc_tac_var var = {
+						next->declaration->identifier_type,
+						(int)next->declaration->array_decl.literal->i_value, str,
+						(int)next->declaration->array_decl.identifier
+								->symbol_table_entry->scope_index,
+						false
+				};
+				nodeParameter->type_pop.var = var;
 
-	int n = mCc_tac_get_count(head);
+				mCc_tac_add_node(nodeParameter, tac);
+				break;
+			}
+		}
+		next = next->next;
+	}
+
+	/*struct mCc_ast_parameter *head = function_def->parameters;
+	int n = mCc_tac_get_ast_par_count(head);
 	for (int i = n; i >= 1; i--) {
-		struct mCc_ast_parameter *next = mCc_tac_get_nth(head, i);
+		struct mCc_ast_parameter *next = mCc_tac_get_ast_par_nth(head, i);
 		mCc_tac_node nodeParameter = mCc_tac_create_node();
 		switch (next->declaration->declaration_type) {
 		case MCC_AST_DECLARATION_TYPE_DECLARATION: {
@@ -848,7 +920,7 @@ void mCc_tac_cgen_function_def(struct mCc_ast_function_def *function_def,
 		}
 		}
 		// next = next->next;
-	}
+	}*/
 
 	mCc_tac_cgen_statement(function_def->compound_stmt, tac);
 	mCc_tac_node nodeEnd = mCc_tac_create_node();
