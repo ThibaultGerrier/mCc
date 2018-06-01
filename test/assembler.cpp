@@ -30,6 +30,30 @@ TEST(ThreeAdressCode, TestAssembler)
 	auto result = mCc_parser_parse_string(input);
 
 	auto fp = fopen("generated.s", "w");
+	mCc_ast_print_assembler_program(result.program, stderr);
+	fclose(fp);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	//ASSERT_EQ(1, 0);
+}
+
+TEST(ThreeAdressCode, TestAssemblerFunc)
+{
+	const char input[] = "int add(int a, int b){"
+						 "return a + b;"
+						 "}"
+						 "void main(){"
+						 "int a;"
+						 "int b;"
+						 "int c;"
+						 "a = 4;"
+						 "b = 5;"
+						 "c = add(a,b);" // 9
+						 "print_int(c);"
+						 "print_nl();"
+						 "}";
+	auto result = mCc_parser_parse_string(input);
+
+	auto fp = fopen("generated.s", "w");
 	mCc_ast_print_assembler_program(result.program, fp);
 	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);

@@ -319,6 +319,7 @@ void analyze(mCc_tac_node head, FILE *out)
 
 	int funcRetLabel = 0;
 	int pushSize = 0;
+	int popSize = 4;
 	// mCc_tac_node p;
 	p = head;
 	List *func_data_temp = ass->function_data;
@@ -334,6 +335,7 @@ void analyze(mCc_tac_node head, FILE *out)
 			fprintf(out, "\tpushl\t%%ebp\n\tmovl\t%%esp, %%ebp\n");
 			fprintf(out, "\tsubl\t$%d, %%esp\n", function_data->stack_size);
 			funcRetLabel = mCc_ass_new_label();
+			popSize = 4;
 			break;
 		case TAC_LINE_TYPE_SIMPLE: {
 			int location_arg0 =
@@ -584,7 +586,28 @@ void analyze(mCc_tac_node head, FILE *out)
 			fprintf(out, "\taddl\t$%d, %%esp\n", pushSize);
 			pushSize = 0;
 			break;
-		case TAC_LINE_TYPE_POP: break;
+		case TAC_LINE_TYPE_POP: {
+			int location = get_location(function_data->data, p->type_pop.var);
+
+			switch(p->type_pop.var.type) {
+				case MCC_AST_TYPE_STRING:
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+					fprintf(out, "\tmovl\t%d(%%ebp), %%eax\n", popSize + 4);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tflds\t%d(%%ebp)\n", popSize + 4);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location);
+					break;
+				case MCC_AST_TYPE_VOID:
+					// shouldn't happen
+					break;
+			}
+
+			popSize += 4;
+			break;
+		}
 		case TAC_LINE_TYPE_POP_RETURN: {
 			int location = get_location(function_data->data, p->type_pop.var);
 
@@ -610,7 +633,26 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 
-		case TAC_LINE_TYPE_RETURN: break;
+		case TAC_LINE_TYPE_RETURN: {
+			if (p->type_return.var.type != MCC_AST_TYPE_VOID) {
+				int location = get_location(function_data->data, p->type_return.var);
+				switch(p->type_return.var.type){
+					case MCC_AST_TYPE_STRING:
+					case MCC_AST_TYPE_BOOL:
+					case MCC_AST_TYPE_INT:
+						fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location);
+						break;
+					case MCC_AST_TYPE_FLOAT:
+						fprintf(out, "\tflds\t-%d(%%ebp)\n", location);
+						break;
+					case MCC_AST_TYPE_VOID:
+						// ignore
+						break;
+				}
+			}
+			fprintf(out, "\tjmp .LR%d\n", funcRetLabel);
+			break;
+		}
 		case TAC_LINE_TYPE_IFZ: {
 			int location = get_location(function_data->data, p->type_ifz.var);
 			fprintf(out, "\tcmpl\t$0, -%d(%%ebp)\n", location);

@@ -304,7 +304,7 @@ TEST(ThreeAdressCode, FUNCTION_RETURN)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	// mCc_tac_print_tac(tac, stderr);
+	mCc_tac_print_tac(tac, stderr);
 
 	auto line1 = tac->next;
 	auto line2 = line1->next;
@@ -316,7 +316,7 @@ TEST(ThreeAdressCode, FUNCTION_RETURN)
 	auto line8 = line7->next; // pop return
 
 	ASSERT_EQ(TAC_LINE_TYPE_RETURN, line4->type);
-	ASSERT_EQ(TAC_LINE_TYPE_POP, line8->type);
+	ASSERT_EQ(TAC_LINE_TYPE_POP_RETURN, line8->type);
 
 	ASSERT_EQ(line8->type_pop.var.type, line4->type_return.var.type);
 
