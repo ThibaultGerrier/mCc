@@ -40,22 +40,15 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 	auto line1 = line0->next;
 	auto line2 = line1->next;
 	auto line3 = line2->next;
-	auto line4 = line3->next;
-	auto line5 = line4->next;
 
 	ASSERT_EQ(line1->type, TAC_LINE_TYPE_SIMPLE);
 	ASSERT_EQ(line2->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line3->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line4->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line5->type, TAC_LINE_TYPE_DOUBLE);
+	ASSERT_EQ(line3->type, TAC_LINE_TYPE_DOUBLE);
 
 	ASSERT_EQ(line1->type_simple.arg0.type, line1->type_simple.arg1.type);
 	ASSERT_EQ(line2->type_simple.arg0.type, line2->type_simple.arg1.type);
-	ASSERT_EQ(line3->type_simple.arg0.type, line3->type_simple.arg1.type);
-	ASSERT_EQ(line4->type_simple.arg0.type, line4->type_simple.arg1.type);
-
-	ASSERT_EQ(line5->type_double.arg0.type, MCC_AST_TYPE_BOOL);
-	ASSERT_EQ(line5->type_double.op.op, MCC_AST_BINARY_OP_OR);
+	ASSERT_EQ(line3->type_double.arg0.type, MCC_AST_TYPE_BOOL);
+	ASSERT_EQ(line3->type_double.op.op, MCC_AST_BINARY_OP_OR);
 
 	// fprintf(stderr, "\n");
 	mCc_tac_delete_tac(tac);
@@ -65,7 +58,7 @@ TEST(ThreeAdressCode, Generate_Expression_Bool)
 
 TEST(ThreeAdressCode, Generate_Expression_Parenth)
 {
-	const char input[] = "void main(){1.2+2*(1-2);}";
+	const char input[] = "void main(){1+2*(1-2);}";
 	auto result = mCc_parser_parse_string(input);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
@@ -82,41 +75,29 @@ TEST(ThreeAdressCode, Generate_Expression_Parenth)
 	auto line6 = line5->next;
 	auto line7 = line6->next;
 	auto line8 = line7->next;
-	auto line9 = line8->next;
-	auto line10 = line9->next;
-	auto line11 = line10->next;
-	auto line12 = line11->next;
 
 	ASSERT_EQ(line1->type, TAC_LINE_TYPE_SIMPLE);
 	ASSERT_EQ(line2->type, TAC_LINE_TYPE_SIMPLE);
 	ASSERT_EQ(line3->type, TAC_LINE_TYPE_SIMPLE);
 	ASSERT_EQ(line4->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line5->type, TAC_LINE_TYPE_SIMPLE);
+	ASSERT_EQ(line5->type, TAC_LINE_TYPE_DOUBLE);
 	ASSERT_EQ(line6->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line7->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line8->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line9->type, TAC_LINE_TYPE_DOUBLE);
-	ASSERT_EQ(line10->type, TAC_LINE_TYPE_SIMPLE);
-	ASSERT_EQ(line11->type, TAC_LINE_TYPE_DOUBLE);
-	ASSERT_EQ(line12->type, TAC_LINE_TYPE_DOUBLE);
+	ASSERT_EQ(line7->type, TAC_LINE_TYPE_DOUBLE);
+	ASSERT_EQ(line8->type, TAC_LINE_TYPE_DOUBLE);
 
 	ASSERT_EQ(line1->type_simple.arg0.type, line1->type_simple.arg1.type);
 	ASSERT_EQ(line2->type_simple.arg0.type, line2->type_simple.arg1.type);
 	ASSERT_EQ(line3->type_simple.arg0.type, line3->type_simple.arg1.type);
 	ASSERT_EQ(line4->type_simple.arg0.type, line4->type_simple.arg1.type);
-	ASSERT_EQ(line5->type_simple.arg0.type, line5->type_simple.arg1.type);
 	ASSERT_EQ(line6->type_simple.arg0.type, line6->type_simple.arg1.type);
-	ASSERT_EQ(line7->type_simple.arg0.type, line7->type_simple.arg1.type);
-	ASSERT_EQ(line8->type_simple.arg0.type, line8->type_simple.arg1.type);
-	ASSERT_EQ(line10->type_simple.arg0.type, line10->type_simple.arg1.type);
 
-	ASSERT_EQ(line9->type_double.arg0.type, line9->type_double.op.type);
-	ASSERT_EQ(line11->type_double.arg0.type, line11->type_double.op.type);
-	ASSERT_EQ(line12->type_double.arg0.type, line12->type_double.op.type);
+	ASSERT_EQ(line5->type_double.arg0.type, line5->type_double.op.type);
+	ASSERT_EQ(line7->type_double.arg0.type, line7->type_double.op.type);
+	ASSERT_EQ(line8->type_double.arg0.type, line8->type_double.op.type);
 
-	ASSERT_EQ(line9->type_double.op.op, MCC_AST_BINARY_OP_SUB);
-	ASSERT_EQ(line11->type_double.op.op, MCC_AST_BINARY_OP_MUL);
-	ASSERT_EQ(line12->type_double.op.op, MCC_AST_BINARY_OP_ADD);
+	ASSERT_EQ(line5->type_double.op.op, MCC_AST_BINARY_OP_SUB);
+	ASSERT_EQ(line7->type_double.op.op, MCC_AST_BINARY_OP_MUL);
+	ASSERT_EQ(line8->type_double.op.op, MCC_AST_BINARY_OP_ADD);
 
 	// fprintf(stderr, "\n");
 	mCc_tac_delete_tac(tac);
@@ -139,12 +120,11 @@ TEST(ThreeAdressCode, Generate_IF)
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->next->next->type);
 
-	auto gotoLabel = tac->next->next->next->next->type_ifz.jump_label_name;
-	auto label = tac->next->next->next->next->next->type_label.label_name;
+	auto gotoLabel = tac->next->next->next->type_ifz.jump_label_name;
+	auto label = tac->next->next->next->next->type_label.label_name;
 
 	ASSERT_EQ(gotoLabel, label);
 
@@ -165,20 +145,17 @@ TEST(ThreeAdressCode, Generate_IFELSE)
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_JUMP, tac->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_JUMP, tac->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->next->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
 	          tac->next->next->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
-	          tac->next->next->next->next->next->next->next->type);
 
-	auto gotoIF = tac->next->next->next->next->type_ifz.jump_label_name;
-	auto labelIF =
-	    tac->next->next->next->next->next->next->type_label.label_name;
-	auto gotoELSE = tac->next->next->next->next->next->type_jump.jump_name;
+	auto gotoIF = tac->next->next->next->type_ifz.jump_label_name;
+	auto labelIF = tac->next->next->next->next->next->type_label.label_name;
+	auto gotoELSE = tac->next->next->next->next->type_jump.jump_name;
 	auto labelELSE =
-	    tac->next->next->next->next->next->next->next->type_label.label_name;
+	    tac->next->next->next->next->next->next->type_label.label_name;
 
 	ASSERT_EQ(gotoIF, labelIF);
 	ASSERT_EQ(gotoELSE, labelELSE);
@@ -201,21 +178,17 @@ TEST(ThreeAdressCode, Generate_WHILE)
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 	ASSERT_EQ(TAC_LINE_TYPE_LABEL, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_SIMPLE, tac->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_JUMP,
-	          tac->next->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_IFZ, tac->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_JUMP, tac->next->next->next->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_LABEL,
-	          tac->next->next->next->next->next->next->next->type);
+	          tac->next->next->next->next->next->next->type);
 
 	auto beginLabel = tac->next->next->type_label.label_name;
 	auto endLabel =
-	    tac->next->next->next->next->next->next->next->type_label.label_name;
+	    tac->next->next->next->next->next->next->type_label.label_name;
 
-	auto gotoBeginning =
-	    tac->next->next->next->next->next->next->type_jump.jump_name;
-	auto ifZGotoEnd =
-	    tac->next->next->next->next->next->type_ifz.jump_label_name;
+	auto gotoBeginning = tac->next->next->next->next->next->type_jump.jump_name;
+	auto ifZGotoEnd = tac->next->next->next->next->type_ifz.jump_label_name;
 
 	ASSERT_EQ(beginLabel, gotoBeginning);
 	ASSERT_EQ(endLabel, ifZGotoEnd);
@@ -263,7 +236,7 @@ TEST(ThreeAdressCode, FUNCTION_DEF_WITH_PARAMS)
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->next->type);
 
-	auto popInt= tac->next->next->type_pop;
+	auto popInt = tac->next->next->type_pop;
 	auto popStr = tac->next->next->next->type_pop;
 
 	ASSERT_EQ(popInt.var.type, MCC_AST_TYPE_INT);
@@ -304,21 +277,20 @@ TEST(ThreeAdressCode, FUNCTION_RETURN)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
-	mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	auto line1 = tac->next;
 	auto line2 = line1->next;
-	auto line3 = line2->next;
-	auto line4 = line3->next; // return
+	auto line3 = line2->next; // return
+	auto line4 = line3->next;
 	auto line5 = line4->next;
 	auto line6 = line5->next;
-	auto line7 = line6->next;
-	auto line8 = line7->next; // pop return
+	auto line7 = line6->next; // pop return
 
-	ASSERT_EQ(TAC_LINE_TYPE_RETURN, line4->type);
-	ASSERT_EQ(TAC_LINE_TYPE_POP_RETURN, line8->type);
+	ASSERT_EQ(TAC_LINE_TYPE_RETURN, line3->type);
+	ASSERT_EQ(TAC_LINE_TYPE_POP_RETURN, line7->type);
 
-	ASSERT_EQ(line8->type_pop.var.type, line4->type_return.var.type);
+	ASSERT_EQ(line7->type_pop.var.type, line3->type_return.var.type);
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
@@ -334,7 +306,7 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	mCc_tac_node tac = mCc_ast_get_tac_program(result.program);
-	//mCc_tac_print_tac(tac, stderr);
+	// mCc_tac_print_tac(tac, stderr);
 
 	ASSERT_EQ(TAC_LINE_TYPE_BEGIN, tac->type);
 
@@ -342,14 +314,13 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->next->type);
 
 	ASSERT_EQ(TAC_LINE_TYPE_PUSH,
-	          tac->next->next->next->next->next->next->next->next->type);
-	ASSERT_EQ(TAC_LINE_TYPE_PUSH, tac->next->next->next->next->next->next->next
-	                                  ->next->next->next->next->type);
+	          tac->next->next->next->next->next->next->next->type);
+	ASSERT_EQ(TAC_LINE_TYPE_PUSH,
+	          tac->next->next->next->next->next->next->next->next->next->type);
 
-	auto pushS =
-	    tac->next->next->next->next->next->next->next->next->type_push.var;
-	auto pushI = tac->next->next->next->next->next->next->next->next->next->next
-	                 ->next->type_push.var;
+	auto pushS = tac->next->next->next->next->next->next->next->type_push.var;
+	auto pushI = tac->next->next->next->next->next->next->next->next->next
+	                 ->type_push.var;
 	auto popS = tac->next->next->next->type_pop.var;
 	auto popI = tac->next->next->type_pop.var;
 
@@ -406,12 +377,10 @@ TEST(ThreeAdressCode, Generate_ARRAY_ASS)
 	auto line3 = line2->next;
 	auto line4 = line3->next;
 	auto line5 = line4->next;
-	auto line6 = line5->next;
-	auto line7 = line6->next;
 
-	ASSERT_EQ(line7->type, TAC_LINE_TYPE_ASSIGNMENT_ARRAY);
-	ASSERT_EQ(line7->type_assign_array.arr.array, 5);
-	ASSERT_EQ(line7->type_assign_array.loc.type, MCC_AST_TYPE_INT);
+	ASSERT_EQ(line5->type, TAC_LINE_TYPE_ASSIGNMENT_ARRAY);
+	ASSERT_EQ(line5->type_assign_array.arr.array, 5);
+	ASSERT_EQ(line5->type_assign_array.loc.type, MCC_AST_TYPE_INT);
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
@@ -435,14 +404,12 @@ TEST(ThreeAdressCode, Generate_ARRAY_IDEN)
 	auto line2 = line1->next;
 	auto line3 = line2->next;
 	auto line4 = line3->next;
-	auto line5 = line4->next;
-	// auto line6 = line5->next;
 
-	ASSERT_EQ(line5->type, TAC_LINE_TYPE_IDEN_ARRAY);
-	ASSERT_EQ(line5->type_array_iden.arr.array, 5);
-	ASSERT_EQ(line5->type_assign_array.loc.type, MCC_AST_TYPE_INT);
-	ASSERT_EQ(line5->type_assign_array.arr.type,
-		line5->type_assign_array.var.type);
+	ASSERT_EQ(line4->type, TAC_LINE_TYPE_IDEN_ARRAY);
+	ASSERT_EQ(line4->type_array_iden.arr.array, 5);
+	ASSERT_EQ(line4->type_assign_array.loc.type, MCC_AST_TYPE_INT);
+	ASSERT_EQ(line4->type_assign_array.arr.type,
+	          line4->type_assign_array.var.type);
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
@@ -467,9 +434,6 @@ TEST(ThreeAdressCode, Generate_FLOAT_OP)
 	auto line4 = line3->next;
 	auto line5 = line4->next;
 	auto line6 = line5->next;
-	auto line7 = line6->next;
-	auto line8 = line7->next;
-	auto line9 = line8->next;
 
 	ASSERT_EQ(line2->type, TAC_LINE_TYPE_SIMPLE);
 	ASSERT_EQ(line2->type_simple.arg0.type, MCC_AST_TYPE_FLOAT);
@@ -483,10 +447,14 @@ TEST(ThreeAdressCode, Generate_FLOAT_OP)
 	ASSERT_EQ(line4->type_simple.arg0.type, MCC_AST_TYPE_FLOAT);
 	ASSERT_EQ(line4->type_simple.arg1.type, MCC_AST_TYPE_FLOAT);
 
-	ASSERT_EQ(line9->type, TAC_LINE_TYPE_DOUBLE);
-	ASSERT_EQ(line9->type_double.arg0.type, MCC_AST_TYPE_FLOAT);
-	ASSERT_EQ(line9->type_double.arg1.type, MCC_AST_TYPE_FLOAT);
-	ASSERT_EQ(line9->type_double.arg2.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line5->type, TAC_LINE_TYPE_SIMPLE);
+	ASSERT_EQ(line5->type_simple.arg0.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line5->type_simple.arg1.type, MCC_AST_TYPE_FLOAT);
+
+	ASSERT_EQ(line6->type, TAC_LINE_TYPE_DOUBLE);
+	ASSERT_EQ(line6->type_double.arg0.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line6->type_double.arg1.type, MCC_AST_TYPE_FLOAT);
+	ASSERT_EQ(line6->type_double.arg2.type, MCC_AST_TYPE_FLOAT);
 
 	mCc_tac_delete_tac(tac);
 	mCc_parser_delete_result(&result);
@@ -652,26 +620,24 @@ TEST(ThreeAdressCode, unit_cgen_expression_not)
 TEST(ThreeAdressCode, Generate_Expression_Scope)
 {
 	const char input[] =
-			"void main(){ int a; int b; a = 1; b = 2; { int b; a = "
-					"3; b = 4; { a = 2; int a; a = 1; } } }";
+	    "void main(){ int a; int b; a = 1; b = 2; { int b; a = "
+	    "3; b = 4; { a = 2; int a; a = 1; } } }";
 	auto result = mCc_parser_parse_string(input);
 
 	auto tac = mCc_ast_get_tac_program(result.program);
+	// mCc_tac_print_tac(tac, stderr);
 
-	auto level1a_1 = tac->next->next->next->next->type_simple.arg0;
-	auto level1a_2 = tac->next->next->next->next->next->next->next->next->next
-			->next->type_simple.arg0;
-	auto level1a_3 =
-			tac->next->next->next->next->next->next->next->next->next->next->next
-					->next->next->next->next->next->type_simple.arg0;
-	auto level2a =
-			tac->next->next->next->next->next->next->next->next->next->next->next
-					->next->next->next->next->next->next->next->next->type_simple.arg0;
+	auto level1a_1 = tac->next->next->next->type_simple.arg0;
+	auto level1a_2 =
+	    tac->next->next->next->next->next->next->next->type_simple.arg0;
+	auto level1a_3 = tac->next->next->next->next->next->next->next->next->next
+	                     ->next->next->type_simple.arg0;
+	auto level2a = tac->next->next->next->next->next->next->next->next->next
+	                   ->next->next->next->next->type_simple.arg0;
 
-	auto level1b =
-			tac->next->next->next->next->next->next->next->type_simple.arg0;
+	auto level1b = tac->next->next->next->next->next->type_simple.arg0;
 	auto level2b = tac->next->next->next->next->next->next->next->next->next
-			->next->next->next->next->type_simple.arg0;
+	                   ->type_simple.arg0;
 
 	ASSERT_STREQ(level1a_1.val, level1a_2.val);
 	ASSERT_STREQ(level1a_3.val, level1a_2.val);

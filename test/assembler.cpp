@@ -30,7 +30,7 @@ TEST(ThreeAdressCode, TestAssembler)
 	auto result = mCc_parser_parse_string(input);
 
 	auto fp = fopen("generated.s", "w");
-	mCc_ass_print_assembler_program(result.program, stderr);
+	mCc_ass_print_assembler_program(result.program, fp);
 	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 	//ASSERT_EQ(1, 0);
@@ -78,5 +78,5 @@ const char input[] = "int fib(int n)\n"
 	mCc_ass_print_assembler_program(result.program, fp);
 	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	ASSERT_EQ(1, 0);
+	//ASSERT_EQ(1, 0);
 }
