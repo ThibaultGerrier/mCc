@@ -773,7 +773,7 @@ void analyze(mCc_tac_node head, FILE *out)
 			fprintf(out, ".L%d:\n", p->type_label.label_name);
 			break;
 		case TAC_LINE_TYPE_JUMP:
-			fprintf(out, "\tjmo .L%d\n", p->type_jump.jump_name);
+			fprintf(out, "\tjmp .L%d\n", p->type_jump.jump_name);
 			break;
 		case TAC_LINE_TYPE_LABELFUNC_END:
 			fprintf(out, ".LR%d:\n", funcRetLabel);

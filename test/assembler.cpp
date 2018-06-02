@@ -62,15 +62,14 @@ TEST(ThreeAdressCode, TestAssemblerFunc)
 
 TEST(ThreeAdressCode, TestAssemblerFib)
 {
-const char input[] = "int fib(int n)\n"
-					 "{\n"
-					 "\tif (n < 2) {\n"
-					 "\t\treturn n;\n"
-					 "\t}\n"
-					 "\n"
-					 "\treturn fib(n - 1) + fib(n - 2);\n"
+const char input[] = "int fib(int n)"
+					 "{"
+					 "if (n < 2) {"
+					 "return n;"
 					 "}"
-	  "void main(){print_int(fib(5));}"
+					 "return fib(n - 1) + fib(n - 2);"
+					 "}"
+	  "void main(){print_int(fib(7));}"
 	  ;
 	auto result = mCc_parser_parse_string(input);
 
@@ -78,5 +77,23 @@ const char input[] = "int fib(int n)\n"
 	mCc_ass_print_assembler_program(result.program, fp);
 	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	//ASSERT_EQ(1, 0);
+	ASSERT_EQ(1, 0);
+}
+
+TEST(ThreeAdressCode, TestAssemblerIf)
+{
+const char input[] = "void main(){"
+					 "if (false) {"
+					 "print(\"false\");"
+					 "} else {"
+					 "print(\"true\");}"
+					 "}"
+;
+auto result = mCc_parser_parse_string(input);
+
+//auto fp = fopen("generated.s", "w");
+mCc_ass_print_assembler_program(result.program, stderr);
+//fclose(fp);
+ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+ASSERT_EQ(1, 0);
 }
