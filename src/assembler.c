@@ -159,7 +159,8 @@ void print(List *p, void (*f)(void *, FILE *), FILE *out)
 	}
 }
 
-int get_location(mCc_ass_function_var_node table, struct mCc_tac_var var)
+mCc_ass_function_var_node get_function_var(mCc_ass_function_var_node table,
+                                           struct mCc_tac_var var)
 {
 	struct mCc_ass_function_var *arg_var;
 	if (var.depth != -1) {
@@ -172,7 +173,17 @@ int get_location(mCc_ass_function_var_node table, struct mCc_tac_var var)
 	if (arg_var == NULL) {
 		fprintf(stderr, "Location not found\n");
 	}
-	return arg_var->location;
+	return arg_var;
+}
+
+int get_location(mCc_ass_function_var_node table, struct mCc_tac_var var)
+{
+	return get_function_var(table, var)->location;
+}
+
+bool get_reference(mCc_ass_function_var_node table, struct mCc_tac_var var)
+{
+	return get_function_var(table, var)->is_reference;
 }
 
 void analyze(mCc_tac_node head, FILE *out)
@@ -187,6 +198,7 @@ void analyze(mCc_tac_node head, FILE *out)
 	mCc_tac_node p;
 	p = head;
 	int stackSize = 0;
+	int popStackSize = 0;
 	while (p != NULL) {
 		switch (p->type) {
 		case TAC_LINE_TYPE_SIMPLE: {
@@ -241,19 +253,31 @@ void analyze(mCc_tac_node head, FILE *out)
 		case TAC_LINE_TYPE_POP_RETURN: // for both
 		case TAC_LINE_TYPE_POP: {
 			// TODO pop in function vs return value
-			if (p->type_simple.arg0.depth != -1) {
+			if (p->type_pop.var.array != -1) {
+				if (p->type_pop.var.depth != -1) {
+					char *buf = malloc(sizeof(char) *
+					                   (strlen(p->type_pop.var.val) + 5));
+					sprintf(buf, "%s_%d", p->type_pop.var.val,
+					        p->type_pop.var.depth);
+					add_variable(&cur_function_data, stackSize + 4, buf,
+					             p->type_pop.var.array > 0, true);
+				} else {
+					add_variable(&cur_function_data, stackSize + 4,
+					             p->type_pop.var.val, p->type_pop.var.array > 0,
+					             false);
+				}
+				stackSize += 4;
+				popStackSize += 4;
+			} else {
 				char *buf =
 				    malloc(sizeof(char) * (strlen(p->type_pop.var.val) + 5));
 				sprintf(buf, "%s_%d", p->type_pop.var.val,
 				        p->type_pop.var.depth);
-				add_variable(&cur_function_data, stackSize + 4, buf,
+				add_variable(&cur_function_data, popStackSize, buf,
 				             p->type_pop.var.array > 0, true);
-			} else {
-				add_variable(&cur_function_data, stackSize + 4,
-				             p->type_pop.var.val, p->type_pop.var.array > 0,
-				             false);
+				popStackSize += 4;
 			}
-			stackSize += 4;
+
 			break;
 		}
 		case TAC_LINE_TYPE_PUSH: break;
@@ -270,8 +294,10 @@ void analyze(mCc_tac_node head, FILE *out)
 			                   (strlen(p->type_assign_array.arr.val) + 5));
 			sprintf(buf, "%s_%d", p->type_assign_array.arr.val,
 			        p->type_assign_array.arr.depth);
-			bool added = add_variable(&cur_function_data, stackSize + 4, buf,
-			                          false, true);
+			bool added =
+			    add_variable(&cur_function_data,
+			                 p->type_assign_array.arr.array * 4 + stackSize,
+			                 buf, false, true);
 
 			if (added) {
 				stackSize += p->type_assign_array.arr.array * 4;
@@ -297,6 +323,7 @@ void analyze(mCc_tac_node head, FILE *out)
 
 			// reset stuff
 			stackSize = 0;
+			popStackSize = 0;
 			break;
 		}
 
@@ -588,8 +615,8 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		case TAC_LINE_TYPE_POP: {
 			int location = get_location(function_data->data, p->type_pop.var);
-
-			switch(p->type_pop.var.type) {
+			if (p->type_pop.var.array != 1) {
+				switch (p->type_pop.var.type) {
 				case MCC_AST_TYPE_STRING:
 				case MCC_AST_TYPE_BOOL:
 				case MCC_AST_TYPE_INT:
@@ -603,9 +630,11 @@ void analyze(mCc_tac_node head, FILE *out)
 				case MCC_AST_TYPE_VOID:
 					// shouldn't happen
 					break;
+				}
+				popSize += 4;
+			} else {
+				popSize += p->type_pop.var.array * 4;
 			}
-
-			popSize += 4;
 			break;
 		}
 		case TAC_LINE_TYPE_POP_RETURN: {
@@ -635,19 +664,20 @@ void analyze(mCc_tac_node head, FILE *out)
 
 		case TAC_LINE_TYPE_RETURN: {
 			if (p->type_return.var.type != MCC_AST_TYPE_VOID) {
-				int location = get_location(function_data->data, p->type_return.var);
-				switch(p->type_return.var.type){
-					case MCC_AST_TYPE_STRING:
-					case MCC_AST_TYPE_BOOL:
-					case MCC_AST_TYPE_INT:
-						fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location);
-						break;
-					case MCC_AST_TYPE_FLOAT:
-						fprintf(out, "\tflds\t-%d(%%ebp)\n", location);
-						break;
-					case MCC_AST_TYPE_VOID:
-						// ignore
-						break;
+				int location =
+				    get_location(function_data->data, p->type_return.var);
+				switch (p->type_return.var.type) {
+				case MCC_AST_TYPE_STRING:
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location);
+					break;
+				case MCC_AST_TYPE_VOID:
+					// ignore
+					break;
 				}
 			}
 			fprintf(out, "\tjmp .LR%d\n", funcRetLabel);
@@ -669,21 +699,52 @@ void analyze(mCc_tac_node head, FILE *out)
 			int location_var =
 			    get_location(function_data->data, p->type_array_iden.var);
 
-			switch (p->type_array_iden.var.type) {
-			case MCC_AST_TYPE_BOOL:
-			case MCC_AST_TYPE_INT:
-			case MCC_AST_TYPE_STRING:
-				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
-				fprintf(out, "\tmovl\t-%d(%%ebp,%%eax,4), %%eax\n",
-				        location_arr);
-				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_var);
-				break;
-			case MCC_AST_TYPE_FLOAT:
-				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
-				fprintf(out, "\tflds\t-%d(%%ebp,%%eax,4)\n", location_arr);
-				fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_var);
-				break;
-			case MCC_AST_TYPE_VOID: fprintf(stderr, "VOID ARRAY? \n"); break;
+			bool arr_is_ref =
+			    get_reference(function_data->data, p->type_array_iden.arr);
+
+			if (arr_is_ref) {
+				switch (p->type_array_iden.var.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+				case MCC_AST_TYPE_STRING:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tleal\t0(,%%eax,4), %%edx\n");
+					fprintf(out, "\tmovl\t%d(%%ebp), %%eax\n", location_arr);
+					fprintf(out, "\taddl\t%%edx, %%eax\n");
+					fprintf(out, "\tmovl\t(%%eax), %%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_var);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tleal\t0(,%%eax,4), %%edx\n");
+					fprintf(out, "\tmovl\t%d(%%ebp), %%eax\n", location_arr);
+					fprintf(out, "\taddl\t%%edx, %%eax\n");
+					fprintf(out, "\tflds\t(%%eax)\n");
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_var);
+					break;
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "VOID ARRAY? \n");
+					break;
+				}
+			} else {
+				switch (p->type_array_iden.var.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+				case MCC_AST_TYPE_STRING:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tmovl\t-%d(%%ebp,%%eax,4), %%eax\n",
+					        location_arr);
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_var);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tflds\t-%d(%%ebp,%%eax,4)\n", location_arr);
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_var);
+					break;
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "VOID ARRAY? \n");
+					break;
+				}
 			}
 			break;
 		}
@@ -695,22 +756,52 @@ void analyze(mCc_tac_node head, FILE *out)
 			    get_location(function_data->data, p->type_assign_array.loc);
 			int location_var =
 			    get_location(function_data->data, p->type_assign_array.var);
+			bool arr_is_ref =
+			    get_reference(function_data->data, p->type_assign_array.arr);
 
-			switch (p->type_assign_array.arr.type) {
-			case MCC_AST_TYPE_BOOL:
-			case MCC_AST_TYPE_INT:
-			case MCC_AST_TYPE_STRING:
-				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
-				fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n", location_var);
-				fprintf(out, "\tmovl\t%%edx, -%d(%%ebp,%%eax,4)\n",
-				        location_arr);
-				break;
-			case MCC_AST_TYPE_FLOAT:
-				fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
-				fprintf(out, "\tflds\t-%d(%%ebp)\n", location_var);
-				fprintf(out, "\tfstps\t-%d(%%ebp,%%eax,4)\n", location_arr);
-				break;
-			case MCC_AST_TYPE_VOID: fprintf(stderr, "VOID ARRAY? \n"); break;
+			if (arr_is_ref) {
+				switch (p->type_array_iden.var.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+				case MCC_AST_TYPE_STRING:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tleal\t0(,%%eax,4), %%edx\n");
+					fprintf(out, "\tmovl\t%d(%%ebp), %%eax\n", location_arr);
+					fprintf(out, "\taddl\t%%eax, %%edx\n");
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_var);
+					fprintf(out, "\tmovl\t%%eax, (%%edx)\n");
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tleal\t0(,%%eax,4), %%edx\n");
+					fprintf(out, "\tmovl\t%d(%%ebp), %%eax\n", location_arr);
+					fprintf(out, "\taddl\t%%edx, %%eax\n");
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_var);
+					fprintf(out, "\tfstps\t(%%eax)\n");
+					break;
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "VOID ARRAY? \n");
+					break;
+				}
+			} else {
+				switch (p->type_assign_array.arr.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_INT:
+				case MCC_AST_TYPE_STRING:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%edx\n", location_var);
+					fprintf(out, "\tmovl\t%%edx, -%d(%%ebp,%%eax,4)\n",
+					        location_arr);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_index);
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_var);
+					fprintf(out, "\tfstps\t-%d(%%ebp,%%eax,4)\n", location_arr);
+					break;
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "VOID ARRAY? \n");
+					break;
+				}
 			}
 			break;
 		}

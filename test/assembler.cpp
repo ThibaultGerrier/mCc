@@ -54,7 +54,7 @@ TEST(ThreeAdressCode, TestAssemblerFunc)
 	auto result = mCc_parser_parse_string(input);
 
 	auto fp = fopen("generated.s", "w");
-	mCc_ast_print_assembler_program(result.program, fp);
+	mCc_ast_print_assembler_program(result.program, stderr);
 	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 	ASSERT_EQ(1, 0);
