@@ -9,6 +9,7 @@
 #include "mCc/error_manager.h"
 #include "mCc/parser.h"
 #include "mCc/tac.h"
+#include "mCc/assembler.h"
 
 void cleanup_and_exit(struct mCc_parser_result *parser_result,
                       struct mCc_sym_table_tree *symbol_table_tree,
@@ -119,7 +120,11 @@ int main(int argc, char *argv[])
 	/* Three address code generation phase */
 	{
 		tac = mCc_ast_get_tac(program);
-		mCc_tac_print_tac(tac, stdout);
+		// mCc_tac_print_tac(tac, stdout);
+	}
+
+	{
+		mCc_ass_print_assembler(tac, stdout);
 	}
 
 	/*    TODO

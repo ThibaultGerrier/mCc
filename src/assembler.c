@@ -1,10 +1,9 @@
 #include "mCc/ast_symbol_table.h"
 #include "mCc/error_manager.h"
 #include "mCc/symbol_table.h"
-#include "uthash.h"
-#include <mCc/assembler.h>
 #include <mCc/ast.h>
 #include <mCc/tac.h>
+#include <mCc/assembler.h>
 
 int mCc_ass_label;
 
@@ -12,31 +11,6 @@ int round_up(double x)
 {
 	return (int)(x + 0.5);
 }
-
-struct mCc_ass_function {
-	char *name;
-	int stack_size;
-	struct mCc_ass_function_var *data;
-	struct mCc_ass_str *next;
-};
-typedef struct mCc_ass_function *mCc_ass_function_node;
-
-struct mCc_ass_function_var {
-	char *name; // key
-	int location;
-	bool is_reference;
-	bool needs_free;
-	UT_hash_handle hh;
-};
-typedef struct mCc_ass_function_var *mCc_ass_function_var_node;
-
-struct mCc_ass_static_data {
-	char *name; // key
-	int label;
-	bool is_string;
-	UT_hash_handle hh;
-};
-typedef struct mCc_ass_static_data *mCc_ass_static_data_node;
 
 bool add_variable(mCc_ass_function_var_node *table, int location,
                   char *var_name, bool is_reference, bool needs_free)
@@ -85,24 +59,13 @@ void print_static_data_table(mCc_ass_static_data_node table, FILE *out)
 	for (s = table; s != NULL; s = (mCc_ass_static_data_node)(s->hh.next)) {
 		// fprintf(stderr, "var id %s: loc %d, ref %d\n", s->name, s->label);
 		if (s->is_string) {
-			fprintf(out, "LC%d:\n\t.string\t\"%s\"\n", s->label, s->name);
+			fprintf(out, ".LC%d:\n\t.string\t\"%s\"\n", s->label, s->name);
 		} else {
-			fprintf(out, "LC%d:\n\t.float\t%s\n", s->label, s->name);
+			fprintf(out, ".LC%d:\n\t.float\t%s\n", s->label, s->name);
 		}
 	}
 }
 
-typedef struct list {
-	void *data;
-	struct list *next;
-} List;
-
-struct ass {
-	// List *strings;
-	mCc_ass_static_data_node strings;
-	mCc_ass_static_data_node floats;
-	List *function_data;
-};
 
 List *create(void *data, List *next)
 {
@@ -393,7 +356,7 @@ void analyze(mCc_tac_node head, FILE *out)
 					if (arg1_var == NULL) {
 						fprintf(stderr, "SOMETHING WENT WRONG 1S\n");
 					}
-					fprintf(out, "\tmovvl\t$.LC%d, -%d(%%ebp)\n",
+					fprintf(out, "\tmovl\t$.LC%d, -%d(%%ebp)\n",
 					        arg1_var->label, location_arg0);
 					break;
 				}
@@ -835,12 +798,18 @@ void analyze(mCc_tac_node head, FILE *out)
 	             "compiler\"\n\t.section\t.note.GNU-stack,\"\",@progbits\n");
 }
 
-void mCc_ast_print_assembler_program(struct mCc_ast_program *program, FILE *out)
+void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 {
 	assert(program);
 
 	mCc_tac_node tac = mCc_ast_get_tac_program(program);
 	mCc_tac_print_tac(tac, stderr);
 
+	analyze(tac, out);
+}
+
+void mCc_ass_print_assembler(struct mCc_tac *tac, FILE *out)
+{
+	assert(tac);
 	analyze(tac, out);
 }
