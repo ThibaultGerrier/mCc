@@ -146,14 +146,14 @@ char *mCc_tac_get_binary_op(enum mCc_ast_binary_op op, enum mCc_ast_type t)
 	return "unknown_op";
 }
 
-/*static const char *mCc_get_unary_op(enum mCc_ast_unary_op op)
+static const char *mCc_get_unary_op(enum mCc_ast_unary_op op)
 {
-    switch (op) {
-        case MCC_AST_UNARY_OP_NOT: return "!";
-        case MCC_AST_UNARY_OP_MINUS: return "-";
-    }
-    return "unknown_unary_op";
-}*/
+	switch (op) {
+	case MCC_AST_UNARY_OP_NOT: return "!";
+	case MCC_AST_UNARY_OP_MINUS: return "-";
+	}
+	return "unknown_unary_op";
+}
 
 mCc_tac_node mCc_tac_create_node()
 {
@@ -207,7 +207,17 @@ void mCc_tac_print_tac(mCc_tac_node head, FILE *out)
 			free(var3);
 			break;
 		}
+		case TAC_LINE_TYPE_UNARY: {
+			char *var1 = mCc_tac_get_tac_var(p->type_unary.arg0);
+			char *var2 = mCc_tac_get_tac_var(p->type_unary.arg1);
 
+			fprintf(out, "\t%s = %s %s\n", var1,
+			        mCc_get_unary_op(p->type_unary.op.op), var2);
+
+			free(var1);
+			free(var2);
+			break;
+		}
 		case TAC_LINE_TYPE_CALL:
 			fprintf(out, "\tCALL(%s)\n", p->type_call.name);
 			break;
@@ -305,6 +315,10 @@ void mCc_tac_delete_tac(mCc_tac_node head)
 			free(p->type_double.arg0.val);
 			free(p->type_double.arg1.val);
 			free(p->type_double.arg2.val);
+			break;
+		case TAC_LINE_TYPE_UNARY:
+			free(p->type_double.arg0.val);
+			free(p->type_double.arg1.val);
 			break;
 		case TAC_LINE_TYPE_CALL:
 			// free(p->type_call.name);
@@ -575,7 +589,8 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		struct mCc_tac_var expr = mCc_tac_cgen_expression(
 		    expression->array_identifier.expression, tac);
 		// struct mCc_tac_var id =
-		// mCc_tac_cgen_identifier(expression->array_identifier.identifier, tac);
+		// mCc_tac_cgen_identifier(expression->array_identifier.identifier,
+		// tac);
 
 		char *str =
 		    malloc(sizeof(char) *
@@ -649,38 +664,46 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		    mCc_tac_cgen_expression(expression->unary_op.rhs, tac);
 		ret.type = t.type;
 		ret.array = t.array;
-		switch (expression->unary_op.op) {
-		case MCC_AST_UNARY_OP_NOT: {
-			mCc_tac_node node = mCc_tac_create_node();
-			node->type = TAC_LINE_TYPE_DOUBLE;
-			node->type_double.arg0 = ret;
-			char *zeros = malloc(sizeof(char) * (strlen("0") + 1));
-			sprintf(zeros, "0");
-			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros, -1, true };
-			struct mCc_tac_op op = { MCC_AST_BINARY_OP_EQUALS, t.type };
+		mCc_tac_node node = mCc_tac_create_node();
+		node->type = TAC_LINE_TYPE_UNARY;
+		node->type_unary.arg0 = ret;
+		node->type_unary.arg1 = t;
+		struct mCc_tac_op_unary op = { expression->unary_op.op, t.type };
+		node->type_unary.op = op;
+		mCc_tac_add_node(node, tac);
 
-			node->type_double.arg1 = zero;
-			node->type_double.arg2 = t;
-			node->type_double.op = op;
-			mCc_tac_add_node(node, tac);
-			break;
+		/*switch (expression->unary_op.op) {
+		case MCC_AST_UNARY_OP_NOT: {
+		    mCc_tac_node node = mCc_tac_create_node();
+		    node->type = TAC_LINE_TYPE_DOUBLE;
+		    node->type_double.arg0 = ret;
+		    char *zeros = malloc(sizeof(char) * (strlen("0") + 1));
+		    sprintf(zeros, "0");
+		    struct mCc_tac_var zero = { MCC_AST_TYPE_BOOL, 0, zeros, -1, true };
+		    struct mCc_tac_op op = { MCC_AST_BINARY_OP_EQUALS, t.type };
+
+		    node->type_double.arg1 = zero;
+		    node->type_double.arg2 = t;
+		    node->type_double.op = op;
+		    mCc_tac_add_node(node, tac);
+		    break;
 		}
 		case MCC_AST_UNARY_OP_MINUS: {
-			mCc_tac_node node = mCc_tac_create_node();
-			node->type = TAC_LINE_TYPE_DOUBLE;
-			node->type_double.arg0 = ret;
-			char *zeros = malloc(sizeof(char) * (strlen("0") + 1));
-			sprintf(zeros, "0");
-			struct mCc_tac_var zero = { MCC_AST_TYPE_INT, 0, zeros, -1, true };
-			struct mCc_tac_op op = { MCC_AST_BINARY_OP_SUB, t.type };
+		    mCc_tac_node node = mCc_tac_create_node();
+		    node->type = TAC_LINE_TYPE_DOUBLE;
+		    node->type_double.arg0 = ret;
+		    char *zeros = malloc(sizeof(char) * (strlen("0") + 1));
+		    sprintf(zeros, "0");
+		    struct mCc_tac_var zero = { t.type, 0, zeros, -1, true };
+		    struct mCc_tac_op op = { MCC_AST_BINARY_OP_SUB, t.type };
 
-			node->type_double.arg1 = zero;
-			node->type_double.arg2 = t;
-			node->type_double.op = op;
-			mCc_tac_add_node(node, tac);
-			break;
+		    node->type_double.arg1 = zero;
+		    node->type_double.arg2 = t;
+		    node->type_double.op = op;
+		    mCc_tac_add_node(node, tac);
+		    break;
 		}
-		}
+		}*/
 		break;
 	}
 	case MCC_AST_EXPRESSION_TYPE_PARENTH: {

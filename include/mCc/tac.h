@@ -30,9 +30,15 @@ struct mCc_tac_op {
 	enum mCc_ast_type type;
 };
 
+struct mCc_tac_op_unary {
+	enum mCc_ast_unary_op op;
+	enum mCc_ast_type type;
+};
+
 enum mCc_tac_line_type {
 	TAC_LINE_TYPE_SIMPLE,
 	TAC_LINE_TYPE_DOUBLE,
+	TAC_LINE_TYPE_UNARY,
 	TAC_LINE_TYPE_CALL,
 	TAC_LINE_TYPE_POP,
 	TAC_LINE_TYPE_POP_RETURN,
@@ -113,6 +119,12 @@ struct mCc_tac {
 			struct mCc_tac_var arg2;
 			struct mCc_tac_op op;
 		} type_double;
+
+		struct {
+			struct mCc_tac_var arg0;
+			struct mCc_tac_var arg1;
+			struct mCc_tac_op_unary op;
+		} type_unary;
 
 		struct {
 			struct mCc_tac_var arr;

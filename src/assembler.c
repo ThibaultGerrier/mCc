@@ -1,11 +1,12 @@
 #include "mCc/ast_symbol_table.h"
 #include "mCc/error_manager.h"
 #include "mCc/symbol_table.h"
+#include <mCc/assembler.h>
 #include <mCc/ast.h>
 #include <mCc/tac.h>
-#include <mCc/assembler.h>
 
 int mCc_ass_label;
+bool DEBUG = false;
 
 int round_up(double x)
 {
@@ -65,7 +66,6 @@ void print_static_data_table(mCc_ass_static_data_node table, FILE *out)
 		}
 	}
 }
-
 
 List *create(void *data, List *next)
 {
@@ -186,7 +186,7 @@ void analyze(mCc_tac_node head, FILE *out)
 				                     false, true);
 			} else {
 				added = add_variable(&cur_function_data, stackSize + 4,
-				                     p->type_simple.arg0.val, false, true);
+				                     p->type_simple.arg0.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;
@@ -205,7 +205,25 @@ void analyze(mCc_tac_node head, FILE *out)
 				                     false, true);
 			} else {
 				added = add_variable(&cur_function_data, stackSize + 4,
-				                     p->type_double.arg0.val, false, true);
+				                     p->type_double.arg0.val, false, false);
+			}
+			if (added) {
+				stackSize += 4;
+			}
+			break;
+		}
+		case TAC_LINE_TYPE_UNARY: {
+			bool added;
+			if (p->type_unary.arg0.depth != -1) {
+				char *buf =
+				    malloc(sizeof(char) * (strlen(p->type_unary.arg0.val) + 5));
+				sprintf(buf, "%s_%d", p->type_unary.arg0.val,
+				        p->type_unary.arg0.depth);
+				added = add_variable(&cur_function_data, stackSize + 4, buf,
+				                     false, true);
+			} else {
+				added = add_variable(&cur_function_data, stackSize + 4,
+				                     p->type_unary.arg0.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;
@@ -215,7 +233,6 @@ void analyze(mCc_tac_node head, FILE *out)
 		case TAC_LINE_TYPE_CALL: break;
 		case TAC_LINE_TYPE_POP_RETURN: // for both
 		case TAC_LINE_TYPE_POP: {
-			// TODO pop in function vs return value
 			if (p->type_pop.var.array != -1) {
 				if (p->type_pop.var.depth != -1) {
 					char *buf = malloc(sizeof(char) *
@@ -295,9 +312,11 @@ void analyze(mCc_tac_node head, FILE *out)
 		p = p->next;
 	}
 
-	print(ass->function_data, print_func_data, out);
-	// print(ass->strings, print_static_data_table, out);
-	fprintf(stderr, "----\n");
+	if (DEBUG) {
+		print(ass->function_data, print_func_data, out);
+		// print(ass->strings, print_static_data_table, out);
+		fprintf(stderr, "----\n");
+	}
 
 	// start printing assembler code
 	fprintf(out, "\t.file\t\"generated.c\"\n");
@@ -387,6 +406,42 @@ void analyze(mCc_tac_node head, FILE *out)
 			}
 			break;
 		}
+		case TAC_LINE_TYPE_UNARY: {
+			int location_arg0 =
+			    get_location(function_data->data, p->type_unary.arg0);
+			int location_arg1 =
+			    get_location(function_data->data, p->type_unary.arg1);
+
+			switch (p->type_unary.op.op) {
+			case MCC_AST_UNARY_OP_NOT:
+				fprintf(out, "\tcmpl\t$0, -%d(%%ebp)\n", location_arg1);
+				fprintf(out, "\tsete\t%%al\n");
+				fprintf(out, "\tmovzbl\t%%al, %%eax\n");
+				fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
+				break;
+			case MCC_AST_UNARY_OP_MINUS:
+				switch (p->type_unary.arg1.type) {
+				case MCC_AST_TYPE_BOOL:
+				case MCC_AST_TYPE_STRING:
+				case MCC_AST_TYPE_VOID:
+					fprintf(stderr, "Cannot negate bool/string/void");
+					break;
+				case MCC_AST_TYPE_INT:
+					fprintf(out, "\tmovl\t-%d(%%ebp), %%eax\n", location_arg1);
+					fprintf(out, "\tnegl\t%%eax\n");
+					fprintf(out, "\tmovl\t%%eax, -%d(%%ebp)\n", location_arg0);
+					break;
+				case MCC_AST_TYPE_FLOAT:
+					fprintf(out, "\tflds\t-%d(%%ebp)\n", location_arg1);
+					fprintf(out, "\tfchs\n");
+					fprintf(out, "\tfstps\t-%d(%%ebp)\n", location_arg0);
+					break;
+				}
+				break;
+			}
+			break;
+		}
+
 		case TAC_LINE_TYPE_DOUBLE: {
 			int location_arg0 =
 			    get_location(function_data->data, p->type_double.arg0);
