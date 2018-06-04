@@ -1,0 +1,2 @@
+Run in /builddir:
+./mCc ../doc/test_mCc/test1.mC > test1.s && gcc -m32 -S -O0 -fno-stack-protector -fno-asynchronous-unwind-tables -fsingle-precision-constant ../doc/test_mCc/buildins.c && gcc -m32 -c test1.s buildins.s && gcc -m32 -o exe buildins.o test1.o && ./exe

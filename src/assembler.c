@@ -1,9 +1,9 @@
 #include "mCc/ast_symbol_table.h"
 #include "mCc/error_manager.h"
 #include "mCc/symbol_table.h"
-#include <mCc/assembler.h>
 #include <mCc/ast.h>
 #include <mCc/tac.h>
+#include <mCc/assembler.h>
 
 int mCc_ass_label;
 bool DEBUG = false;
