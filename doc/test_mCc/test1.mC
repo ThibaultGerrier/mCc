@@ -14,6 +14,24 @@ void print_str_nl(string str)
 	print_nl();
 }
 
+void print_bool(bool b)
+{
+	if (b) {
+		print("true");
+	} else {
+		print("false");
+	}
+}
+
+void print_bool_nl(bool b)
+{
+	if (b) {
+		print_str_nl("true");
+	} else {
+		print_str_nl("false");
+	}
+}
+
 void print_two_str(string a, string b)
 {
 	print(a);
@@ -65,6 +83,16 @@ void print_tripple_float(float a, string op, float b, string op2, float c)
 	print(op2);
 	print(" ");
 	print_float(c);
+	print_nl();
+}
+
+void print_pair_bool(bool a, string op, bool b)
+{
+	print_bool(a);
+	print(" ");
+	print(op);
+	print(" ");
+	print_bool(b);
 	print_nl();
 }
 
@@ -199,7 +227,7 @@ void assert_eq_bool(bool a, bool b)
 {
 	if (a != b) {
 		print("FAIL:");
-		print_str_nl(" bools");
+		print_pair_bool(a, "==", b);
 	}
 }
 
@@ -207,66 +235,37 @@ void assert_ne_bool(bool a, bool b)
 {
 	if (a == b) {
 		print("FAIL:");
-		print_str_nl(" bools");
+		print_pair_bool(a, "!=", b);
 	}
 }
 
-void assert_msg_eq_int(string test_case, int a, int b)
+void assert_bool(bool a)
 {
-	if (a == b) {
-		print_two_str("SUCC: ", test_case);
-	} else {
-		print_two_str("FAIL: ", test_case);
+	if (!a) {
+		print("FAIL:");
+		print_bool_nl(a);
 	}
 }
 
-void assert_msg_ne_int(string test_case, int a, int b)
+void assert_not_bool(bool a)
 {
-	if (a != b) {
-		print_two_str("SUCC: ", test_case);
-	} else {
-		print_two_str("FAIL: ", test_case);
+	if (a) {
+		print("FAIL:");
+		print_bool_nl(a);
 	}
 }
 
-void assert_msg_eq_float(string test_case, float a, float b)
+void assert(bool a)
 {
-	if (a == b) {
-		print_two_str("SUCC: ", test_case);
-	} else {
-		print_two_str("FAIL: ", test_case);
-	}
-}
-
-void assert_msg_ne_float(string test_case, float a, float b)
-{
-	if (a != b) {
-		print_two_str("SUCC: ", test_case);
-	} else {
-		print_two_str("FAIL: ", test_case);
-	}
-}
-
-void assert_msg_eq_bool(string test_case, bool a, bool b)
-{
-	if (a == b) {
-		print_two_str("SUCC: ", test_case);
-	} else {
-		print_two_str("FAIL: ", test_case);
-	}
-}
-
-void assert_msg_ne_bool(string test_case, bool a, bool b)
-{
-	if (a != b) {
-		print_two_str("SUCC: ", test_case);
-	} else {
-		print_two_str("FAIL: ", test_case);
+	if (!a) {
+		print("FAIL:");
+		print_bool_nl(a);
 	}
 }
 
 void test_asserts()
 {
+	/* int */
 	assert_eq_int(1, 1);
 	assert_eq_int(-21, -21);
 	assert_ne_int(3, 4);
@@ -281,6 +280,37 @@ void test_asserts()
 	assert_between_eq_int(-1, 0, 0);
 	assert_between_int(3, 4, 7);
 	assert_between_int(-1, 0, 1);
+
+	/* float */
+	assert_eq_float(1.0, 1.0);
+	assert_eq_float(1.3, 1.3);
+	assert_eq_float(-2.3, -2.3);
+	assert_ne_float(2.3, -2.3);
+	assert_ne_float(1.0, -4.9);
+	assert_gt_float(1.0, 0.6);
+	assert_gt_float(1.0, -0.6);
+	assert_gt_float(55.5, -0.6);
+	assert_lt_float(3.3, 10.5);
+	assert_lt_float(44.5, 100.4);
+	assert_lt_float(-3.3, -0.6);
+	assert_lt_float(-3.3, 10.6);
+	assert_gte_float(3.3, 3.3);
+	assert_gte_float(3.33, 3.3);
+	assert_lte_float(3.3, 3.3);
+	assert_lte_float(3.3, 3.33);
+	assert_between_float(3.3, 3.31, 3.33);
+	assert_between_float(-1.0, 0.0, 1.0);
+	assert_between_eq_float(0.0, 0.0, 1.0);
+	assert_between_eq_float(-1.0, -1.0, -1.0);
+
+	/* bool */
+	assert_eq_bool(true, true);
+	assert_eq_bool(false, false);
+	assert_ne_bool(false, true);
+	assert_ne_bool(true, false);
+	assert_bool(true);
+	assert_not_bool(false);
+
 	print_str_nl("Finished test_asserts");
 }
 
@@ -321,8 +351,133 @@ void test_int()
 	print_str_nl("Finished test_int");
 }
 
+void test_bool() {
+	bool b;
+	b = true;
+	assert_bool(b);
+	assert_eq_bool(b, true);
+	assert_ne_bool(b, false);
+
+	b = false;
+	assert_not_bool(b);
+	assert_eq_bool(b, false);
+	assert_ne_bool(b, true);
+
+	b = false && false;
+	assert_not_bool(b);
+	b = false && true;
+	assert_not_bool(b);
+	b = true && false;
+	assert_not_bool(b);
+	b = true && true;
+	assert_bool(b);
+
+	b = false || false;
+	assert_not_bool(b);
+	b = false || true;
+	assert_bool(b);
+	b = true || false;
+	assert_bool(b);
+	b = true || true;
+	assert_bool(b);
+
+	b = !false;
+	assert_bool(b);
+	b = !true;
+	assert_not_bool(b);
+
+	bool c;
+	c = true;
+	b = !(false || true) && !(c && false);
+	assert_not_bool(b);
+
+	print_str_nl("Finished test_bool");
+}
+
+void test_float()
+{
+	float a;
+	a = 3.3;
+	assert_eq_float(a, 3.3);
+	assert_ne_float(a, 4.2);
+	a = 4.3;
+	assert_ne_float(a, 3.4);
+	assert_eq_float(a, 4.3);
+	a = a + 2.0;
+	assert_eq_float(a, 6.3);
+	a = a - 3.1;
+	assert_between_eq_float(3.19999, a, 3.20001); /* 3.2 */
+	a = a * 4.0;
+	assert_between_eq_float(12.7999, a, 12.80001); /* 12.8*/
+	a = a / 6.0;
+	assert_between_eq_float(2.1332, a, 2.13334); /* 2.1333 */
+	a = a - (1.0/3.0)/10.0 - 3.0;
+	assert_between_eq_float(-1.00001 , a, 0.9999); /* -1 */
+
+	print_str_nl("Finished test_float");
+}
+
+void test_control() {
+	int a;
+	a = 0;
+	if (true) {
+		a = a + 1;
+	} else {
+		a = a + 1;
+		assert(false);
+	}
+	assert_eq_int(a, 1);
+
+	if (false){
+		a = a + 1;
+		assert(false);
+	} else {
+		a = a + 1;
+	}
+	assert_eq_int(a, 2);
+
+	if(true) {
+		a = a + 1;
+	}
+	assert_eq_int(a, 3);
+
+	if(false) {
+		assert(false);
+		a = a + 1;
+	}
+	assert_eq_int(a, 3);
+
+
+	int c;
+	c = 3;
+	while (c >= 0) {
+		c = c - 1;
+		a = a + 1;
+	}
+	assert_eq_int(a, 7);
+
+
+	int d;
+	d = 5;
+	while (d > 0) {
+		int m;
+		m = d / 2; /* modulo */
+		if (m * 2 == d) {
+			a = a + 1;
+		}
+		d = d - 1;
+	}
+
+	assert_eq_int(a, 9);
+
+	print_str_nl("Finished test_control");
+}
+
 void main()
 {
 	test_asserts();
 	test_int();
+	test_bool();
+	test_float();
+	test_control();
 }
