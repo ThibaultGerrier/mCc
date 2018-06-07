@@ -5,7 +5,7 @@ void   __attribute__((cdecl)) print_nl(void);
 void   __attribute__((cdecl)) print_int(long x);
 void   __attribute__((cdecl)) print_float(float x);
 long   __attribute__((cdecl)) read_int(void);
-double __attribute__((cdecl)) read_float(void);
+float __attribute__((cdecl)) read_float(void);
 
 void print(const char *msg)
 {
@@ -34,9 +34,9 @@ long read_int(void)
 	return ret;
 }
 
-double read_float(void)
+float read_float(void)
 {
-	double ret = 0.0f;
-	scanf("%lf", &ret);
+	float ret = 0.0f;
+	scanf("%f", &ret);
 	return ret;
 }

@@ -1,9 +1,9 @@
 #include "mCc/ast_symbol_table.h"
 #include "mCc/error_manager.h"
 #include "mCc/symbol_table.h"
-#include <mCc/assembler.h>
 #include <mCc/ast.h>
 #include <mCc/tac.h>
+#include <mCc/assembler.h>
 
 int mCc_ass_label;
 bool DEBUG = true;
@@ -134,7 +134,9 @@ mCc_ass_function_var_node get_function_var(mCc_ass_function_var_node table,
 		HASH_FIND_STR(table, var.val, arg_var);
 	}
 	if (arg_var == NULL) {
-		fprintf(stderr, "Location not found\n");
+		char *str = mCc_tac_get_tac_var(var);
+		fprintf(stderr, "Location not found: %s\n", str);
+		free(str);
 	}
 	return arg_var;
 }
@@ -258,7 +260,25 @@ void analyze(mCc_tac_node head, FILE *out)
 
 			break;
 		}
-		case TAC_LINE_TYPE_PUSH: break;
+		case TAC_LINE_TYPE_PUSH: {
+			bool added;
+			if (p->type_push.var.depth != -1) {
+				char *buf =
+						malloc(sizeof(char) * (strlen(p->type_push.var.val) + 5));
+				sprintf(buf, "%s_%d", p->type_push.var.val,
+						p->type_push.var.depth);
+				added = add_variable(&cur_function_data, stackSize + 4, buf,
+									 false, true);
+			} else {
+				added = add_variable(&cur_function_data, stackSize + 4,
+									 p->type_push.var.val, false, false);
+			}
+			if (added) {
+				stackSize += 4;
+			}
+			break;
+		}
+
 		case TAC_LINE_TYPE_RETURN: break;
 		case TAC_LINE_TYPE_IFZ: break;
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
@@ -875,6 +895,7 @@ void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 void mCc_ass_print_assembler(struct mCc_tac *tac, FILE *out)
 {
 	assert(tac);
-	// mCc_tac_print_tac(tac, stderr);
+	if (DEBUG)
+		mCc_tac_print_tac(tac, stderr);
 	analyze(tac, out);
 }

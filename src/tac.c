@@ -641,7 +641,6 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 			if (next->expression->type == MCC_AST_EXPRESSION_TYPE_IDENTIFIER &&
 			    next->expression->identifier->symbol_table_entry->array_size >
 			        0) {
-				fprintf(stderr, "PUSHING ARRAY\n");
 				char *str =
 				    malloc(sizeof(char) *
 				           (strlen(next->expression->identifier->name) + 1));
