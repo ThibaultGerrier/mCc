@@ -11,17 +11,16 @@
 
 TEST(ThreeAdressCode, TestAssembler1)
 {
-	const char input[] =
-			"int add(int a, int b){\n"
-			"\treturn a + b;\n"
-			"}\n"
-			"void main(){\n"
-			"int r;\n"
-			"r = 4;\n"
-			"int tr;"
-			"tr = add(r, r);\n"
-			"print_int(tr);\n"
-			"}";
+	const char input[] = "int add(int a, int b){\n"
+	                     "\treturn a + b;\n"
+	                     "}\n"
+	                     "void main(){\n"
+	                     "int r;\n"
+	                     "r = 4;\n"
+	                     "int tr;"
+	                     "tr = add(r, r);\n"
+	                     "print_int(tr);\n"
+	                     "}";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
@@ -32,23 +31,21 @@ TEST(ThreeAdressCode, TestAssembler1)
 	// ASSERT_EQ(1, 0);
 }
 
-
 TEST(ThreeAdressCode, TestAssembler)
 {
-	const char input[] =
-						"int add(int a, int b){\n"
-						"\treturn a + b;\n"
-						"}\n"
-		   				"int inc(int b){\n"
-						 "\treturn b + 1;\n"
-						 "}\n"
-						 "void main(){\n"
-						 "int r;\n"
-						 "r = 4;\n"
+	const char input[] = "int add(int a, int b){\n"
+	                     "\treturn a + b;\n"
+	                     "}\n"
+	                     "int inc(int b){\n"
+	                     "\treturn b + 1;\n"
+	                     "}\n"
+	                     "void main(){\n"
+	                     "int r;\n"
+	                     "r = 4;\n"
 	                     "int tr;"
-						 "tr = add(inc(r), r);\n"
-						 "print_int(tr);\n"
-						 "}";
+	                     "tr = add(inc(r), r);\n"
+	                     "print_int(tr);\n"
+	                     "}";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 

@@ -635,7 +635,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		struct mCc_ast_argument_list *head = expression->call_expr.arguments;
 		int n = mCc_tac_get_arg_count(head);
 		struct mCc_tac_var arc_vars[n];
-		int j=0;
+		int j = 0;
 		for (int i = n; i >= 1; i--) {
 			struct mCc_ast_argument_list *next = mCc_tac_get_arg_nth(head, i);
 			struct mCc_tac_var t =
@@ -643,7 +643,7 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 			arc_vars[j] = t;
 			j++;
 		}
-		for(int i = 0; i<n ; i++) {
+		for (int i = 0; i < n; i++) {
 			mCc_tac_node node = mCc_tac_create_node();
 			node->type = TAC_LINE_TYPE_PUSH;
 			node->type_push.var = arc_vars[i];

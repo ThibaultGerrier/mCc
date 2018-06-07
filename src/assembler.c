@@ -1,9 +1,9 @@
 #include "mCc/ast_symbol_table.h"
 #include "mCc/error_manager.h"
 #include "mCc/symbol_table.h"
+#include <mCc/assembler.h>
 #include <mCc/ast.h>
 #include <mCc/tac.h>
-#include <mCc/assembler.h>
 
 int mCc_ass_label;
 bool DEBUG = false;
@@ -859,7 +859,7 @@ void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 
 	mCc_tac_node tac = mCc_ast_get_tac_program(program);
 
-	if(DEBUG)
+	if (DEBUG)
 		mCc_tac_print_tac(tac, stderr);
 
 	analyze(tac, out);
