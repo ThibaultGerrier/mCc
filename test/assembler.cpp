@@ -9,22 +9,52 @@
 #include <cstdbool>
 #include <string>
 
-TEST(ThreeAdressCode, TestAssembler)
+TEST(ThreeAdressCode, TestAssembler1)
 {
-	const char input[] = "void main(){"
-	                     "int a;"
-	                     "a = -1;"
-	                     "bool b;"
-	                     "b = false;"
-	                     "b = !b;"
-	                     "float f;"
-	                     "f = -1.3;"
-	                     "}";
+	const char input[] =
+			"int add(int a, int b){\n"
+			"\treturn a + b;\n"
+			"}\n"
+			"void main(){\n"
+			"int r;\n"
+			"r = 4;\n"
+			"int tr;"
+			"tr = add(r, r);\n"
+			"print_int(tr);\n"
+			"}";
 	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
 	auto fp = fopen("generated.s", "w");
 	mCc_ass_print_assembler_program(result.program, fp);
 	fclose(fp);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	ASSERT_EQ(1, 0);
+	// ASSERT_EQ(1, 0);
+}
+
+
+TEST(ThreeAdressCode, TestAssembler)
+{
+	const char input[] =
+						"int add(int a, int b){\n"
+						"\treturn a + b;\n"
+						"}\n"
+		   				"int inc(int b){\n"
+						 "\treturn b + 1;\n"
+						 "}\n"
+						 "void main(){\n"
+						 "int r;\n"
+						 "r = 4;\n"
+	                     "int tr;"
+						 "tr = add(inc(r), r);\n"
+						 "print_int(tr);\n"
+						 "}";
+	auto result = mCc_parser_parse_string(input);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+	auto fp = fopen("generated.s", "w");
+	mCc_ass_print_assembler_program(result.program, fp);
+	fclose(fp);
+	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	// ASSERT_EQ(1, 0);
 }

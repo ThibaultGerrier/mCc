@@ -314,11 +314,11 @@ TEST(ThreeAdressCode, FUNCTION_CALL_WITH_PARAMS)
 	ASSERT_EQ(TAC_LINE_TYPE_POP, tac->next->next->next->type);
 
 	ASSERT_EQ(TAC_LINE_TYPE_PUSH,
-	          tac->next->next->next->next->next->next->next->type);
+	          tac->next->next->next->next->next->next->next->next->type);
 	ASSERT_EQ(TAC_LINE_TYPE_PUSH,
 	          tac->next->next->next->next->next->next->next->next->next->type);
 
-	auto pushS = tac->next->next->next->next->next->next->next->type_push.var;
+	auto pushS = tac->next->next->next->next->next->next->next->next->type_push.var;
 	auto pushI = tac->next->next->next->next->next->next->next->next->next
 	                 ->type_push.var;
 	auto popS = tac->next->next->next->type_pop.var;

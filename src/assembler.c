@@ -858,7 +858,9 @@ void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 	assert(program);
 
 	mCc_tac_node tac = mCc_ast_get_tac_program(program);
-	mCc_tac_print_tac(tac, stderr);
+
+	if(DEBUG)
+		mCc_tac_print_tac(tac, stderr);
 
 	analyze(tac, out);
 }
@@ -866,5 +868,6 @@ void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 void mCc_ass_print_assembler(struct mCc_tac *tac, FILE *out)
 {
 	assert(tac);
+	// mCc_tac_print_tac(tac, stderr);
 	analyze(tac, out);
 }

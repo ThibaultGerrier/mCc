@@ -473,6 +473,33 @@ void test_control() {
 	print_str_nl("Finished test_control");
 }
 
+int returnsInt3(){
+	return 3;
+}
+float returnsFloat3d4(){
+	return 3.4;
+}
+bool returnsBoolFalse(){
+	return false;
+}
+
+void test_functions(){
+	int r;
+	r = 3; /*returnsInt3();*/
+	float f;
+	f = returnsFloat3d4();
+	bool b;
+	b = returnsBoolFalse();
+	assert_eq_int(r, 3);
+	assert_eq_int(returnsInt3(), 3);
+	assert_eq_float(f, 3.4);
+	assert_eq_float(returnsFloat3d4(), 3.4);
+	assert_eq_bool(b, false);
+	assert_eq_bool(returnsBoolFalse(), false);
+
+	print_str_nl("Finished test_functions");
+}
+
 void main()
 {
 	test_asserts();
@@ -480,4 +507,5 @@ void main()
 	test_bool();
 	test_float();
 	test_control();
+	test_functions();
 }
