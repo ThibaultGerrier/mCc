@@ -638,9 +638,30 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		int j = 0;
 		for (int i = n; i >= 1; i--) {
 			struct mCc_ast_argument_list *next = mCc_tac_get_arg_nth(head, i);
-			struct mCc_tac_var t =
-			    mCc_tac_cgen_expression(next->expression, tac);
-			arc_vars[j] = t;
+			if (next->expression->type == MCC_AST_EXPRESSION_TYPE_IDENTIFIER &&
+			    next->expression->identifier->symbol_table_entry->array_size >
+			        0) {
+				fprintf(stderr, "PUSHING ARRAY\n");
+				char *str =
+				    malloc(sizeof(char) *
+				           (strlen(next->expression->identifier->name) + 1));
+				sprintf(str, "%s", next->expression->identifier->name);
+
+				struct mCc_tac_var t = {
+					next->expression->identifier->symbol_table_entry->data_type,
+					(int)next->expression->identifier->symbol_table_entry
+					    ->array_size,
+					str,
+					(int)next->expression->identifier->symbol_table_entry
+					    ->scope_index,
+					false,
+				};
+				arc_vars[j] = t;
+			} else {
+				struct mCc_tac_var t =
+				    mCc_tac_cgen_expression(next->expression, tac);
+				arc_vars[j] = t;
+			}
 			j++;
 		}
 		for (int i = 0; i < n; i++) {
@@ -653,7 +674,8 @@ mCc_tac_cgen_expression(struct mCc_ast_expression *expression, mCc_tac_node tac)
 		struct mCc_sym_table_entry *symbol_table_entry =
 		    expression->call_expr.identifier->symbol_table_entry;
 		ret.type = symbol_table_entry->data_type;
-		ret.array = (int)symbol_table_entry->array_size;
+		ret.array = 0; // cannot return arrays
+		ret.depth = -1;
 
 		mCc_tac_node node = mCc_tac_create_node();
 		node->type = TAC_LINE_TYPE_CALL;

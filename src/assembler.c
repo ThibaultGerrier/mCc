@@ -6,7 +6,7 @@
 #include <mCc/tac.h>
 
 int mCc_ass_label;
-bool DEBUG = false;
+bool DEBUG = true;
 
 int round_up(double x)
 {
@@ -161,7 +161,7 @@ void analyze(mCc_tac_node head, FILE *out)
 	mCc_tac_node p;
 	p = head;
 	int stackSize = 0;
-	int popStackSize = 0;
+	int popStackSize = 4;
 	while (p != NULL) {
 		switch (p->type) {
 		case TAC_LINE_TYPE_SIMPLE: {
@@ -231,32 +231,30 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 		case TAC_LINE_TYPE_CALL: break;
-		case TAC_LINE_TYPE_POP_RETURN: // for both
+		case TAC_LINE_TYPE_POP_RETURN:
 		case TAC_LINE_TYPE_POP: {
-			if (p->type_pop.var.array != -1) {
+			if (p->type_pop.var.array == 0) {
 				if (p->type_pop.var.depth != -1) {
 					char *buf = malloc(sizeof(char) *
 					                   (strlen(p->type_pop.var.val) + 5));
 					sprintf(buf, "%s_%d", p->type_pop.var.val,
 					        p->type_pop.var.depth);
-					add_variable(&cur_function_data, stackSize + 4, buf,
-					             p->type_pop.var.array > 0, true);
+					add_variable(&cur_function_data, stackSize + 4, buf, false,
+					             true);
 				} else {
 					add_variable(&cur_function_data, stackSize + 4,
-					             p->type_pop.var.val, p->type_pop.var.array > 0,
-					             false);
+					             p->type_pop.var.val, false, false);
 				}
 				stackSize += 4;
-				popStackSize += 4;
 			} else {
 				char *buf =
 				    malloc(sizeof(char) * (strlen(p->type_pop.var.val) + 5));
 				sprintf(buf, "%s_%d", p->type_pop.var.val,
 				        p->type_pop.var.depth);
-				add_variable(&cur_function_data, popStackSize, buf,
-				             p->type_pop.var.array > 0, true);
-				popStackSize += 4;
+				add_variable(&cur_function_data, popStackSize + 4, buf, true,
+				             true);
 			}
+			popStackSize += 4;
 
 			break;
 		}
@@ -303,7 +301,7 @@ void analyze(mCc_tac_node head, FILE *out)
 
 			// reset stuff
 			stackSize = 0;
-			popStackSize = 0;
+			popStackSize = 4;
 			break;
 		}
 
@@ -633,7 +631,7 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		case TAC_LINE_TYPE_POP: {
 			int location = get_location(function_data->data, p->type_pop.var);
-			if (p->type_pop.var.array != 1) {
+			if (p->type_pop.var.array == 0) {
 				switch (p->type_pop.var.type) {
 				case MCC_AST_TYPE_STRING:
 				case MCC_AST_TYPE_BOOL:
@@ -651,7 +649,8 @@ void analyze(mCc_tac_node head, FILE *out)
 				}
 				popSize += 4;
 			} else {
-				popSize += p->type_pop.var.array * 4;
+				// fprintf(stderr, "POP ARRAY\n");
+				popSize += 4; // p->type_pop.var.array * 4;
 			}
 			break;
 		}
@@ -674,8 +673,16 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 		case TAC_LINE_TYPE_PUSH: {
-			int location = get_location(function_data->data, p->type_push.var);
-			fprintf(out, "\tpushl\t-%d(%%ebp)\n", location);
+			if (p->type_push.var.array == 0) {
+				int location =
+				    get_location(function_data->data, p->type_push.var);
+				fprintf(out, "\tpushl\t-%d(%%ebp)\n", location);
+			} else {
+				int location =
+				    get_location(function_data->data, p->type_push.var);
+				fprintf(out, "\tleal\t-%d(%%ebp), %%eax\n", location);
+				fprintf(out, "\tpushl\t%%eax\n");
+			}
 			pushSize += 4;
 			break;
 		}

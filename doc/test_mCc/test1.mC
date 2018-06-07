@@ -311,6 +311,18 @@ void test_asserts()
 	assert_bool(true);
 	assert_not_bool(false);
 
+	print_str_nl(
+	    "Following tests are supposed to fail (to show that asserts work):");
+	assert(false);
+	assert_eq_bool(true, false);
+	assert_ne_bool(true, true);
+	assert_eq_int(1, 2);
+	assert_ne_int(4, 4);
+	assert_eq_float(4.4, 2.2);
+	assert_ne_float(3.3, 3.3);
+
+	print_str_nl("END FAILING TESTS");
+
 	print_str_nl("Finished test_asserts");
 }
 
@@ -605,6 +617,31 @@ void test_arrays()
 	print_str_nl("Finished test_arrays");
 }
 
+void pass_arr(int[5] arr)
+{
+	assert_eq_int(arr[0], 3);
+	assert_eq_int(arr[4], 3);
+	arr[0] = 4;
+	arr[4] = -4;
+}
+
+void test_arrays_functions()
+{
+	int[5] arr;
+	arr[0] = 3;
+	arr[1] = 3;
+	arr[2] = 3;
+	arr[3] = 3;
+	arr[4] = 3;
+	pass_arr(arr);
+	assert_eq_int(arr[0], 4);
+	assert_eq_int(arr[1], 3);
+	assert_eq_int(arr[2], 3);
+	assert_eq_int(arr[4], -4);
+
+	print_str_nl("Finished test_arrays_functions");
+}
+
 void main()
 {
 	test_asserts();
@@ -614,4 +651,5 @@ void main()
 	test_control();
 	test_functions();
 	test_arrays();
+	test_arrays_functions();
 }

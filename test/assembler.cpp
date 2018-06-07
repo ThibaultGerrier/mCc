@@ -11,15 +11,19 @@
 
 TEST(ThreeAdressCode, TestAssembler1)
 {
-	const char input[] = "int add(int a, int b){\n"
-	                     "\treturn a + b;\n"
-	                     "}\n"
-	                     "void main(){\n"
-	                     "int r;\n"
-	                     "r = 4;\n"
-	                     "int tr;"
-	                     "tr = add(r, r);\n"
-	                     "print_int(tr);\n"
+	const char input[] = "void foo(int[3] arr){"
+	                     "int x;"
+	                     "x = arr[0];"
+	                     "print_int(x);"
+	                     "arr[1] = 55;"
+	                     "print_int(55);"
+	                     "}"
+	                     "void main(){"
+	                     "int[3] arr;"
+	                     "arr[0] = 3;"
+	                     "arr[2] = 4;"
+	                     "foo(arr);"
+	                     "print_int(arr[1]);"
 	                     "}";
 	auto result = mCc_parser_parse_string(input);
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -30,28 +34,20 @@ TEST(ThreeAdressCode, TestAssembler1)
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 	// ASSERT_EQ(1, 0);
 }
-
+/*
 TEST(ThreeAdressCode, TestAssembler)
 {
-	const char input[] = "int add(int a, int b){\n"
-	                     "\treturn a + b;\n"
-	                     "}\n"
-	                     "int inc(int b){\n"
-	                     "\treturn b + 1;\n"
-	                     "}\n"
-	                     "void main(){\n"
-	                     "int r;\n"
-	                     "r = 4;\n"
-	                     "int tr;"
-	                     "tr = add(inc(r), r);\n"
-	                     "print_int(tr);\n"
-	                     "}";
-	auto result = mCc_parser_parse_string(input);
-	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    const char input[] = "void main(){"
+                         "int a;"
+                         "a = 3;"
+                         "print_int(a);"
+                         "}";
+    auto result = mCc_parser_parse_string(input);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto fp = fopen("generated.s", "w");
-	mCc_ass_print_assembler_program(result.program, fp);
-	fclose(fp);
-	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
-	// ASSERT_EQ(1, 0);
-}
+    auto fp = fopen("generated.s", "w");
+    mCc_ass_print_assembler_program(result.program, fp);
+    fclose(fp);
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    // ASSERT_EQ(1, 0);
+}*/
