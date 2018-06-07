@@ -6,7 +6,7 @@
 #include <mCc/assembler.h>
 
 int mCc_ass_label;
-bool DEBUG = true;
+bool DEBUG = false;
 
 int round_up(double x)
 {
@@ -264,14 +264,14 @@ void analyze(mCc_tac_node head, FILE *out)
 			bool added;
 			if (p->type_push.var.depth != -1) {
 				char *buf =
-						malloc(sizeof(char) * (strlen(p->type_push.var.val) + 5));
+				    malloc(sizeof(char) * (strlen(p->type_push.var.val) + 5));
 				sprintf(buf, "%s_%d", p->type_push.var.val,
-						p->type_push.var.depth);
+				        p->type_push.var.depth);
 				added = add_variable(&cur_function_data, stackSize + 4, buf,
-									 false, true);
+				                     false, true);
 			} else {
 				added = add_variable(&cur_function_data, stackSize + 4,
-									 p->type_push.var.val, false, false);
+				                     p->type_push.var.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;

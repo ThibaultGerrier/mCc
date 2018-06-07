@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Usage (in builddir) ../test/run ../doc/examples.fib.mc
+# Compiles the file and runs it
+# deletes all generated files afterwards
+
+./mCc $1 > ./run.s
+gcc -m32 -S -O0 -fno-stack-protector -fno-asynchronous-unwind-tables -fsingle-precision-constant ../doc/test_mCc/buildins.c -o ./buildins.s
+gcc -m32 -c ./run.s -o ./run.o
+gcc -m32 -c ./buildins.s -o ./buildins.o
+gcc -m32 -o ./run ./buildins.o ./run.o
+./run
+
+#rm ./run.o ./buildins.o ./run.s ./buildins.s ./run
