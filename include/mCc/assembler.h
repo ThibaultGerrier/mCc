@@ -2,11 +2,11 @@
 #define MCC_ASSEMBLER_H
 
 #endif // MCC_ASSEMBLER_H
+#include "../../src/uthash.h"
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "../../src/uthash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,21 +37,20 @@ struct mCc_ass_static_data {
 };
 typedef struct mCc_ass_static_data *mCc_ass_static_data_node;
 
-typedef struct list {
+typedef struct mCc_ass_list {
 	void *data;
-	struct list *next;
-} List;
+	struct mCc_ass_list *next;
+} mCc_ass_List;
 
-struct ass {
+struct mCc_ass {
 	// List *strings;
 	mCc_ass_static_data_node strings;
 	mCc_ass_static_data_node floats;
-	List *function_data;
+	mCc_ass_List *function_data;
 };
 
 void mCc_ass_print_assembler_program(struct mCc_ast_program *, FILE *);
 void mCc_ass_print_assembler(struct mCc_tac *, FILE *);
-
 
 #ifdef __cplusplus
 }

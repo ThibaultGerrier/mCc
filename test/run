@@ -11,4 +11,4 @@ gcc -m32 -c ./buildins.s -o ./buildins.o
 gcc -m32 -o ./run ./buildins.o ./run.o
 ./run
 
-#rm ./run.o ./buildins.o ./run.s ./buildins.s ./run
+rm ./run.o ./buildins.o ./run.s ./buildins.s ./run

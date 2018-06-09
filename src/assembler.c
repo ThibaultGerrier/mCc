@@ -8,13 +8,13 @@
 int mCc_ass_label;
 bool DEBUG = false;
 
-int round_up(double x)
+int mCc_ass_round_up(double x)
 {
 	return (int)(x + 0.5);
 }
 
-bool add_variable(mCc_ass_function_var_node *table, int location,
-                  char *var_name, bool is_reference, bool needs_free)
+bool mCc_ass_add_variable(mCc_ass_function_var_node *table, int location,
+                          char *var_name, bool is_reference, bool needs_free)
 {
 	// fprintf(stderr, "%s\n", var_name);
 	struct mCc_ass_function_var *s;
@@ -45,7 +45,7 @@ void add_static_data(mCc_ass_static_data_node *table, int label, char *name,
 	}
 }
 
-void print_var_table(mCc_ass_function_var_node table)
+void mCc_ass_print_var_table(mCc_ass_function_var_node table)
 {
 	mCc_ass_function_var_node s;
 	for (s = table; s != NULL; s = (mCc_ass_function_var_node)(s->hh.next)) {
@@ -54,7 +54,7 @@ void print_var_table(mCc_ass_function_var_node table)
 	}
 }
 
-void print_static_data_table(mCc_ass_static_data_node table, FILE *out)
+void mCc_ass_print_static_data_table(mCc_ass_static_data_node table, FILE *out)
 {
 	mCc_ass_static_data_node s;
 	for (s = table; s != NULL; s = (mCc_ass_static_data_node)(s->hh.next)) {
@@ -67,20 +67,20 @@ void print_static_data_table(mCc_ass_static_data_node table, FILE *out)
 	}
 }
 
-List *create(void *data, List *next)
+mCc_ass_List *mCc_ass_create(void *data, mCc_ass_List *next)
 {
-	List *new_node = (List *)malloc(sizeof(List));
+	mCc_ass_List *new_node = (mCc_ass_List *)malloc(sizeof(mCc_ass_List));
 	new_node->data = data;
 	new_node->next = next;
 	return new_node;
 }
 
-List *append(List *head, void *data)
+mCc_ass_List *mCc_ass_append(mCc_ass_List *head, void *data)
 {
-	List *new_node = create(data, NULL);
+	mCc_ass_List *new_node = mCc_ass_create(data, NULL);
 	if (head == NULL)
 		return new_node;
-	List *cursor = head;
+	mCc_ass_List *cursor = head;
 	while (cursor->next != NULL)
 		cursor = cursor->next;
 	cursor->next = new_node;
@@ -101,20 +101,30 @@ int mCc_ass_new_label()
 	return mCc_ass_label;
 }
 
-void print_func_data(void *v, FILE *out)
+void mCc_ass_print_func_data(void *v, FILE *out)
 {
 	mCc_ass_function_node n = (mCc_ass_function_node)v;
-	print_var_table(n->data);
+	mCc_ass_print_var_table(n->data);
 	fprintf(stderr, "---\n");
 }
 
-void print_func(void *v, FILE *out)
+void mCc_ass_delete_func_data(void *v, FILE *out)
 {
 	mCc_ass_function_node n = (mCc_ass_function_node)v;
-	fprintf(out, "FUNCTION: %s\n", n->name);
+	struct mCc_ass_function_var *temp;
+	struct mCc_ass_function_var *curr;
+	HASH_ITER(hh, n->data, curr, temp)
+	{
+		HASH_DEL(n->data, curr); /* delete; users advances to next */
+		if (curr->needs_free) {
+			free(curr->name);
+		}
+		free(curr); /* optional- if you want to free  */
+	}
+	// free(v);
 }
 
-void print(List *p, void (*f)(void *, FILE *), FILE *out)
+void mCc_ass_iterate_ll(mCc_ass_List *p, void (*f)(void *, FILE *), FILE *out)
 {
 	while (p) {
 		(*f)(p->data, out);
@@ -122,8 +132,9 @@ void print(List *p, void (*f)(void *, FILE *), FILE *out)
 	}
 }
 
-mCc_ass_function_var_node get_function_var(mCc_ass_function_var_node table,
-                                           struct mCc_tac_var var)
+mCc_ass_function_var_node
+mCc_ass_get_function_var(mCc_ass_function_var_node table,
+                         struct mCc_tac_var var)
 {
 	struct mCc_ass_function_var *arg_var;
 	if (var.depth != -1) {
@@ -141,20 +152,22 @@ mCc_ass_function_var_node get_function_var(mCc_ass_function_var_node table,
 	return arg_var;
 }
 
-int get_location(mCc_ass_function_var_node table, struct mCc_tac_var var)
+int mCc_ass_get_location(mCc_ass_function_var_node table,
+                         struct mCc_tac_var var)
 {
-	return get_function_var(table, var)->location;
+	return mCc_ass_get_function_var(table, var)->location;
 }
 
-bool get_reference(mCc_ass_function_var_node table, struct mCc_tac_var var)
+bool mCc_ass_get_reference(mCc_ass_function_var_node table,
+                           struct mCc_tac_var var)
 {
-	return get_function_var(table, var)->is_reference;
+	return mCc_ass_get_function_var(table, var)->is_reference;
 }
 
-void analyze(mCc_tac_node head, FILE *out)
+void mCc_ass_analyze(mCc_tac_node head, FILE *out)
 {
-	struct ass *ass;
-	ass = (struct ass *)malloc(sizeof(struct ass));
+	struct mCc_ass *ass;
+	ass = (struct mCc_ass *)malloc(sizeof(struct mCc_ass));
 	ass->strings = NULL;
 	ass->floats = NULL;
 	ass->function_data = NULL;
@@ -184,11 +197,12 @@ void analyze(mCc_tac_node head, FILE *out)
 				                   (strlen(p->type_simple.arg0.val) + 5));
 				sprintf(buf, "%s_%d", p->type_simple.arg0.val,
 				        p->type_simple.arg0.depth);
-				added = add_variable(&cur_function_data, stackSize + 4, buf,
-				                     false, true);
+				added = mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                             buf, false, true);
 			} else {
-				added = add_variable(&cur_function_data, stackSize + 4,
-				                     p->type_simple.arg0.val, false, false);
+				added =
+				    mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                         p->type_simple.arg0.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;
@@ -203,11 +217,12 @@ void analyze(mCc_tac_node head, FILE *out)
 				                   (strlen(p->type_double.arg0.val) + 5));
 				sprintf(buf, "%s_%d", p->type_double.arg0.val,
 				        p->type_double.arg0.depth);
-				added = add_variable(&cur_function_data, stackSize + 4, buf,
-				                     false, true);
+				added = mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                             buf, false, true);
 			} else {
-				added = add_variable(&cur_function_data, stackSize + 4,
-				                     p->type_double.arg0.val, false, false);
+				added =
+				    mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                         p->type_double.arg0.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;
@@ -221,11 +236,12 @@ void analyze(mCc_tac_node head, FILE *out)
 				    malloc(sizeof(char) * (strlen(p->type_unary.arg0.val) + 5));
 				sprintf(buf, "%s_%d", p->type_unary.arg0.val,
 				        p->type_unary.arg0.depth);
-				added = add_variable(&cur_function_data, stackSize + 4, buf,
-				                     false, true);
+				added = mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                             buf, false, true);
 			} else {
-				added = add_variable(&cur_function_data, stackSize + 4,
-				                     p->type_unary.arg0.val, false, false);
+				added =
+				    mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                         p->type_unary.arg0.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;
@@ -241,11 +257,11 @@ void analyze(mCc_tac_node head, FILE *out)
 					                   (strlen(p->type_pop.var.val) + 5));
 					sprintf(buf, "%s_%d", p->type_pop.var.val,
 					        p->type_pop.var.depth);
-					add_variable(&cur_function_data, stackSize + 4, buf, false,
-					             true);
+					mCc_ass_add_variable(&cur_function_data, stackSize + 4, buf,
+					                     false, true);
 				} else {
-					add_variable(&cur_function_data, stackSize + 4,
-					             p->type_pop.var.val, false, false);
+					mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+					                     p->type_pop.var.val, false, false);
 				}
 				stackSize += 4;
 			} else {
@@ -253,8 +269,8 @@ void analyze(mCc_tac_node head, FILE *out)
 				    malloc(sizeof(char) * (strlen(p->type_pop.var.val) + 5));
 				sprintf(buf, "%s_%d", p->type_pop.var.val,
 				        p->type_pop.var.depth);
-				add_variable(&cur_function_data, popStackSize + 4, buf, true,
-				             true);
+				mCc_ass_add_variable(&cur_function_data, popStackSize + 4, buf,
+				                     true, true);
 			}
 			popStackSize += 4;
 
@@ -267,11 +283,12 @@ void analyze(mCc_tac_node head, FILE *out)
 				    malloc(sizeof(char) * (strlen(p->type_push.var.val) + 5));
 				sprintf(buf, "%s_%d", p->type_push.var.val,
 				        p->type_push.var.depth);
-				added = add_variable(&cur_function_data, stackSize + 4, buf,
-				                     false, true);
+				added = mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                             buf, false, true);
 			} else {
-				added = add_variable(&cur_function_data, stackSize + 4,
-				                     p->type_push.var.val, false, false);
+				added =
+				    mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+				                         p->type_push.var.val, false, false);
 			}
 			if (added) {
 				stackSize += 4;
@@ -283,8 +300,8 @@ void analyze(mCc_tac_node head, FILE *out)
 		case TAC_LINE_TYPE_IFZ: break;
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
 		case TAC_LINE_TYPE_IDEN_ARRAY:
-			add_variable(&cur_function_data, stackSize + 4,
-			             p->type_array_iden.var.val, false, false);
+			mCc_ass_add_variable(&cur_function_data, stackSize + 4,
+			                     p->type_array_iden.var.val, false, false);
 			stackSize += 4;
 			break;
 		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: {
@@ -292,10 +309,10 @@ void analyze(mCc_tac_node head, FILE *out)
 			                   (strlen(p->type_assign_array.arr.val) + 5));
 			sprintf(buf, "%s_%d", p->type_assign_array.arr.val,
 			        p->type_assign_array.arr.depth);
-			bool added =
-			    add_variable(&cur_function_data,
-			                 p->type_assign_array.arr.array * 4 + stackSize,
-			                 buf, false, true);
+			bool added = mCc_ass_add_variable(
+			    &cur_function_data,
+			    p->type_assign_array.arr.array * 4 + stackSize, buf, false,
+			    true);
 
 			if (added) {
 				stackSize += p->type_assign_array.arr.array * 4;
@@ -314,10 +331,10 @@ void analyze(mCc_tac_node head, FILE *out)
 			node->name = p->type_label_func_end.func_name;
 
 			// round up needed size to the next multiple of 16;
-			node->stack_size = round_up((double)stackSize / 16) * 16;
+			node->stack_size = mCc_ass_round_up((double)stackSize / 16) * 16;
 
 			node->data = cur_function_data;
-			ass->function_data = append(ass->function_data, node);
+			ass->function_data = mCc_ass_append(ass->function_data, node);
 
 			// reset stuff
 			stackSize = 0;
@@ -331,7 +348,7 @@ void analyze(mCc_tac_node head, FILE *out)
 	}
 
 	if (DEBUG) {
-		print(ass->function_data, print_func_data, out);
+		mCc_ass_iterate_ll(ass->function_data, mCc_ass_print_func_data, out);
 		// print(ass->strings, print_static_data_table, out);
 		fprintf(stderr, "----\n");
 	}
@@ -341,7 +358,7 @@ void analyze(mCc_tac_node head, FILE *out)
 	if (HASH_COUNT(ass->strings) > 0) {
 		fprintf(out, "\t.section\t.rodata\n");
 	}
-	print_static_data_table(ass->strings, out);
+	mCc_ass_print_static_data_table(ass->strings, out);
 	fprintf(out, "\t.text\n");
 
 	int funcRetLabel = 0;
@@ -349,7 +366,7 @@ void analyze(mCc_tac_node head, FILE *out)
 	int popSize = 4;
 	// mCc_tac_node p;
 	p = head;
-	List *func_data_temp = ass->function_data;
+	mCc_ass_List *func_data_temp = ass->function_data;
 	mCc_ass_function_node function_data = NULL;
 	while (p != NULL) {
 		switch (p->type) {
@@ -366,7 +383,7 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		case TAC_LINE_TYPE_SIMPLE: {
 			int location_arg0 =
-			    get_location(function_data->data, p->type_simple.arg0);
+			    mCc_ass_get_location(function_data->data, p->type_simple.arg0);
 			if (p->type_simple.arg1.literal == true) {
 				switch (p->type_simple.arg1.type) {
 				case MCC_AST_TYPE_BOOL:
@@ -402,8 +419,8 @@ void analyze(mCc_tac_node head, FILE *out)
 					break;
 				}
 			} else {
-				int location_arg1 =
-				    get_location(function_data->data, p->type_simple.arg1);
+				int location_arg1 = mCc_ass_get_location(function_data->data,
+				                                         p->type_simple.arg1);
 				switch (
 				    p->type_simple.arg0
 				        .type) { // arg0 or 1, shouldn't matter (should be same)
@@ -426,9 +443,9 @@ void analyze(mCc_tac_node head, FILE *out)
 		}
 		case TAC_LINE_TYPE_UNARY: {
 			int location_arg0 =
-			    get_location(function_data->data, p->type_unary.arg0);
+			    mCc_ass_get_location(function_data->data, p->type_unary.arg0);
 			int location_arg1 =
-			    get_location(function_data->data, p->type_unary.arg1);
+			    mCc_ass_get_location(function_data->data, p->type_unary.arg1);
 
 			switch (p->type_unary.op.op) {
 			case MCC_AST_UNARY_OP_NOT:
@@ -462,11 +479,11 @@ void analyze(mCc_tac_node head, FILE *out)
 
 		case TAC_LINE_TYPE_DOUBLE: {
 			int location_arg0 =
-			    get_location(function_data->data, p->type_double.arg0);
+			    mCc_ass_get_location(function_data->data, p->type_double.arg0);
 			int location_arg1 =
-			    get_location(function_data->data, p->type_double.arg1);
+			    mCc_ass_get_location(function_data->data, p->type_double.arg1);
 			int location_arg2 =
-			    get_location(function_data->data, p->type_double.arg2);
+			    mCc_ass_get_location(function_data->data, p->type_double.arg2);
 
 			switch (p->type_double.arg1.type) {
 			case MCC_AST_TYPE_BOOL:
@@ -650,7 +667,8 @@ void analyze(mCc_tac_node head, FILE *out)
 			pushSize = 0;
 			break;
 		case TAC_LINE_TYPE_POP: {
-			int location = get_location(function_data->data, p->type_pop.var);
+			int location =
+			    mCc_ass_get_location(function_data->data, p->type_pop.var);
 			if (p->type_pop.var.array == 0) {
 				switch (p->type_pop.var.type) {
 				case MCC_AST_TYPE_STRING:
@@ -675,7 +693,8 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 		case TAC_LINE_TYPE_POP_RETURN: {
-			int location = get_location(function_data->data, p->type_pop.var);
+			int location =
+			    mCc_ass_get_location(function_data->data, p->type_pop.var);
 
 			switch (p->type_pop.var.type) {
 			case MCC_AST_TYPE_STRING:
@@ -695,11 +714,11 @@ void analyze(mCc_tac_node head, FILE *out)
 		case TAC_LINE_TYPE_PUSH: {
 			if (p->type_push.var.array == 0) {
 				int location =
-				    get_location(function_data->data, p->type_push.var);
+				    mCc_ass_get_location(function_data->data, p->type_push.var);
 				fprintf(out, "\tpushl\t-%d(%%ebp)\n", location);
 			} else {
 				int location =
-				    get_location(function_data->data, p->type_push.var);
+				    mCc_ass_get_location(function_data->data, p->type_push.var);
 				fprintf(out, "\tleal\t-%d(%%ebp), %%eax\n", location);
 				fprintf(out, "\tpushl\t%%eax\n");
 			}
@@ -709,8 +728,8 @@ void analyze(mCc_tac_node head, FILE *out)
 
 		case TAC_LINE_TYPE_RETURN: {
 			if (p->type_return.var.type != MCC_AST_TYPE_VOID) {
-				int location =
-				    get_location(function_data->data, p->type_return.var);
+				int location = mCc_ass_get_location(function_data->data,
+				                                    p->type_return.var);
 				switch (p->type_return.var.type) {
 				case MCC_AST_TYPE_STRING:
 				case MCC_AST_TYPE_BOOL:
@@ -729,7 +748,8 @@ void analyze(mCc_tac_node head, FILE *out)
 			break;
 		}
 		case TAC_LINE_TYPE_IFZ: {
-			int location = get_location(function_data->data, p->type_ifz.var);
+			int location =
+			    mCc_ass_get_location(function_data->data, p->type_ifz.var);
 			fprintf(out, "\tcmpl\t$0, -%d(%%ebp)\n", location);
 			fprintf(out, "\tje\t.L%d\n", p->type_label.label_name);
 			break;
@@ -737,15 +757,15 @@ void analyze(mCc_tac_node head, FILE *out)
 
 		case TAC_LINE_TYPE_DECL_ARRAY: break;
 		case TAC_LINE_TYPE_IDEN_ARRAY: {
-			int location_arr =
-			    get_location(function_data->data, p->type_array_iden.arr);
-			int location_index =
-			    get_location(function_data->data, p->type_array_iden.loc);
-			int location_var =
-			    get_location(function_data->data, p->type_array_iden.var);
+			int location_arr = mCc_ass_get_location(function_data->data,
+			                                        p->type_array_iden.arr);
+			int location_index = mCc_ass_get_location(function_data->data,
+			                                          p->type_array_iden.loc);
+			int location_var = mCc_ass_get_location(function_data->data,
+			                                        p->type_array_iden.var);
 
-			bool arr_is_ref =
-			    get_reference(function_data->data, p->type_array_iden.arr);
+			bool arr_is_ref = mCc_ass_get_reference(function_data->data,
+			                                        p->type_array_iden.arr);
 
 			if (arr_is_ref) {
 				switch (p->type_array_iden.var.type) {
@@ -795,14 +815,14 @@ void analyze(mCc_tac_node head, FILE *out)
 		}
 
 		case TAC_LINE_TYPE_ASSIGNMENT_ARRAY: {
-			int location_arr =
-			    get_location(function_data->data, p->type_assign_array.arr);
-			int location_index =
-			    get_location(function_data->data, p->type_assign_array.loc);
-			int location_var =
-			    get_location(function_data->data, p->type_assign_array.var);
-			bool arr_is_ref =
-			    get_reference(function_data->data, p->type_assign_array.arr);
+			int location_arr = mCc_ass_get_location(function_data->data,
+			                                        p->type_assign_array.arr);
+			int location_index = mCc_ass_get_location(function_data->data,
+			                                          p->type_assign_array.loc);
+			int location_var = mCc_ass_get_location(function_data->data,
+			                                        p->type_assign_array.var);
+			bool arr_is_ref = mCc_ass_get_reference(function_data->data,
+			                                        p->type_assign_array.arr);
 
 			if (arr_is_ref) {
 				switch (p->type_array_iden.var.type) {
@@ -874,10 +894,39 @@ void analyze(mCc_tac_node head, FILE *out)
 	if (HASH_COUNT(ass->floats) > 0) {
 		fprintf(out, "\t.section\t.rodata\n");
 	}
-	print_static_data_table(ass->floats, out);
+	mCc_ass_print_static_data_table(ass->floats, out);
 
 	fprintf(out, "\t.ident\t\"mCc "
 	             "compiler\"\n\t.section\t.note.GNU-stack,\"\",@progbits\n");
+
+	// free stuff
+	mCc_ass_iterate_ll(ass->function_data, mCc_ass_delete_func_data, NULL);
+	mCc_ass_List *p_del = ass->function_data;
+	while (p_del != NULL) {
+		mCc_ass_List *temp = p_del;
+		p_del = p_del->next;
+		free(temp->data);
+		free(temp);
+	}
+
+	// free(ass->function_data);
+	struct mCc_ass_static_data *temp;
+	struct mCc_ass_static_data *curr;
+	HASH_ITER(hh, ass->strings, curr, temp)
+	{
+		HASH_DEL(ass->strings, curr);
+		free(curr);
+	}
+
+	struct mCc_ass_static_data *temp_f;
+	struct mCc_ass_static_data *curr_f;
+	HASH_ITER(hh, ass->floats, curr_f, temp_f)
+	{
+		HASH_DEL(ass->floats, curr_f);
+		free(curr_f);
+	}
+
+	free(ass);
 }
 
 void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
@@ -889,7 +938,7 @@ void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 	if (DEBUG)
 		mCc_tac_print_tac(tac, stderr);
 
-	analyze(tac, out);
+	mCc_ass_analyze(tac, out);
 }
 
 void mCc_ass_print_assembler(struct mCc_tac *tac, FILE *out)
@@ -897,5 +946,5 @@ void mCc_ass_print_assembler(struct mCc_tac *tac, FILE *out)
 	assert(tac);
 	if (DEBUG)
 		mCc_tac_print_tac(tac, stderr);
-	analyze(tac, out);
+	mCc_ass_analyze(tac, out);
 }
