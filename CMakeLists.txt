@@ -35,4 +35,6 @@ target_link_libraries(mCc mCc_lib)
 add_executable(mC_to_dot src/bin/mC_to_dot.c src/tac.c include/mCc/tac.h src/assembler.c include/mCc/assembler.h)
 target_link_libraries(mC_to_dot mCc_lib)
 
+add_executable(mC_to_cfg src/bin/mC_to_cfg.c src/tac.c include/mCc/tac.h src/assembler.c include/mCc/assembler.h)
+target_link_libraries(mC_to_cfg mCc_lib)
 
