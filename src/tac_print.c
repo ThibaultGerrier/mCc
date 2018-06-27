@@ -28,6 +28,15 @@ static void print_dot_node(FILE *out, const void *node, const char *label)
     fprintf(out, "\t\"%p\" [shape=box, label=\"%s\"];\n", node, label);
 }
 
+static void print_dot_node_diamond(FILE *out, const void *node, const char *label)
+{
+    assert(out);
+    assert(node);
+    assert(label);
+
+    fprintf(out, "\t\"%p\" [shape=diamond, label=\"%s\"];\n", node, label);
+}
+
 static void print_dot_node_label(FILE *out, int label)
 {
     assert(out);
@@ -61,20 +70,25 @@ static void print_dot_edge_from_label(FILE *out,
 
 
 static void print_dot_edge_label(FILE *out, const void *src_node,
-                           int label)
+                           int label, bool ifz)
 {
     assert(out);
     assert(src_node);
     assert(label);
+    if(ifz==true){
+        fprintf(out, "\t\"%p\" -> \"Label%d\" [label=\"%s\"];\n", src_node, label,"YES");
+    }else{
+        fprintf(out, "\t\"%p\" -> \"Label%d\" [label=\"%s\"];\n", src_node, label,"");
+    }
 
-    fprintf(out, "\t\"%p\" -> \"Label%d\" [label=\"%s\"];\n", src_node, label,"");
+
 }
 
 
 static void check_dot_edge(FILE *out, mCc_tac_node node,const char *label)
 {
-    if(node->next!=NULL && node->next->type != TAC_LINE_TYPE_LABELFUNC_END){
-        print_dot_edge(out,node,node->next,"");
+    if(node->next!=NULL){
+        print_dot_edge(out,node,node->next,label);
     }
 }
 
@@ -103,12 +117,12 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 char *var1 = mCc_tac_get_tac_var(p->type_simple.arg0);
                 char *var2 = mCc_tac_get_tac_var(p->type_simple.arg1);
                 char label[LABEL_SIZE] = { 0 };
-                snprintf(label, sizeof(label), "\t%s = %s\n", var1, var2);
+                snprintf(label, sizeof(label), "%s = %s\n", var1, var2);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
 
                 free(var1);
@@ -120,15 +134,15 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 char *var2 = mCc_tac_get_tac_var(p->type_double.arg1);
                 char *var3 = mCc_tac_get_tac_var(p->type_double.arg2);
                 char label[LABEL_SIZE] = { 0 };
-                snprintf(label, sizeof(label), "\t%s = %s %s %s\n", var1, var2,
+                snprintf(label, sizeof(label), "%s = %s %s %s\n", var1, var2,
                          mCc_tac_get_binary_op(p->type_double.op.op,
                                                p->type_double.op.type),
                          var3);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 free(var2);
@@ -139,13 +153,13 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 char *var1 = mCc_tac_get_tac_var(p->type_unary.arg0);
                 char *var2 = mCc_tac_get_tac_var(p->type_unary.arg1);
                 char label[LABEL_SIZE] = { 0 };
-                snprintf(label, sizeof(label), "\t%s = %s %s\n", var1,
+                snprintf(label, sizeof(label), "%s = %s %s\n", var1,
                          mCc_get_unary_op(p->type_unary.op.op), var2);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 free(var2);
@@ -156,9 +170,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 snprintf(label, sizeof(label), "CALL(%s)\n", p->type_call.name);
                 print_dot_node(out, p, label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 break;
             }
@@ -168,9 +182,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 snprintf(label, sizeof(label),  "%s = POP\n", var1);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
 
                 free(var1);
@@ -182,9 +196,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 snprintf(label, sizeof(label),  "%s = POP\n", var1);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
 
                 free(var1);
@@ -196,9 +210,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 snprintf(label, sizeof(label),  "%s = PUSH\n", var1);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 break;
@@ -209,9 +223,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 snprintf(label, sizeof(label),  "%s = RETURN\n", var1);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 break;
@@ -221,21 +235,21 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 char label[LABEL_SIZE] = {0};
                 snprintf(label, sizeof(label),  "IF-Zero %s GOTO Label%d\n", var,
                 p->type_ifz.jump_label_name);
-                print_dot_node(out,p,label);
-                check_dot_edge(out,p,label);
-                print_dot_edge_label(out,p,p->type_ifz.jump_label_name);
+                print_dot_node_diamond(out,p,label);
+                check_dot_edge(out,p,"NO");
+                print_dot_edge_label(out,p,p->type_ifz.jump_label_name,true);
                 free(var);
                 break;
             }
             case TAC_LINE_TYPE_DECL_ARRAY: {
                 char *var1 = mCc_tac_get_tac_var(p->type_decl_array.var);
                 char label[LABEL_SIZE] = {0};
-                snprintf(label, sizeof(label),  "\t%s[%d]\n", var1, p->type_decl_array.var.array);
+                snprintf(label, sizeof(label),  "%s[%d]\n", var1, p->type_decl_array.var.array);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 break;
@@ -246,12 +260,12 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 char *var2 = mCc_tac_get_tac_var(p->type_array_iden.loc);
                 char *var3 = mCc_tac_get_tac_var(p->type_array_iden.var);
                 char label[LABEL_SIZE] = {0};
-                snprintf(label, sizeof(label),   "\t%s = %s[%s]\n", var3, var1, var2);
+                snprintf(label, sizeof(label),   "%s = %s[%s]\n", var3, var1, var2);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 free(var2);
@@ -264,12 +278,12 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 char *var3 = mCc_tac_get_tac_var(p->type_assign_array.var);
 
                 char label[LABEL_SIZE] = {0};
-                snprintf(label, sizeof(label),    "\t%s[%s] = %s\n", var1, var2, var3);
+                snprintf(label, sizeof(label),    "%s[%s] = %s\n", var1, var2, var3);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 free(var1);
                 free(var2);
@@ -286,9 +300,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
             }
             case TAC_LINE_TYPE_JUMP: {
                 char label[LABEL_SIZE] = {0};
-                snprintf(label, sizeof(label), "\tGOTO Label%d\n", p->type_jump.jump_name);
+                snprintf(label, sizeof(label), "GOTO Label%d\n", p->type_jump.jump_name);
                 print_dot_node(out,p,label);
-                print_dot_edge_label(out,p,p->type_jump.jump_name);
+                print_dot_edge_label(out,p,p->type_jump.jump_name,false);
                 break;
             }
             case TAC_LINE_TYPE_LABELFUNC:
@@ -297,9 +311,9 @@ void mCc_tac_print_dot(FILE *out, mCc_tac_node head)
                 snprintf(label, sizeof(label), "START %s", p->type_label_func.func_name);
                 print_dot_node(out,p,label);
                 if(p->next->type==TAC_LINE_TYPE_LABEL){
-                    print_dot_edge_label(out,p,p->next->type_label.label_name);
+                    print_dot_edge_label(out,p,p->next->type_label.label_name,false);
                 }else{
-                    check_dot_edge(out,p,label);
+                    check_dot_edge(out,p,"");
                 }
                 break;
             case TAC_LINE_TYPE_LABELFUNC_END: {
