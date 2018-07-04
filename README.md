@@ -62,4 +62,8 @@ You might need to install pdftk for this to work.
 
 - The compiler optimization are not implemented
 
-- Type checking lacks check for arrays
+- Type checking is incomplete for arrays. You can for instance add an array and a primitive as long both have the same type. 
+```
+void main(){int[3] a; int b; b = a;} 
+```
+will lead to an error and also an reassignment of an array will result in an error.
