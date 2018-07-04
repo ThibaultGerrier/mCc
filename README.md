@@ -47,6 +47,9 @@ language (/doc/test_mCc/test1.mC).
 
 We then further on added a few google tests, which only compare outputs for some simple code snippets.
 
+For more information how to use the compiler, please try
+    $ ./mcC --help
+
 
 ## Known Issues
 
