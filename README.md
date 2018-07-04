@@ -21,12 +21,7 @@ A more detailed overview can be found in [`doc/overview.md`](doc/overview.md).
 
 ## Building and Testing
 
-First, get the source code.
-
-    $ git clone https://github.com/W4RH4WK/mCc.git
-    $ cd mCc
-
-Next, generate the build directory.
+Generate the build directory.
 [Google Test](https://github.com/google/googletest) is used for unit testing.
 Meson downloads and builds it automatically if it is not found on your system.
 
@@ -55,8 +50,6 @@ We then further on added a few google tests, which only compare outputs for some
 
 ## Known Issues
 
-- When running integrations tests even_pi.mC fails with the last digit being one off
-(expected: 3.137594, Got: 3.137593)
-Unfortunately we do not know why.
-
 - The compiler optimization are not implemented
+
+- Type checking lacks check for arrays
