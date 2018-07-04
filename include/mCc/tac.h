@@ -10,6 +10,7 @@
 #include "mCc/parser.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include "../../src/uthash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +21,8 @@ struct mCc_tac_var {
 	int array;
 	char *val;
 	int depth;
+	bool literal;	// if variable is literal value e.g. "a", 1, false
+	//bool reference; // if variable was passed by reference e.g
 };
 
 struct mCc_tac_op {
@@ -27,11 +30,18 @@ struct mCc_tac_op {
 	enum mCc_ast_type type;
 };
 
+struct mCc_tac_op_unary {
+	enum mCc_ast_unary_op op;
+	enum mCc_ast_type type;
+};
+
 enum mCc_tac_line_type {
 	TAC_LINE_TYPE_SIMPLE,
 	TAC_LINE_TYPE_DOUBLE,
+	TAC_LINE_TYPE_UNARY,
 	TAC_LINE_TYPE_CALL,
 	TAC_LINE_TYPE_POP,
+	TAC_LINE_TYPE_POP_RETURN,
 	TAC_LINE_TYPE_PUSH,
 	TAC_LINE_TYPE_RETURN,
 	TAC_LINE_TYPE_IFZ,
@@ -78,6 +88,7 @@ struct mCc_tac {
 			char *func_name;
 		} type_label_func_end;
 
+		// POP and POP_RETURN
 		struct {
 			struct mCc_tac_var var;
 		} type_pop;
@@ -110,6 +121,12 @@ struct mCc_tac {
 		} type_double;
 
 		struct {
+			struct mCc_tac_var arg0;
+			struct mCc_tac_var arg1;
+			struct mCc_tac_op_unary op;
+		} type_unary;
+
+		struct {
 			struct mCc_tac_var arr;
 			struct mCc_tac_var loc;
 			struct mCc_tac_var var;
@@ -119,6 +136,10 @@ struct mCc_tac {
 };
 
 typedef struct mCc_tac *mCc_tac_node;
+
+char *mCc_tac_get_tac_var(struct mCc_tac_var);
+
+char *mCc_tac_get_binary_op(enum mCc_ast_binary_op op, enum mCc_ast_type t);
 
 void mCc_ast_print_tac_program(FILE *out, struct mCc_ast_program *result);
 mCc_tac_node mCc_ast_get_tac_program(struct mCc_ast_program *);

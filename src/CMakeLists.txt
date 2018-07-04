@@ -10,13 +10,13 @@ bison_target(parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.c COMPILE_FL
 add_flex_bison_dependency(scanner parser)
 
 # basic ast
-add_library(mCc_ast SHARED  ast.c ast_function_return_check.c error_manager.c ../include/mCc/ast_function_return_check.h  ../include/mCc/error_manager.h)
+add_library(mCc_ast SHARED  ast.c ast_function_return_check.c error_manager.c ../include/mCc/ast_function_return_check.h  ../include/mCc/error_manager.h tac_print.c)
 
 # visitors
 add_library(mCc_visit SHARED ast_visit.c)
 
 # prints
-add_library(mCc_print SHARED ast_print.c)
+add_library(mCc_print SHARED ast_print.c tac_print.c)
 
 # symbol table
 add_library(mCc_symbol SHARED symbol_table.c)

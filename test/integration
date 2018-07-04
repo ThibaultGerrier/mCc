@@ -18,7 +18,8 @@ readonly DIR=$(dirname "$(readlink -f "$0")")
 readonly EXAMPLES_DIR="${EXAMPLES_DIR:-$DIR/../doc/examples}"
 
 # mC compiler binary.
-readonly MCC="${MCC:-./mCc}"
+#readonly MCC="${MCC:-./mCc}"
+readonly MCC="${MCC:-../test/expect}"
 
 # colour support
 if [[ -t 1 ]]; then

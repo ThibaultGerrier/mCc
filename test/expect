@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Usage (in builddir) ../test/expect ../doc/examples.fib.mc (or any file in that folder)
+# compares the stdout from the *.stdout with the one running the executable
+# from the mCc compiler with the input file (*.stdin)
+
+stdin_file="$1.stdin"
+stdout_file="$1.stdout"
+str_actual=$(cat $stdin_file | ../test/run $1)
+str_supposed=$(cat $stdout_file)
+
+if [ "$str_actual" = "$str_supposed" ]; then
+  echo "SUCESS"
+  exit 0
+else
+  echo "FAIL"
+  echo "Expected:"
+  echo "****************************************"
+  echo "$str_supposed"
+  echo "****************************************"
+  echo ""
+  echo "Got:"
+  echo "****************************************"
+  echo "$str_actual"
+  echo "****************************************"
+  exit 1
+fi

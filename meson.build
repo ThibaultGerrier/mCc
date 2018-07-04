@@ -32,8 +32,10 @@ mCc_inc = include_directories('include')
 
 mCc_src = [ 'src/ast.c',
             'src/ast_print.c',
+            'src/tac_print.c',
             'src/ast_visit.c',
             'src/tac.c',
+            'src/assembler.c',
             'src/ast_symbol_table.c',
             'src/ast_type_checking.c',
             'src/error_manager.c',
@@ -51,7 +53,7 @@ mCc_lib_test = library('mCc_test', mCc_src,
 
 # ----------------------------------------------------------------- EXECUTABLES
 
-mCc_exes = [ 'mCc', 'mC_to_dot' ]
+mCc_exes = [ 'mCc', 'mC_to_dot', 'mC_to_cfg' ]
 
 foreach exe : mCc_exes
     executable(exe, 'src/bin/' + exe + '.c',
@@ -73,7 +75,7 @@ endforeach
 
 gtest = dependency('gtest', fallback: ['gtest', 'gtest_main_dep'])
 
-mCc_uts = [ 'parser', 'symbol_table', 'return_check', 'type_checking', 'tac' ]
+mCc_uts = [ 'parser', 'symbol_table', 'return_check', 'type_checking', 'tac', 'assembler', 'cfg' ]
 
 foreach ut : mCc_uts
     t = executable('ut_' + ut.underscorify(), 'test/' + ut + '.cpp',
