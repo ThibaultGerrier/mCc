@@ -66,4 +66,4 @@ You might need to install pdftk for this to work.
 ```
 void main(){int[3] a; int b; b = a;} 
 ```
-will lead to an error and also an reassignment of an array will result in an error.
+will lead to an error message and the assignment of a primitive to an array. An reassignment of an array will also result in an error message.
