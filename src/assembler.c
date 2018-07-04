@@ -192,8 +192,9 @@ void mCc_ass_analyze(mCc_tac_node head, FILE *out)
 			}
 			// if (p->type_simple.arg0.literal == false) {
 			bool added;
+			char *buf = NULL;
 			if (p->type_simple.arg0.depth != -1) {
-				char *buf = malloc(sizeof(char) *
+				buf = malloc(sizeof(char) *
 				                   (strlen(p->type_simple.arg0.val) + 5));
 				sprintf(buf, "%s_%d", p->type_simple.arg0.val,
 				        p->type_simple.arg0.depth);
@@ -206,6 +207,8 @@ void mCc_ass_analyze(mCc_tac_node head, FILE *out)
 			}
 			if (added) {
 				stackSize += 4;
+			} else {
+				free(buf);
 			}
 			//}
 			break;
@@ -278,8 +281,9 @@ void mCc_ass_analyze(mCc_tac_node head, FILE *out)
 		}
 		case TAC_LINE_TYPE_PUSH: {
 			bool added;
+			char *buf = NULL;
 			if (p->type_push.var.depth != -1) {
-				char *buf =
+				buf =
 				    malloc(sizeof(char) * (strlen(p->type_push.var.val) + 5));
 				sprintf(buf, "%s_%d", p->type_push.var.val,
 				        p->type_push.var.depth);
@@ -292,6 +296,8 @@ void mCc_ass_analyze(mCc_tac_node head, FILE *out)
 			}
 			if (added) {
 				stackSize += 4;
+			} else {
+				free(buf);
 			}
 			break;
 		}
@@ -316,6 +322,8 @@ void mCc_ass_analyze(mCc_tac_node head, FILE *out)
 
 			if (added) {
 				stackSize += p->type_assign_array.arr.array * 4;
+			} else {
+				free(buf);
 			}
 			break;
 		}
@@ -939,6 +947,8 @@ void mCc_ass_print_assembler_program(struct mCc_ast_program *program, FILE *out)
 		mCc_tac_print_tac(tac, stderr);
 
 	mCc_ass_analyze(tac, out);
+
+	mCc_tac_delete_tac(tac);
 }
 
 void mCc_ass_print_assembler(struct mCc_tac *tac, FILE *out)
