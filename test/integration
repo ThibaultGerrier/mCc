@@ -18,8 +18,9 @@ readonly DIR=$(dirname "$(readlink -f "$0")")
 readonly EXAMPLES_DIR="${EXAMPLES_DIR:-$DIR/../doc/examples}"
 
 # mC compiler binary.
-#readonly MCC="${MCC:-./mCc}"
-readonly MCC="${MCC:-../test/expect}"
+readonly MCC="${MCC:-./mCc}"
+# extension, so that the output of the executed compiled binary is tested as well
+readonly MCC_EXPECT="${MCC:-../test/expect}"
 
 # colour support
 if [[ -t 1 ]]; then
@@ -43,7 +44,8 @@ option_csv=false
 run_compiler()
 {
 	local input=$1
-	\time -f "%e %M %x" "$MCC" "$input" 2>&1 | tail -n1
+	# echo $(../build/"$MCC_EXPECT" ../doc/examples/"$input")
+	\time -f "%e %M %x" "$MCC_EXPECT" "$input" 2>&1 | tail -n1
 	return ${PIPESTATUS[0]}
 }
 

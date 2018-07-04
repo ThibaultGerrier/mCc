@@ -6,7 +6,7 @@
 
 stdin_file="$1.stdin"
 stdout_file="$1.stdout"
-str_actual=$(cat $stdin_file | ../test/run $1)
+str_actual=$(cat $stdin_file | ./mCc $1; ./a.out)
 str_supposed=$(cat $stdout_file)
 
 if [ "$str_actual" = "$str_supposed" ]; then

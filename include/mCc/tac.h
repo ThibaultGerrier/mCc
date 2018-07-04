@@ -5,7 +5,6 @@
 #ifndef MCC_TAC_H
 #define MCC_TAC_H
 
-#endif // MCC_TAC_H
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 #include <stdbool.h>
@@ -167,3 +166,4 @@ mCc_tac_node mCc_tac_create_node();
 #ifdef __cplusplus
 }
 #endif
+#endif // MCC_TAC_H

@@ -4,6 +4,7 @@
 #endif // MCC_ASSEMBLER_H
 #include "../../src/uthash.h"
 #include "mCc/ast.h"
+#include "mCc/tac.h"
 #include "mCc/parser.h"
 #include <stdbool.h>
 #include <stdio.h>
