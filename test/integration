@@ -20,7 +20,7 @@ readonly EXAMPLES_DIR="${EXAMPLES_DIR:-$DIR/../doc/examples}"
 # mC compiler binary.
 readonly MCC="${MCC:-./mCc}"
 # extension, so that the output of the executed compiled binary is tested as well
-readonly MCC_EXPECT="${MCC:-../test/expect}"
+readonly MCC_EXPECT="${MCC_EXPECT:-../test/expect}"
 
 # colour support
 if [[ -t 1 ]]; then
