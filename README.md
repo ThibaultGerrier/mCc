@@ -1,6 +1,6 @@
 # mC Compiler
 
-This repository holds a *getting started* code-base for the [compiler construction course](https://github.com/W4RH4WK/UIBK-703602-Compiler-Construction).
+This repository holds a code-base for the [compiler construction course](https://github.com/W4RH4WK/UIBK-703602-Compiler-Construction).
 
 A more detailed overview can be found in [`doc/overview.md`](doc/overview.md).
 
@@ -47,6 +47,16 @@ This is automated by a Bash script.
 
     $ ../test/integration
 
+For testing the assembler code we originally were using a self written testing framework in the mC
+language (/doc/test_mCc/test1.mC).
+
+We then further on added a few google tests, which only compare outputs for some simple code snippets.
+
+
 ## Known Issues
 
-- None
+- When running integrations tests even_pi.mC fails with the last digit being one off
+(expected: 3.137594, Got: 3.137593)
+Unfortunately we do not know why.
+
+- The compiler optimization are not implemented
