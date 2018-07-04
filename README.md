@@ -18,6 +18,7 @@ A more detailed overview can be found in [`doc/overview.md`](doc/overview.md).
 - `flex` for generating the lexer
 - `bison` for generating the parser
 - a compiler supporting C11 (and C++14 for unit tests) -- typically GCC or Clang
+- `pdftk` for the generation of CFG - pdfs (see CFG paragraph below)
 
 ## Building and Testing
 
@@ -43,13 +44,19 @@ This is automated by a Bash script.
     $ ../test/integration
 
 For testing the assembler code we originally were using a self written testing framework in the mC
-language (/doc/test_mCc/test1.mC).
-
+language (/doc/test_mCc/test1.mC, see /doc/test_mCc/usage.txt for info on how to run test).
 We then further on added a few google tests, which only compare outputs for some simple code snippets.
 
 For more information how to use the compiler, please try
     $ ./mcC --help
 
+To generate a CFG for a mC program please use mC_to_cfg like in the following:
+   ./mC_to_cfg %yourfile% > cfg.txt && dot -Tpdf cfg.txt | csplit --quiet --elide-empty-files --prefix=tmpx - "/%%EOF/+1" "{*}" && pdftk tmpx* cat output cfg.pdf && rm -f tmpx*g
+
+This generates a pdf called 'cfg.pdf' with one cfg per function/page.
+Make sure to replace %yourfile% with a valid mC program, eg. ../doc/examples/fib.mC
+We had some problems using dot to generated multiple graphs in one picture, this method attaches all pictures into a single pdf.
+You might need to install pdftk for this to work.
 
 ## Known Issues
 
